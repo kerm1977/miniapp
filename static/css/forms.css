@@ -2,7 +2,7 @@
 
 .form-group {
     margin-bottom: 15px;
-    position: relative; /* Para posicionar el icono del ojo */
+    position: relative;
 }
 
 label {
@@ -10,61 +10,39 @@ label {
     margin-bottom: 5px;
 }
 
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="file"] {
+/* Especificidad aumentada y corrección del selector */
+input.form-control.rounded[type="text"],
+input.form-control.rounded[type="email"],
+input.form-control.rounded[type="password"],
+input.form-control.rounded[type="tel"],
+input.form-control.rounded[type="number"] {
     width: 100%;
     padding: 8px;
     box-sizing: border-box;
-    border-radius: 50px; /* Bordes redondeados */
-    background-color: #f8f8f8; /* Fondo gris muy claro */
-    border: 1px solid #ccc; /* Añade un borde sutil para contraste */
-    padding-right: 30px; /* Espacio para el icono del ojo */
-}
-
-.error {
-    color: red;
-}
-
-.success {
-    color: green;
+    border-radius: 50px;
+    background-color: #f8f8f8;
+    border: 1px solid #ccc;
+    padding-right: 30px;
 }
 
 .password-container {
-    position: relative; /* Para posicionar el icono dentro del input */
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .password-toggle {
     position: absolute;
-    top: 50%;
     right: 10px;
+    top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
-    user-select: none; /* Evita la selección de texto del icono */
-    color: #777;
-    font-size: 1em; /* Ajusta el tamaño del icono si es necesario */
-    display: flex; /* Para centrar el icono */
-    justify-content: center;
-    align-items: center;
-    height: 100%; /* Asegura que ocupe la altura del input */
+    color: #888;
 }
 
-.password-toggle i {
-    /* Estilos para el icono (tamaño, color, etc. si es necesario) */
+.form-control:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
-
-.form-check {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.form-check-input {
-    margin-right: 5px;
-}
-
-.form-check-label {
-    margin-bottom: 0; /* Para alinear verticalmente con el checkbox */
-}
