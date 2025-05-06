@@ -2,26 +2,6 @@
 {% block title %}Iniciar Sesión{% endblock %}
 {% block content %}
 
-    <style>
-        body { font-family: sans-serif; }
-        .container { width: 300px; margin: 50px auto; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; }
-        input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-            border-radius: 50px; /* Bordes redondeados */
-            background-color: #f8f8f8; /* Fondo gris muy claro */
-            border: 1px solid #ccc; /* Añade un borde sutil para contraste */
-        }
-
-        input[type="text"], input[type="email"], input[type="password"], input[type="file"] { width: 100%; padding: 8px; box-sizing: border-box; }
-        .error { color: red; }
-        .success { color: green; }
-        .show-password { cursor: pointer; }
-    </style>
-
     <div class="container">
         <h2>Registro</h2>
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -70,8 +50,12 @@
 
             <div class="form-group">
                 {{ form.password.label }}
-                {{ form.password }}
-                <span class="show-password" onclick="togglePassword('password')">Mostrar</span>
+                <div class="password-container">
+                    {{ form.password }}
+                    <span class="password-toggle" onclick="togglePassword('password', this)">
+                        <i class="fa fa-eye"></i>
+                    </span>
+                </div>
                 {% if form.password.errors %}
                     <ul class="errors">
                         {% for error in form.password.errors %}
@@ -82,8 +66,12 @@
             </div>
             <div class="form-group">
                 {{ form.confirm_password.label }}
-                {{ form.confirm_password }}
-                <span class="show-password" onclick="togglePassword('confirm_password')">Mostrar</span>
+                <div class="password-container">
+                    {{ form.confirm_password }}
+                    <span class="password-toggle" onclick="togglePassword('confirm_password', this)">
+                        <i class="fa fa-eye"></i>
+                    </span>
+                </div>
                 {% if form.confirm_password.errors %}
                     <ul class="errors">
                         {% for error in form.confirm_password.errors %}
@@ -102,12 +90,18 @@
     </div>
 
     <script>
-        function togglePassword(inputId) {
+        function togglePassword(inputId, toggleElement) {
             var passwordInput = document.querySelector('input[name="' + inputId + '"]');
             var type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
+            var eyeIcon = toggleElement.querySelector('i');
+            eyeIcon.classList.remove('fa-eye', 'fa-eye-slash');
+            if (type === 'password') {
+                eyeIcon.classList.add('fa-eye');
+            } else {
+                eyeIcon.classList.add('fa-eye-slash');
+            }
         }
     </script>
 
-   
 {% endblock %}

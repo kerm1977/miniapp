@@ -1,6 +1,6 @@
 @import url('navbar.css');
 @import url('base.css');
 @import url('bootstrap.css');
+@import url('forms.css');
 /*FUENTES*/
-@import url('fontawesome.css');
-@import url('all.css');
+@import url('../fontawesome/css/all.min.css');

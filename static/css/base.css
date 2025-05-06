@@ -1,5 +1,135 @@
-/* Estilos para el contenedor del contenido principal */
+/* base.css */
+body {
+    font-family: sans-serif;
+    margin: 0;
+}
+
 .container {
-    margin-top: 100px; /* Añade un margen superior de 200px */
-    /* Mantén los demás estilos que ya tengas para el contenedor */
+    width: 80%;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+.top-right {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.gear-icon, .logout-icon {
+    font-size: 24px;
+    text-decoration: none;
+    color: #333;
+    margin-left: 15px;
+}
+
+.username-display {
+    margin-right: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Estilos para los mensajes flash */
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+}
+
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.alert-info {
+    color: #0c5460;
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+}
+
+.alert-dismissible {
+    position: relative;
+    padding-right: 35px;
+}
+
+.btn-close-custom {
+    position: absolute;
+    top: 50%;
+    right: 0.2rem;
+    width: 2em;
+    height: 2em;
+    padding: 0;
+    color: #000;
+    background-color: transparent;
+    border: 0;
+    border-radius: 0.25rem;
+    opacity: 0.5;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.btn-close-custom:hover {
+    opacity: 0.75;
+}
+
+.btn-close-custom span {
+    font-size: 1.5rem;
+}
+
+/* Estilos para el formulario de login */
+.container-login {
+    width: 300px;
+    margin: 50px auto;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    background-color: #f8f8f8;
+    border: 1px solid #ccc;
+}
+
+.error {
+    color: red;
+}
+
+.success {
+    color: green;
+}
+
+.show-password {
+    cursor: pointer;
+}
+
+
+/* Nuevo estilo para el block content */
+.content-block {
+    margin: 200px;
+    margin-top: 150px; /* Cambiamos el margen superior a 150px */
 }

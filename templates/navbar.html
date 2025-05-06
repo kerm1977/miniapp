@@ -26,9 +26,15 @@
             </a>
         </div>
         <div class="magic-nav-button">
-            <a href="{{ url_for('login') }}">
-                <i class="fas fa-user"></i>
-            </a>
+            {% if current_user.is_authenticated %}
+                <a href="#" style="pointer-events: none; opacity: 0.2;">
+                    <i class="fas fa-user"></i>
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}">
+                    <i class="fas fa-user"></i>
+                </a>
+            {% endif %}
         </div>
     </div>
 </nav>
