@@ -53,3 +53,18 @@ input[type="file"] {
 .password-toggle i {
     /* Estilos para el icono (tamaño, color, etc. si es necesario) */
 }
+
+
+.form-check {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.form-check-input {
+    margin-right: 5px;
+}
+
+.form-check-label {
+    margin-bottom: 0; /* Para alinear verticalmente con el checkbox */
+}

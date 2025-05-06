@@ -1,13 +1,14 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField  # Importar BooleanField
 from wtforms.validators import DataRequired, Email, EqualTo
 from werkzeug.utils import secure_filename
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from datetime import timedelta  # Importar timedelta
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -17,12 +18,13 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'da
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'static/images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=30)  # Configurar la duración de la cookie
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'  # Define la página de login
+login_manager.login_view = 'login'  # Define la página de inicio de sesión
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -45,6 +47,7 @@ class User(db.Model, UserMixin):
 class LoginForm(FlaskForm):
     username = StringField('Usuario', validators=[DataRequired()])
     password = PasswordField('Contraseña', validators=[DataRequired()])
+    remember_me = BooleanField('Recordar contraseña')  # Agregar el campo remember_me
     submit = SubmitField('Iniciar Sesión')
 
 class RegistrationForm(FlaskForm):
@@ -70,9 +73,10 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user and user.check_password(form.password.data):
-            login_user(user)
+            login_user(user, remember=form.remember_me.data)  # Pasar el valor de remember_me a login_user
             flash('¡Inicio de sesión exitoso!', 'success')
-            return redirect(url_for('index'))
+            next_page = request.args.get('next')
+            return redirect(next_page or url_for('index'))
         else:
             flash('Nombre de usuario o contraseña incorrectos.', 'danger')
     return render_template('login.html', form=form)

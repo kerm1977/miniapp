@@ -1,14 +1,11 @@
 {% extends 'base.html' %}
 {% block title %}Iniciar Sesión{% endblock %}
 {% block content %}
-    
     <div class="container">
         <h2>Iniciar Sesión</h2>
-        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% with messages = get_flashed_messages() %}
             {% if messages %}
-                {% for category, message in messages %}
-                    <div class="{{ category }}">{{ message }}</div>
-                {% endfor %}
+                <div class="error">{{ messages[0] }}</div>
             {% endif %}
         {% endwith %}
         <form method="POST">
@@ -16,15 +13,8 @@
             <div class="form-group">
                 {{ form.username.label }}
                 {{ form.username }}
-                {% if form.username.errors %}
-                    <ul class="errors">
-                        {% for error in form.username.errors %}
-                            <li class="error">{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
             </div>
-             <div class="form-group">
+            <div class="form-group">
                 {{ form.password.label }}
                 <div class="password-container">
                     {{ form.password }}
@@ -32,24 +22,29 @@
                         <i class="fa fa-eye"></i>
                     </span>
                 </div>
-                {% if form.password.errors %}
-                    <ul class="errors">
-                        {% for error in form.password.errors %}
-                            <li class="error">{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
             </div>
-            {{ form.submit }}
+            <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me" {{ 'checked' if form.remember_me.data else '' }}>
+                <label class="form-check-label" for="remember_me">Recordar contraseña</label>
+            </div>
+            <div class="form-group">
+                {{ form.submit }}
+            </div>
+            <p>¿No tienes una cuenta? <a href="{{ url_for('registro') }}">Regístrate aquí</a></p>
         </form>
-        <p>¿No tienes cuenta? <a href="{{ url_for('registro') }}">Regístrate aquí</a></p>
     </div>
-
     <script>
-        function togglePassword() {
-            var passwordInput = document.querySelector('input[name="password"]');
+        function togglePassword(inputId, toggleElement) {
+            var passwordInput = document.querySelector('input[name="' + inputId + '"]');
             var type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
+            var eyeIcon = toggleElement.querySelector('i');
+            eyeIcon.classList.remove('fa-eye', 'fa-eye-slash');
+            if (type === 'password') {
+                eyeIcon.classList.add('fa-eye');
+            } else {
+                eyeIcon.classList.add('fa-eye-slash');
+            }
         }
     </script>
 {% endblock %}
