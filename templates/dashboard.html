@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <h2>Bienvenido al Dashboard</h2>
+    {% if session['user_id'] %}
+        <p>¡Hola, usuario con ID {{ session['user_id'] }}!</p>
+        <p>Número de veces que has iniciado sesión: {{ login_count }}</p>
+        <p><a href="{{ url_for('logout') }}" class="btn btn-warning">Cerrar Sesión</a></p>
+    {% else %}
+        <p>No has iniciado sesión.</p>
+        <p><a href="{{ url_for('login') }}" class="btn btn-primary">Iniciar Sesión</a></p>
+    {% endif %}
+{% endblock %}

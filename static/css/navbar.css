@@ -1,0 +1,78 @@
+/* Estilos básicos para el magic navbar (los que ya tenías) */
+.magic-navbar {
+    background-color: #f8f9fa;
+    color: #343a40;
+    padding: 0.5rem 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    border-top: 1px solid #dee2e6;
+}
+
+.magic-nav-buttons {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.magic-nav-button {
+    flex-grow: 1;
+    text-align: center;
+    padding: 0.5rem 0;
+}
+
+.magic-nav-button a {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+.magic-nav-button:hover {
+    background-color: #e9ecef;
+}
+
+.magic-nav-button i {
+    font-size: 1.2rem;
+    margin-bottom: 0.2rem;
+    /* Eliminamos el color general del icono aquí */
+}
+
+/* Estilos de color pastel para cada icono */
+.magic-nav-button:nth-child(1) i { /* Primer icono (Home) */
+    color: #FFD1DC; /* Rosa pastel */
+}
+
+.magic-nav-button:nth-child(2) i { /* Segundo icono (Address Book) */
+    color: #A7D1EB; /* Azul pastel */
+}
+
+.magic-nav-button:nth-child(3) i { /* Tercer icono (Calendar) */
+    color: #c67D84; /* Amarillo pastel */
+}
+
+.magic-nav-button:nth-child(4) i { /* Cuarto icono (File) */
+    color: #C3E4ED; /* Celeste pastel */
+}
+
+.magic-nav-button:nth-child(5) i { /* Quinto icono (Image) */
+    color: #B0E3D5; /* Verde menta pastel */
+}
+
+.magic-nav-button:nth-child(6) i { /* Sexto icono (User) */
+    color: #D8BFD8; /* Lavanda pastel */
+}
+
+/* Estilos responsivos (opcional) */
+@media (max-width: 768px) {
+    .magic-nav-buttons {
+        /* Ajustes para pantallas más pequeñas */
+    }
+    .magic-nav-button {
+        /* Ajustes para los botones en pantallas más pequeñas */
+    }
+    .magic-nav-button i {
+        font-size: 1.5rem; /* Ajustar tamaño de iconos en móvil si es necesario */
+    }
+}

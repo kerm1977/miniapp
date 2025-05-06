@@ -1,0 +1,63 @@
+<div class="container">
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+        {% if mensajes %}
+            {% for categoria, mensaje in mensajes %}
+                <div class="alert alert-{{ categoria }} alert-dismissible fade show" role="alert">
+                    {{ mensaje }}
+                    <button type="button" class="btn-close-custom" aria-label="Close" style="padding: 0.4rem; font-size: 1rem; border-radius: 50%; float: right; border: 1px solid #ccc; background-color: #f0f0f0; cursor: pointer; line-height: 1; width: 2em; height: 2em; display: flex; justify-content: center; align-items: center;">
+                        <span aria-hidden="true" style="font-size: 1.2rem; line-height: 1;">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    {% block content %}
+    {% endblock %}
+</div>
+
+<style>
+    .alert-dismissible {
+        padding-right: 35px; /* Ajusta según el tamaño final del botón */
+    }
+    .btn-close-custom {
+    position: absolute;
+    top: 50%; /* Empuja el botón al centro vertical */
+    right: 0.2rem; /* Ajusta la posición horizontal si es necesario */
+    width: 2em;
+    height: 2em;
+    padding: 0;
+    color: #333;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    cursor: pointer;
+    opacity: 0.8;
+    line-height: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: translateY(-50%); /* Ajusta la posición verticalmente en base a su propio tamaño */
+}
+    .btn-close-custom:hover {
+        opacity: 1;
+        background-color: #e0e0e0;
+    }
+    .btn-close-custom span {
+        font-weight: bold;
+        font-size: 1.2rem; /* Adjust the size of the 'x' */
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const alertList = document.querySelectorAll('.alert-dismissible');
+        alertList.forEach(function (alert) {
+            const closeButton = alert.querySelector('.btn-close-custom');
+            if (closeButton) {
+                closeButton.addEventListener('click', function() {
+                    alert.remove();
+                });
+            }
+        });
+    });
+</script>

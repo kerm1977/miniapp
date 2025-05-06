@@ -1,0 +1,19 @@
+miniapp
+|-env
+|-static
+	|-css
+	|-fontawesome
+	|-js
+|-templates
+	|-base.html
+	|-dashboard.html
+	|-flash.html
+	|-index.html
+	|-login.html
+	|-registro.html
+app.py
+estructura.txt
+form.py
+README.md
+requirements.txt
+secret_key
