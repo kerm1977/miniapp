@@ -26,8 +26,8 @@ login_manager.login_message = "Por favor, inicia sesión para acceder a esta pá
 
 
 def is_authenticated(self):
-        return True
-        
+    return True
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
 
@@ -69,6 +69,12 @@ class RegistrationForm(FlaskForm):
     image = FileField('Imagen de Usuario', validators=[FileAllowed(ALLOWED_EXTENSIONS, 'Solo se permiten imágenes png, jpg, jpeg o gif.')])
     submit = SubmitField('Registrarse')
 
+class LoginForm(FlaskForm):
+    username = StringField('Usuario', validators=[DataRequired()])
+    password = PasswordField('Contraseña', validators=[DataRequired()])
+    remember_me = BooleanField('Recordarme')
+    submit = SubmitField('Iniciar sesión')
+
 class EditUserForm(FlaskForm):
     username = StringField('Usuario', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
@@ -76,12 +82,9 @@ class EditUserForm(FlaskForm):
     telefono = StringField('Teléfono', validators=[DataRequired(), Regexp('^[0-9]+$'), Length(min=8, max=10, message='El teléfono debe tener entre 8 y 10 dígitos')])
     submit = SubmitField('Guardar Cambios')
 
-
-class LoginForm(FlaskForm):
-    username = StringField('Usuario', validators=[DataRequired()])
-    password = PasswordField('Contraseña', validators=[DataRequired()])
-    remember_me = BooleanField('Recordarme')
-    submit = SubmitField('Iniciar sesión')
+class UpdateProfileImageForm(FlaskForm):
+    image = FileField('Nueva Imagen de Perfil', validators=[FileAllowed(ALLOWED_EXTENSIONS, 'Solo se permiten imágenes png, jpg, jpeg o gif.')])
+    submit = SubmitField('Actualizar Imagen')
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -154,6 +157,67 @@ def logout():
 def index():
     return render_template('index.html')
 
+@app.route('/editar_perfil', methods=['GET', 'POST'])
+@login_required
+def editar_perfil():
+    form = EditUserForm(obj=current_user)
+    if form.validate_on_submit():
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+        current_user.cedula = form.cedula.data
+        current_user.telefono = form.telefono.data
+        db.session.commit()
+        flash('Tu perfil ha sido actualizado.', 'success')
+        return redirect(url_for('perfil'))
+    return render_template('editar_perfil.html', form=form)
+
+@app.route('/borrar_perfil', methods=['POST'])
+@login_required
+def borrar_perfil():
+    user_to_delete = User.query.get(current_user.id)
+    if user_to_delete:
+        logout_user()
+        db.session.delete(user_to_delete)
+        db.session.commit()
+        flash('Tu cuenta ha sido borrada.', 'success')
+        return redirect(url_for('index'))
+    else:
+        flash('Error al intentar borrar la cuenta.', 'danger')
+        return redirect(url_for('perfil'))
+
+@app.route('/actualizar_imagen', methods=['POST'])
+@login_required
+def actualizar_imagen():
+    form = UpdateProfileImageForm()
+    if form.validate_on_submit():
+        image = form.image.data
+        if image:
+            filename = secure_filename(image.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            image.save(filepath)
+
+            # Eliminar la imagen anterior si existe
+            if current_user.image_filename and os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], current_user.image_filename)):
+                os.remove(os.path.join(app.config['UPLOAD_FOLDER'], current_user.image_filename))
+
+            current_user.image_filename = filename
+            db.session.commit()
+            flash('Tu imagen de perfil ha sido actualizada.', 'success')
+        else:
+            flash('No se seleccionó ninguna imagen.', 'warning')
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'Error en el campo {getattr(form, field).label.text}: {error}', 'danger')
+    return redirect(url_for('perfil'))
+
+@app.route('/perfil')
+@login_required
+def perfil():
+    users = User.query.all()
+    form = UpdateProfileImageForm()  # Add this line
+    return render_template('perfil.html', users=users, form=form) # and this change
+
 @app.route('/editar_usuario/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 def editar_usuario(user_id):
@@ -187,40 +251,6 @@ def borrar_usuario(user_id):
     db.session.commit()
     flash(f'El usuario {user.username} ha sido borrado.', 'success')
     return redirect(url_for('perfil'))
-
-@app.route('/perfil')
-@login_required
-def perfil():
-    users = User.query.all()
-    return render_template('perfil.html', users=users)
-
-@app.route('/editar_perfil', methods=['GET', 'POST'])
-@login_required
-def editar_perfil():
-    form = EditUserForm(obj=current_user)
-    if form.validate_on_submit():
-        current_user.username = form.username.data
-        current_user.email = form.email.data
-        current_user.cedula = form.cedula.data
-        current_user.telefono = form.telefono.data
-        db.session.commit()
-        flash('Tu perfil ha sido actualizado.', 'success')
-        return redirect(url_for('perfil'))
-    return render_template('editar_perfil.html', form=form)
-
-@app.route('/borrar_perfil', methods=['POST'])
-@login_required
-def borrar_perfil():
-    user_to_delete = User.query.get(current_user.id)
-    if user_to_delete:
-        logout_user()
-        db.session.delete(user_to_delete)
-        db.session.commit()
-        flash('Tu cuenta ha sido borrada.', 'success')
-        return redirect(url_for('index'))
-    else:
-        flash('Error al intentar borrar la cuenta.', 'danger')
-        return redirect(url_for('perfil'))
 
 if __name__ == '__main__':
     with app.app_context():
