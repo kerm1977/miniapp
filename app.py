@@ -164,17 +164,36 @@ class ContactoForm(FlaskForm):
     submit = SubmitField('Guardar', render_kw={"class": "btn btn-primary"})
 
 class BusquedaContactoForm(FlaskForm):
-    busqueda = StringField('Buscar Contacto', render_kw={"class": "rounded-pill"})
-    tipo_busqueda = SelectField('Buscar por', choices=[
-        ('nombre', 'Nombre'),
-        ('primer_apellido', 'Primer Apellido'),
-        ('segundo_apellido', 'Segundo Apellido'),
-        ('telefono', 'Teléfono'),
-        ('movil', 'Móvil'),
-        ('email', 'Email'),
-        ('actividad', 'Actividad')
-        # Agrega aquí más opciones de búsqueda si lo deseas
-    ], render_kw={"class": "rounded-pill"})
+    busqueda = SelectField('Buscar por Actividad', choices=[
+        ('', 'Seleccionar Actividad'),
+        ('La Tribu', 'La Tribu'),
+        ('Senderista', 'Senderista'),
+        ('Enfermería', 'Enfermería'),
+        ('Cocina', 'Cocina'),
+        ('Confección y Diseño', 'Confección y Diseño'),
+        ('Restaurante', 'Restaurante'),
+        ('Transporte Terrestre', 'Transporte Terrestre'),
+        ('Transporte Acuatico', 'Transporte Acuatico'),
+        ('Transporte Aereo', 'Transporte Aereo'),
+        ('Migración', 'Migración'),
+        ('Parque Nacional', 'Parque Nacional'),
+        ('Refugio Silvestre', 'Refugio Silvestre'),
+        ('Centro de Atracción', 'Centro de Atracción'),
+        ('Lugar para Caminata', 'Lugar para Caminata'),
+        ('Acarreo', 'Acarreo'),
+        ('Oficina de trámite', 'Oficina de trámite'),
+        ('Primeros Auxilios', 'Primeros Auxilios'),
+        ('Farmacia', 'Farmacia'),
+        ('Taller', 'Taller'),
+        ('Abobado', 'Abobado'),
+        ('Mensajero', 'Mensajero'),
+        ('Tienda', 'Tienda'),
+        ('Polizas', 'Polizas'),
+        ('Aerolínea', 'Aerolínea'),
+        ('Guía', 'Guía'),
+        ('Banco', 'Banco'),
+        ('Otros', 'Otros') # Cambié 'Otros (especifique)' a 'Otros' para la búsqueda
+    ], render_kw={"class": "rounded-pill form-select"})
     submit_buscar = SubmitField('Buscar', render_kw={"class": "btn btn-secondary"})
 
 
@@ -492,12 +511,25 @@ def buscar_contacto():
     form_busqueda = BusquedaContactoForm()
     if form_busqueda.validate_on_submit():
         termino_busqueda = form_busqueda.busqueda.data
-        tipo_busqueda = form_busqueda.tipo_busqueda.data
-        contactos = Contacto.query.filter(
-            getattr(Contacto, tipo_busqueda).like(f'%{termino_busqueda}%')
-        ).filter_by(usuario_id=current_user.id).all()
-        return render_template('listar_contacto.html', contactos=contactos, form_busqueda=form_busqueda)
+        if termino_busqueda: # Asegurarse de que se haya seleccionado algo
+            contactos = Contacto.query.filter(
+                Contacto.tipo_actividad.like(f'%{termino_busqueda}%')
+            ).filter_by(usuario_id=current_user.id).all()
+            return render_template('listar_contacto.html', contactos=contactos, form_busqueda=form_busqueda)
+        else:
+            # Si no se selecciona ninguna actividad, mostrar todos los contactos
+            contactos = Contacto.query.filter_by(usuario_id=current_user.id).all()
+            return render_template('listar_contacto.html', contactos=contactos, form_busqueda=form_busqueda)
     return redirect(url_for('listar_contacto'))
+
+
+
+
+
+
+
+
+    
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

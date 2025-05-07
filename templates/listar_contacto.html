@@ -20,14 +20,12 @@
                 {{ form_busqueda.busqueda.label(class="form-label") }}
                 {{ form_busqueda.busqueda(class="rounded-pill form-control") }}
             </div>
-            <div class="col-auto">
-                {{ form_busqueda.tipo_busqueda.label(class="form-label") }}
-                {{ form_busqueda.tipo_busqueda(class="rounded-pill form-select") }}
-            </div>
+          
             <div class="col-auto">
                 {{ form_busqueda.submit_buscar(class="btn btn-secondary") }}
             </div>
         </form>
+        <a href="{{ url_for('listar_contacto') }}" class="btn btn-outline-secondary mt-2">Limpiar Búsqueda</a>
     </div>
 
     {% if contactos %}
@@ -52,9 +50,9 @@
             <tbody>
                 {% for contacto in contactos %}
                     <tr>
-                        <td>{{ contacto.nombre }}</td>
-                        <td>{{ contacto.primer_apellido or '-' }}</td>
-                        <td>{{ contacto.segundo_apellido or '-' }}</td>
+                        <td>{{ contacto.nombre | title}}</td>
+                        <td>{{ contacto.primer_apellido | title or '-' }}</td>
+                        <td>{{ contacto.segundo_apellido | title or '-' }}</td>
                         <td>{{ contacto.telefono }}</td>
                         <td>{{ contacto.movil or '-' }}</td>
                         <td>{{ contacto.email or '-' }}</td>
