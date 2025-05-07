@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Editar Contacto{% endblock %}
 {% block content %}
-   {% if current_user.is_authenticated %}
+    {% if current_user.is_authenticated %}
         <div class="top-right">
             <span class="username-display">{{ current_user.username }}</span>
             <a href="{{ url_for('perfil') }}" class="gear-icon"><i class="fas fa-cog"></i></a>
@@ -10,10 +10,8 @@
     {% else %}
     {% endif %}
 
-
-
     <h1>Editar Contacto</h1>
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         {{ form.csrf_token }}
         <div class="mb-3">
             {{ form.nombre.label(class="form-label") }}
@@ -27,8 +25,30 @@
             {% endif %}
         </div>
         <div class="mb-3">
+            {{ form.primer_apellido.label(class="form-label") }}
+            {{ form.primer_apellido(class="rounded-pill", value=form.primer_apellido.data or '') }}
+            {% if form.primer_apellido.errors %}
+                <ul class="errors">
+                    {% for error in form.primer_apellido.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.segundo_apellido.label(class="form-label") }}
+            {{ form.segundo_apellido(class="rounded-pill", value=form.segundo_apellido.data or '') }}
+            {% if form.segundo_apellido.errors %}
+                <ul class="errors">
+                    {% for error in form.segundo_apellido.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
             {{ form.telefono.label(class="form-label") }}
-            {{ form.telefono(class="rounded-pill",value=form.telefono.data) }}
+            {{ form.telefono(class="rounded-pill", value=form.telefono.data) }}
             {% if form.telefono.errors %}
                 <ul class="errors">
                     {% for error in form.telefono.errors %}
@@ -38,8 +58,19 @@
             {% endif %}
         </div>
         <div class="mb-3">
+            {{ form.movil.label(class="form-label") }}
+            {{ form.movil(class="rounded-pill", value=form.movil.data or '') }}
+            {% if form.movil.errors %}
+                <ul class="errors">
+                    {% for error in form.movil.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
             {{ form.email.label(class="form-label") }}
-            {{ form.email(class="rounded-pill", value=form.email.data) }}
+            {{ form.email(class="rounded-pill", value=form.email.data or '') }}
             {% if form.email.errors %}
                 <ul class="errors">
                     {% for error in form.email.errors %}
@@ -50,13 +81,61 @@
         </div>
         <div class="mb-3">
             {{ form.direccion.label(class="form-label") }}
-            {{ form.direccion(class="rounded-pill", value=form.direccion.data) }}
+            {{ form.direccion(class="rounded-pill", value=form.direccion.data or '') }}
             {% if form.direccion.errors %}
                 <ul class="errors">
                     {% for error in form.direccion.errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
                 </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.tipo_actividad.label(class="form-label") }}
+            {{ form.tipo_actividad(class="rounded-pill") }}
+            {% if form.tipo_actividad.errors %}
+                <ul class="errors">
+                    {% for error in form.tipo_actividad.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.nota.label(class="form-label") }}
+            {{ form.nota(class="rounded-pill", value=form.nota.data or '') }}
+            {% if form.nota.errors %}
+                <ul class="errors">
+                    {% for error in form.nota.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.direccion_mapa.label(class="form-label") }}
+            {{ form.direccion_mapa(class="rounded-pill", value=form.direccion_mapa.data or '') }}
+            {% if form.direccion_mapa.errors %}
+                <ul class="errors">
+                    {% for error in form.direccion_mapa.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.avatar.label(class="form-label") }}
+            {{ form.avatar(class="rounded-pill") }}
+            {% if form.avatar.errors %}
+                <ul class="errors">
+                    {% for error in form.avatar.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% if contacto.avatar_path %}
+                <img src="{{ url_for('static', filename='images/' + contacto.avatar_path.split('/')[-1]) }}" alt="Avatar actual" style="width: 50px; height: 50px; border-radius: 50%; margin-top: 10px;">
+                <small class="form-text text-muted">Dejar en blanco para mantener el avatar actual.</small>
             {% endif %}
         </div>
         {{ form.submit(class="btn btn-primary") }}

@@ -11,19 +11,7 @@ label {
 }
 
 /* Especificidad aumentada y corrección del selector */
-input.form-control.rounded[type="text"],
-input.form-control.rounded[type="email"],
-input.form-control.rounded[type="password"],
-input.form-control.rounded[type="tel"],
-input.form-control.rounded[type="number"] {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
-    border-radius: 50px;
-    background-color: #f8f8f8;
-    border: 1px solid #ccc;
-    padding-right: 30px;
-}
+
 
 .password-container {
     position: relative;

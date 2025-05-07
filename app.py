@@ -1,6 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms import StringField, SubmitField, SelectField, FileField, TextAreaField,PasswordField, BooleanField # Asegúrate de que SelectField y TextAreaField estén aquí
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Regexp
 from flask_wtf.file import FileField, FileAllowed
 from werkzeug.utils import secure_filename
@@ -8,6 +8,8 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, LoginManager, login_user, logout_user, login_required, current_user
+from datetime import datetime
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'tu_clave_secreta'
@@ -16,6 +18,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 UPLOAD_FOLDER = os.path.join('static', 'images')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -62,9 +65,18 @@ class User(UserMixin, db.Model):
 class Contacto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
+    primer_apellido = db.Column(db.String(100))
+    segundo_apellido = db.Column(db.String(100))
     telefono = db.Column(db.String(20), nullable=False)
+    movil = db.Column(db.String(20))
     email = db.Column(db.String(120))
     direccion = db.Column(db.String(200))
+    actividad = db.Column(db.String(100))
+    tipo_actividad = db.Column(db.String(100))
+    nota = db.Column(db.Text)
+    direccion_mapa = db.Column(db.String(255))
+    avatar_path = db.Column(db.String(255)) # Para guardar la ruta del avatar
+    fecha_ingreso = db.Column(db.DateTime, default=datetime.utcnow)
     usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     usuario = db.relationship('User', backref=db.backref('contactos', lazy=True))
 
@@ -108,11 +120,63 @@ class SearchForm(FlaskForm):
 
 
 class ContactoForm(FlaskForm):
-    nombre = StringField('Nombre', validators=[DataRequired()])
-    telefono = StringField('Teléfono', validators=[DataRequired()])
-    email = StringField('Email')
-    direccion = StringField('Dirección')
-    submit = SubmitField('Guardar')
+    nombre = StringField('Nombre', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
+    primer_apellido = StringField('Primer Apellido', render_kw={"class": "rounded-pill"})
+    segundo_apellido = StringField('Segundo Apellido', render_kw={"class": "rounded-pill"})
+    telefono = StringField('Teléfono', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
+    movil = StringField('Móvil', render_kw={"class": "rounded-pill"})
+    email = StringField('Email', render_kw={"class": "rounded-pill"})
+    direccion = StringField('Dirección', render_kw={"class": "rounded-pill"})
+    actividades_choices = [
+        ('', 'Seleccionar Actividad'),
+        ('La Tribu', 'La Tribu'),
+        ('Senderista', 'Senderista'),
+        ('Enfermería', 'Enfermería'),
+        ('Cocina', 'Cocina'),
+        ('Confección y Diseño', 'Confección y Diseño'),
+        ('Restaurante', 'Restaurante'),
+        ('Transporte Terrestre', 'Transporte Terrestre'),
+        ('Transporte Acuatico', 'Transporte Acuatico'),
+        ('Transporte Aereo', 'Transporte Aereo'),
+        ('Migración', 'Migración'),
+        ('Parque Nacional', 'Parque Nacional'),
+        ('Refugio Silvestre', 'Refugio Silvestre'),
+        ('Centro de Atracción', 'Centro de Atracción'),
+        ('Lugar para Caminata', 'Lugar para Caminata'),
+        ('Acarreo', 'Acarreo'),
+        ('Oficina de trámite', 'Oficina de trámite'),
+        ('Primeros Auxilios', 'Primeros Auxilios'),
+        ('Farmacia', 'Farmacia'),
+        ('Taller', 'Taller'),
+        ('Abobado', 'Abobado'),
+        ('Mensajero', 'Mensajero'),
+        ('Tienda', 'Tienda'),
+        ('Polizas', 'Polizas'),
+        ('Aerolínea', 'Aerolínea'),
+        ('Guía', 'Guía'),
+        ('Banco', 'Banco'),
+        ('Otros', 'Otros (especifique)')
+    ]
+    tipo_actividad = SelectField('Actividad', choices=actividades_choices, render_kw={"class": "rounded-pill"})
+    nota = TextAreaField('Nota', render_kw={"class": "rounded-pill"})
+    direccion_mapa = StringField('Dirección del Mapa', render_kw={"class": "rounded-pill"})
+    avatar = FileField('Avatar', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif'])], render_kw={"class": "rounded-pill"})
+    submit = SubmitField('Guardar', render_kw={"class": "btn btn-primary"})
+
+class BusquedaContactoForm(FlaskForm):
+    busqueda = StringField('Buscar Contacto', render_kw={"class": "rounded-pill"})
+    tipo_busqueda = SelectField('Buscar por', choices=[
+        ('nombre', 'Nombre'),
+        ('primer_apellido', 'Primer Apellido'),
+        ('segundo_apellido', 'Segundo Apellido'),
+        ('telefono', 'Teléfono'),
+        ('movil', 'Móvil'),
+        ('email', 'Email'),
+        ('actividad', 'Actividad')
+        # Agrega aquí más opciones de búsqueda si lo deseas
+    ], render_kw={"class": "rounded-pill"})
+    submit_buscar = SubmitField('Buscar', render_kw={"class": "btn btn-secondary"})
+
 
 class BorrarContactoForm(FlaskForm):
     submit = SubmitField('Confirmar Borrar')
@@ -303,12 +367,36 @@ def perfil():
     form = UpdateProfileImageForm()
     return render_template('perfil.html', form=form, search_form=search_form)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # CONTACTOS
 @app.route('/listar_contacto')
 @login_required
 def listar_contacto():
+    form_busqueda = BusquedaContactoForm()
     contactos = Contacto.query.filter_by(usuario_id=current_user.id).all()
-    return render_template('listar_contacto.html', contactos=contactos)
+    return render_template('listar_contacto.html', contactos=contactos, form_busqueda=form_busqueda)
 
 @app.route('/crear_contacto', methods=['GET', 'POST'])
 @login_required
@@ -316,10 +404,38 @@ def crear_contacto():
     form = ContactoForm()
     if form.validate_on_submit():
         nombre = form.nombre.data
+        primer_apellido = form.primer_apellido.data
+        segundo_apellido = form.segundo_apellido.data
         telefono = form.telefono.data
+        movil = form.movil.data
         email = form.email.data
         direccion = form.direccion.data
-        nuevo_contacto = Contacto(nombre=nombre, telefono=telefono, email=email, direccion=direccion, usuario_id=current_user.id)
+        tipo_actividad = form.tipo_actividad.data
+        nota = form.nota.data
+        direccion_mapa = form.direccion_mapa.data
+
+        # Manejo del avatar
+        if form.avatar.data:
+            avatar_filename = secure_filename(form.avatar.data.filename)
+            avatar_path = os.path.join(app.config['UPLOAD_FOLDER'], avatar_filename)
+            form.avatar.data.save(avatar_path)
+        else:
+            avatar_path = None
+
+        nuevo_contacto = Contacto(
+            nombre=nombre,
+            primer_apellido=primer_apellido,
+            segundo_apellido=segundo_apellido,
+            telefono=telefono,
+            movil=movil,
+            email=email,
+            direccion=direccion,
+            tipo_actividad=tipo_actividad,
+            nota=nota,
+            direccion_mapa=direccion_mapa,
+            avatar_path=avatar_path,
+            usuario_id=current_user.id
+        )
         db.session.add(nuevo_contacto)
         db.session.commit()
         flash('¡Contacto creado exitosamente!', 'success')
@@ -333,13 +449,28 @@ def editar_contacto(id):
     form = ContactoForm(obj=contacto)
     if form.validate_on_submit():
         contacto.nombre = form.nombre.data
+        contacto.primer_apellido = form.primer_apellido.data
+        contacto.segundo_apellido = form.segundo_apellido.data
         contacto.telefono = form.telefono.data
+        contacto.movil = form.movil.data
         contacto.email = form.email.data
         contacto.direccion = form.direccion.data
+        contacto.tipo_actividad = form.tipo_actividad.data
+        contacto.nota = form.nota.data
+        contacto.direccion_mapa = form.direccion_mapa.data
+
+        # Manejo del avatar en la edición
+        if form.avatar.data:
+            # Si se sube un nuevo avatar, guardar y actualizar la ruta
+            avatar_filename = secure_filename(form.avatar.data.filename)
+            avatar_path = os.path.join(app.config['UPLOAD_FOLDER'], avatar_filename)
+            form.avatar.data.save(avatar_path)
+            contacto.avatar_path = avatar_path
+
         db.session.commit()
         flash('¡Contacto actualizado exitosamente!', 'success')
         return redirect(url_for('listar_contacto'))
-    return render_template('editar_contacto.html', form=form, contacto_id=id)
+    return render_template('editar_contacto.html', form=form, contacto=contacto, contacto_id=id) # ¡Pasa 'contacto' aquí!
 
 @app.route('/borrar_contacto/<int:id>', methods=['POST', 'DELETE'])
 @login_required
@@ -355,7 +486,35 @@ def borrar_contacto(id):
         flash('Error al intentar borrar el contacto.', 'danger')
     return redirect(url_for('listar_contacto'))
 
+@app.route('/buscar_contacto', methods=['POST'])
+@login_required
+def buscar_contacto():
+    form_busqueda = BusquedaContactoForm()
+    if form_busqueda.validate_on_submit():
+        termino_busqueda = form_busqueda.busqueda.data
+        tipo_busqueda = form_busqueda.tipo_busqueda.data
+        contactos = Contacto.query.filter(
+            getattr(Contacto, tipo_busqueda).like(f'%{termino_busqueda}%')
+        ).filter_by(usuario_id=current_user.id).all()
+        return render_template('listar_contacto.html', contactos=contactos, form_busqueda=form_busqueda)
+    return redirect(url_for('listar_contacto'))
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True, port=3030)
+
+# Migraciones Cmder
+        # set FLASK_APP=main.py     <--Crea un directorio de migraciones
+        # flask db init             <--
+        # $ flask db stamp head
+        # $ flask db migrate
+        # $ flask db migrate -m "mensaje x"
+        # $ flask db upgrade
+
+        # ERROR [flask_migrate] Error: Target database is not up to date.
+        # $ flask db stamp head
+        # $ flask db migrate
+        # $ flask db upgrade
+        # git clone https://github.com/kerm1977/MI_APP_FLASK.git
+        # mysql> DROP DATABASE kenth1977$db; PYTHONANYWHATE
+# -----------------------

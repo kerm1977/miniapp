@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Crear Contacto{% endblock %}
 {% block content %}
-   {% if current_user.is_authenticated %}
+    {% if current_user.is_authenticated %}
         <div class="top-right">
             <span class="username-display">{{ current_user.username }}</span>
             <a href="{{ url_for('perfil') }}" class="gear-icon"><i class="fas fa-cog"></i></a>
@@ -10,10 +10,8 @@
     {% else %}
     {% endif %}
 
-
-
     <h1>Crear Nuevo Contacto</h1>
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         {{ form.csrf_token }}
         <div class="mb-3">
             {{ form.nombre.label(class="form-label") }}
@@ -27,11 +25,44 @@
             {% endif %}
         </div>
         <div class="mb-3">
+            {{ form.primer_apellido.label(class="form-label") }}
+            {{ form.primer_apellido(class="rounded-pill") }}
+            {% if form.primer_apellido.errors %}
+                <ul class="errors">
+                    {% for error in form.primer_apellido.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.segundo_apellido.label(class="form-label") }}
+            {{ form.segundo_apellido(class="rounded-pill") }}
+            {% if form.segundo_apellido.errors %}
+                <ul class="errors">
+                    {% for error in form.segundo_apellido.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
             {{ form.telefono.label(class="form-label") }}
             {{ form.telefono(class="rounded-pill") }}
             {% if form.telefono.errors %}
                 <ul class="errors">
                     {% for error in form.telefono.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.movil.label(class="form-label") }}
+            {{ form.movil(class="rounded-pill") }}
+            {% if form.movil.errors %}
+                <ul class="errors">
+                    {% for error in form.movil.errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
                 </ul>
@@ -54,6 +85,50 @@
             {% if form.direccion.errors %}
                 <ul class="errors">
                     {% for error in form.direccion.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.tipo_actividad.label(class="form-label") }}
+            {{ form.tipo_actividad(class="rounded-pill") }}
+            {% if form.tipo_actividad.errors %}
+                <ul class="errors">
+                    {% for error in form.tipo_actividad.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.nota.label(class="form-label") }}
+            {{ form.nota(class="input") }}
+            {% if form.nota.errors %}
+                <ul class="errors">
+                    {% for error in form.nota.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.direccion_mapa.label(class="form-label") }}
+            {{ form.direccion_mapa(class="input") }}
+            {% if form.direccion_mapa.errors %}
+                <ul class="errors">
+                    {% for error in form.direccion_mapa.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.avatar.label(class="form-label") }}
+            {{ form.avatar(class="rounded-pill") }}
+            {% if form.avatar.errors %}
+                <ul class="errors">
+                    {% for error in form.avatar.errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
                 </ul>
