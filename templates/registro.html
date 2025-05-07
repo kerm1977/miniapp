@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Iniciar Sesión{% endblock %}
+{% block title %}Registro{% endblock %}
 {% block content %}
 
     <div class="container">
@@ -49,6 +49,18 @@
             </div>
 
             <div class="form-group">
+                {{ form.telefono.label }}
+                {{ form.telefono(class="rounded-pill", type="text", id="txtNumero", minlength="8", maxlength="8", onkeyup="limpiarNumero(this)", onchange="limpiarNumero(this)") }}
+                {% if form.telefono.errors %}
+                    <ul class="errors">
+                        {% for error in form.telefono.errors %}
+                            <li class="error">{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
                 {{ form.password.label }}
                 <div class="password-container">
                     {{ form.password(class="rounded-pill") }}
@@ -81,8 +93,15 @@
                 {% endif %}
             </div>
             <div class="form-group">
-                <label for="image">Imagen de Usuario:</label>
-                <input type="file" name="image" id="image">
+                {{ form.image.label }}
+                {{ form.image }}
+                {% if form.image.errors %}
+                    <ul class="errors">
+                        {% for error in form.image.errors %}
+                            <li class="error">{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
             </div>
             {{ form.submit }}
         </form>

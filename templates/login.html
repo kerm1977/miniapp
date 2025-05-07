@@ -33,6 +33,7 @@
             <p>¿No tienes una cuenta? <a href="{{ url_for('registro') }}">Regístrate aquí</a></p>
         </form>
     </div>
+
     <script>
         function togglePassword(inputId, toggleElement) {
             var passwordInput = document.querySelector('input[name="' + inputId + '"]');
@@ -47,4 +48,5 @@
             }
         }
     </script>
+    
 {% endblock %}

@@ -13,9 +13,9 @@
     <div class="profile-container">
         <h2>Perfil de Usuario</h2>
         {% if current_user.image_filename %}
-        <div class="profile-image">
-            <img src="{{ url_for('static', filename='images/' + current_user.image_filename) }}" alt="Imagen de Perfil">
-        </div>
+            <div class="profile-image">
+                <img src="{{ url_for('static', filename='images/' + current_user.image_filename) }}" alt="Imagen de Perfil">
+            </div>       
         {% endif %}
         <div class="profile-info">
             <p><strong>Usuario:</strong> {{ current_user.username }}</p>
