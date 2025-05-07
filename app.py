@@ -69,6 +69,14 @@ class RegistrationForm(FlaskForm):
     image = FileField('Imagen de Usuario', validators=[FileAllowed(ALLOWED_EXTENSIONS, 'Solo se permiten imágenes png, jpg, jpeg o gif.')])
     submit = SubmitField('Registrarse')
 
+class EditUserForm(FlaskForm):
+    username = StringField('Usuario', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    cedula = StringField('Cédula', validators=[DataRequired()])
+    telefono = StringField('Teléfono', validators=[DataRequired(), Regexp('^[0-9]+$'), Length(min=8, max=10, message='El teléfono debe tener entre 8 y 10 dígitos')])
+    submit = SubmitField('Guardar Cambios')
+
+
 class LoginForm(FlaskForm):
     username = StringField('Usuario', validators=[DataRequired()])
     password = PasswordField('Contraseña', validators=[DataRequired()])
@@ -146,10 +154,73 @@ def logout():
 def index():
     return render_template('index.html')
 
+@app.route('/editar_usuario/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+def editar_usuario(user_id):
+    if current_user.id == user_id:
+        flash('No puedes editar tu propio perfil desde aquí.', 'warning')
+        return redirect(url_for('perfil'))
+
+    user = User.query.get_or_404(user_id)
+    form = EditUserForm(obj=user)
+
+    if form.validate_on_submit():
+        user.username = form.username.data
+        user.email = form.email.data
+        user.cedula = form.cedula.data
+        user.telefono = form.telefono.data
+        db.session.commit()
+        flash(f'El usuario {user.username} ha sido actualizado.', 'success')
+        return redirect(url_for('perfil'))
+
+    return render_template('editar_usuario.html', form=form, user=user)
+
+@app.route('/borrar_usuario/<int:user_id>', methods=['POST'])
+@login_required
+def borrar_usuario(user_id):
+    if current_user.id == user_id:
+        flash('No puedes borrar tu propia cuenta desde aquí.', 'warning')
+        return redirect(url_for('perfil'))
+
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+    flash(f'El usuario {user.username} ha sido borrado.', 'success')
+    return redirect(url_for('perfil'))
+
 @app.route('/perfil')
 @login_required
 def perfil():
-    return render_template('perfil.html')
+    users = User.query.all()
+    return render_template('perfil.html', users=users)
+
+@app.route('/editar_perfil', methods=['GET', 'POST'])
+@login_required
+def editar_perfil():
+    form = EditUserForm(obj=current_user)
+    if form.validate_on_submit():
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+        current_user.cedula = form.cedula.data
+        current_user.telefono = form.telefono.data
+        db.session.commit()
+        flash('Tu perfil ha sido actualizado.', 'success')
+        return redirect(url_for('perfil'))
+    return render_template('editar_perfil.html', form=form)
+
+@app.route('/borrar_perfil', methods=['POST'])
+@login_required
+def borrar_perfil():
+    user_to_delete = User.query.get(current_user.id)
+    if user_to_delete:
+        logout_user()
+        db.session.delete(user_to_delete)
+        db.session.commit()
+        flash('Tu cuenta ha sido borrada.', 'success')
+        return redirect(url_for('index'))
+    else:
+        flash('Error al intentar borrar la cuenta.', 'danger')
+        return redirect(url_for('perfil'))
 
 if __name__ == '__main__':
     with app.app_context():
