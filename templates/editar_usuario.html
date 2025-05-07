@@ -19,28 +19,28 @@
             {{ form.hidden_tag() }}
             <div class="form-group">
                 {{ form.username.label }}
-                {{ form.username(class="form-control") }}
+                {{ form.username(class="rounded-pill") }}
                 {% for error in form.username.errors %}
                     <span class="error-message">{{ error }}</span>
                 {% endfor %}
             </div>
             <div class="form-group">
                 {{ form.email.label }}
-                {{ form.email(class="form-control") }}
+                {{ form.email(class="rounded-pill") }}
                 {% for error in form.email.errors %}
                     <span class="error-message">{{ error }}</span>
                 {% endfor %}
             </div>
             <div class="form-group">
                 {{ form.cedula.label }}
-                {{ form.cedula(class="form-control") }}
+                {{ form.cedula(class="rounded-pill") }}
                 {% for error in form.cedula.errors %}
                     <span class="error-message">{{ error }}</span>
                 {% endfor %}
             </div>
             <div class="form-group">
                 {{ form.telefono.label }}
-                {{ form.telefono(class="form-control") }}
+                {{ form.telefono(class="rounded-pill") }}
                 {% for error in form.telefono.errors %}
                     <span class="error-message">{{ error }}</span>
                 {% endfor %}
