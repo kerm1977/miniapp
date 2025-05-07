@@ -10,6 +10,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, LoginManager, login_user, logout_user, login_required, current_user
 from datetime import datetime
 from flask_migrate import Migrate
+from flask import send_file
+import io
+import vobject
+import base64
+import mimetypes
+import os
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'tu_clave_secreta'
@@ -529,7 +536,64 @@ def buscar_contacto():
 
 
 
-    
+# VCARD
+@app.route('/exportar_vcard/<int:contacto_id>')
+@login_required
+def exportar_vcard(contacto_id):
+    contacto = Contacto.query.filter_by(id=contacto_id, usuario_id=current_user.id).first_or_404()
+
+    v = vobject.vCard()
+    v.add('fn').value = f"{contacto.nombre} {contacto.primer_apellido or ''} {contacto.segundo_apellido or ''}".strip()
+
+    if contacto.telefono:
+        tel_param = v.add('Teléfono')
+        tel_param.type_param = 'Fijo:'
+        tel_param.value = contacto.telefono
+    if contacto.movil:
+        tel_param = v.add('Movil')
+        tel_param.type_param = 'Celular:'
+        tel_param.value = contacto.movil
+    if contacto.email:
+        email_param = v.add('email')
+        email_param.type_param = 'Email:'
+        email_param.value = contacto.email
+    if contacto.direccion:
+        adr_param = v.add('adr')
+        adr_param.type_param = 'Dirección: '
+        adr_param.value = vobject.vcard.Address(street=contacto.direccion) # Simple dirección, podrías desglosarla más
+
+    vcard_content = v.serialize()
+    filename = f"{contacto.nombre.lower()}_{contacto.primer_apellido.lower() if contacto.primer_apellido else ''}.vcf"
+    buffer = io.BytesIO(vcard_content.encode('utf-8'))
+
+    return send_file(buffer, as_attachment=True, download_name=filename, mimetype='text/vcard')
+
+    # Manejo del avatar
+    if contacto.avatar_path:
+        try:
+            with open(contacto.avatar_path, 'rb') as f:
+                avatar_data = f.read()
+            b64_avatar = base64.b64encode(avatar_data).decode('utf-8')
+            photo = v.add('photo')
+            photo.encoding_param = 'b'
+            photo.type_param = mimetypes.guess_type(contacto.avatar_path)[0] or 'image/jpeg'
+            photo.value = b64_avatar
+        except FileNotFoundError:
+            print(f"Avatar no encontrado: {contacto.avatar_path}")
+        except Exception as e:
+            print(f"Error al leer el avatar: {e}")
+
+    vcard_content = v.serialize()
+    filename = f"{contacto.nombre.lower()}_{contacto.primer_apellido.lower() if contacto.primer_apellido else ''}.vcf"
+    buffer = io.BytesIO(vcard_content.encode('utf-8'))
+
+    return send_file(buffer, as_attachment=True, download_name=filename, mimetype='text/vcard')
+
+
+
+
+
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

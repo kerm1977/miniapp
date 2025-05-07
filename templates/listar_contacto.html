@@ -20,7 +20,7 @@
                 {{ form_busqueda.busqueda.label(class="form-label") }}
                 {{ form_busqueda.busqueda(class="rounded-pill form-control") }}
             </div>
-          
+
             <div class="col-auto">
                 {{ form_busqueda.submit_buscar(class="btn btn-secondary") }}
             </div>
@@ -71,6 +71,7 @@
                         <td>
                             <a href="{{ url_for('editar_contacto', id=contacto.id) }}" class="btn btn-sm btn-warning">Editar</a>
                             <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmarBorrarModal{{ contacto.id }}">Borrar</button>
+                            <a href="{{ url_for('exportar_vcard', contacto_id=contacto.id) }}" class="btn btn-sm btn-info">vCard</a>
 
                             <div class="modal fade" id="confirmarBorrarModal{{ contacto.id }}" tabindex="-1" aria-labelledby="confirmarBorrarModalLabel{{ contacto.id }}" aria-hidden="true">
                                 <div class="modal-dialog">
