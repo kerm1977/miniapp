@@ -1,115 +1,99 @@
 {% extends 'base.html' %}
 {% block title %}Perfil{% endblock %}
 {% block content %}
-    <style>
-        body { font-family: sans-serif; margin: 20px; }
-        .profile-container { width: 400px; margin: 0 auto; border: 1px solid #ccc; padding: 20px; margin-bottom: 20px; }
-        .profile-image { width: 100px; height: 100px; border-radius: 50%; overflow: hidden; margin-bottom: 15px; }
-        .profile-image img { width: 100%; height: 100%; object-fit: cover; }
-        .profile-info p { margin-bottom: 10px; }
-        .back-link { display: block; margin-top: 20px; text-decoration: none; color: #333; }
-        .users-list { border: 1px solid #eee; padding: 15px; margin-top: 20px; }
-        .users-list h3 { margin-top: 0; margin-bottom: 10px; }
-        .user-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dotted #ccc; display: flex; align-items: center; justify-content: space-between; }
-        .user-item:last-child { border-bottom: none; }
-        .user-info { flex-grow: 1; margin-right: 10px; }
-        .user-actions a { margin-left: 5px; text-decoration: none; }
-        .avatar-small { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; margin-right: 10px; }
-        .avatar-small img { width: 100%; height: 100%; object-fit: cover; }
-        .profile-actions { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
-        .profile-actions a { margin-right: 10px; text-decoration: none; }
-        .profile-image-upload { margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px; }
-        .profile-image-upload form { display: flex; flex-direction: column; align-items: flex-start; }
-        .profile-image-upload input[type="file"] { margin-bottom: 10px; }
-        .profile-image-upload button { padding: 8px 12px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .search-container { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display: flex; align-items: center; }
-        .search-container form { display: flex; align-items: center; flex-grow: 1; margin-right: 10px; }
-        .search-container input[type="text"] { flex-grow: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-right: 10px; box-sizing: border-box; }
-        .search-container button { padding: 8px 12px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .clear-search-button { padding: 8px 12px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; }
-        .search-results-container { margin-top: 20px; }
-    </style>
-
-    <div class="profile-container">
-        <h2>Tu Perfil</h2>
-        {% if current_user.image_filename %}
-            <div class="profile-image">
-                <img src="{{ url_for('static', filename='images/' + current_user.image_filename) }}" alt="Imagen de Perfil">
-            </div>
-        {% endif %}
-        <div class="profile-info">
-            <p><strong>Usuario:</strong> {{ current_user.username }}</p>
-            <p><strong>Email:</strong> {{ current_user.email }}</p>
-            <p><strong>Cédula:</strong> {{ current_user.cedula }}</p>
-            <p><strong>Teléfono:</strong> {{ current_user.telefono }}</p>
-        </div>
-        <div class="profile-actions">
-            <a href="{{ url_for('editar_perfil') }}">Editar Perfil</a>
-            <form method="POST" action="{{ url_for('borrar_perfil') }}" style="display:inline;">
-                <button type="submit" onclick="return confirm('¿Estás seguro de que quieres borrar tu cuenta?')">Borrar Cuenta</button>
-            </form>
-        </div>
-
-        <div class="profile-image-upload">
-            <h3>Cambiar Imagen de Perfil</h3>
-            <form method="POST" action="{{ url_for('actualizar_imagen') }}" enctype="multipart/form-data">
-                {{ form.csrf_token }}
-                {{ form.image.label }}
-                {{ form.image }}
-                {% for error in form.image.errors %}
-                    <span style="color: red;">[{{ error }}]</span>
-                {% endfor %}
-                {{ form.submit }}
-            </form>
-        </div>
-
-        <a href="{{ url_for('index') }}" class="back-link">Volver a la página principal</a>
-        <p><a href="{{ url_for('logout') }}">Cerrar Sesión</a></p>
-    </div>
-
-    <div class="search-container">
-        <form method="POST" action="{{ url_for('buscar_usuarios') }}">
-            {{ search_form.csrf_token }}
-            {{ search_form.search_term.label }}
-            {{ search_form.search_term }}
-            {{ search_form.submit }}
-        </form>
-        {% if users %}
-            <a href="{{ url_for('limpiar_busqueda') }}" class="clear-search-button">Limpiar Búsqueda</a>
-        {% endif %}
-    </div>
-
-    {% if users %}
-    <div class="users-list search-results-container">
-        {% for user in users %}
-            {% if user != current_user %}
-                <div class="user-item">
-                    <div style="display: flex; align-items: center;">
-                        {% if user.image_filename %}
-                            <div class="avatar-small">
-                                <img src="{{ url_for('static', filename='images/' + user.image_filename) }}" alt="Avatar de {{ user.username }}">
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h2 class="card-title">Tu Perfil</h2>
+                        {% if current_user.image_filename %}
+                            <div class="profile-image mb-3">
+                                <img src="{{ url_for('static', filename='images/' + current_user.image_filename) }}" alt="Imagen de Perfil" class="img-fluid rounded-circle" style="max-width: 100px; height: auto;">
                             </div>
                         {% endif %}
-                        <div class="user-info">
-                            <strong>Usuario:</strong> {{ user.username }}<br>
-                            <strong>Email:</strong> {{ user.email }}<br>
-                            <strong>Cédula:</strong> {{ user.cedula }}<br>
-                            <strong>Teléfono:</strong> {{ user.telefono }}
+                        <div class="profile-info">
+                            <p><strong>Usuario:</strong> {{ current_user.username }}</p>
+                            <p><strong>Email:</strong> {{ current_user.email }}</p>
+                            <p><strong>Cédula:</strong> {{ current_user.cedula }}</p>
+                            <p><strong>Teléfono:</strong> {{ current_user.telefono }}</p>
                         </div>
-                        <div class="user-actions">
-                            <a href="{{ url_for('editar_usuario', user_id=user.id) }}">Editar</a>
-                            <form method="POST" action="{{ url_for('borrar_usuario', user_id=user.id) }}" style="display:inline;">
-                                <button type="submit" onclick="return confirm('¿Estás seguro de que quieres borrar a este usuario?')">Borrar</button>
+                        <div class="profile-actions mt-3 border-top pt-3">
+                            <a href="{{ url_for('editar_perfil') }}" class="btn btn-primary btn-sm mr-2">Editar Perfil</a>
+                            <form method="POST" action="{{ url_for('borrar_perfil') }}" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que quieres borrar tu cuenta?')">Borrar Cuenta</button>
+                            </form>
+                        </div>
+
+                        <div class="profile-image-upload mt-3 border-top pt-3">
+                            <h3>Cambiar Imagen de Perfil</h3>
+                            <form method="POST" action="{{ url_for('actualizar_imagen') }}" enctype="multipart/form-data">
+                                {{ form.csrf_token }}
+                                <div class="mb-3">
+                                    {{ form.image.label(class="form-label") }}
+                                    {{ form.image(class="form-control") }}
+                                    {% for error in form.image.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                {{ form.submit(class="btn btn-info btn-sm") }}
                             </form>
                         </div>
                     </div>
                 </div>
-            {% endif %}
-        {% endfor %}
-        {% if not users %}
-            <p>No se encontraron usuarios con ese criterio.</p>
-        {% endif %}
-    </div>
-    {% endif %}
+            </div>
+            <div class="col-md-6">
+                <h3 class="mb-3">Buscar Contactos</h3>
+                <form method="POST" action="{{ url_for('buscar_usuarios') }}" class="mb-3">
+                    {{ search_form.csrf_token }}
+                    <div class="input-group">
+                        {{ search_form.search_term(class="form-control", placeholder=search_form.search_term.label.text) }}
+                        <button type="submit" class="btn btn-success">{{ search_form.submit.label.text }}</button>
+                    </div>
+                </form>
+                {% if users %}
+                    <a href="{{ url_for('limpiar_busqueda') }}" class="btn btn-warning btn-sm">Limpiar Búsqueda</a>
+                {% endif %}
+            </div>
+        </div>
 
+        {% if users %}
+        <div class="mt-4">
+            <h3>Resultados de la Búsqueda</h3>
+            {% if users %}
+                <ul class="list-group">
+                    {% for user in users %}
+                        {% if user != current_user %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                <div>
+                                    {% if user.image_filename %}
+                                        <img src="{{ url_for('static', filename='images/' + user.image_filename) }}" alt="Avatar de {{ user.username }}" class="rounded-circle mr-2" style="max-width: 30px; height: auto;">
+                                    {% endif %}
+                                    <strong>{{ user.username }}</strong><br>
+                                    <small class="text-muted">{{ user.email }}</small>
+                                </div>
+                                <div>
+                                    <a href="{{ url_for('editar_usuario', user_id=user.id) }}" class="btn btn-primary btn-sm mr-2">Editar</a>
+                                    <form method="POST" action="{{ url_for('borrar_usuario', user_id=user.id) }}" style="display:inline;">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que quieres borrar a este usuario?')">Borrar</button>
+                                    </form>
+                                </div>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+                {% if not users and search_form.search_term.data %}
+                    <p class="mt-3">No se encontraron usuarios con ese criterio.</p>
+                {% endif %}
+            {% else %}
+                <p>No hay usuarios registrados.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="mt-4">
+            <a href="{{ url_for('index') }}" class="btn btn-secondary mr-2">Volver a la página principal</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-info">Cerrar Sesión</a>
+        </div>
+    </div>
 {% endblock %}

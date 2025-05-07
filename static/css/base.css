@@ -5,6 +5,10 @@ body {
 
 }
 
+.margin-bottom-large {
+    margin-bottom: 250px;
+}
+
 .container {
     width: 80%;
     margin: 20px auto;
