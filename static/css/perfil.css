@@ -1,0 +1,25 @@
+body { font-family: sans-serif; margin: 20px; }
+        .profile-container { width: 400px; margin: 0 auto;  padding: 20px; margin-bottom: 20px; }
+        .profile-image { width: 100px; height: 100px; border-radius: 50%; overflow: hidden; margin-bottom: 15px; }
+        .profile-image img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-info p { margin-bottom: 10px; }
+        .back-link { display: block; margin-top: 20px; text-decoration: none; color: #333; }
+        .users-list { border: 1px solid #eee; padding: 15px; margin-top: 20px; }
+        .users-list h3 { margin-top: 0; margin-bottom: 10px; }
+        .user-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dotted #ccc; display: flex; align-items: center; justify-content: space-between; }
+        .user-item:last-child { border-bottom: none; }
+        .user-info { flex-grow: 1; margin-right: 10px; }
+        .user-actions a { margin-left: 5px; text-decoration: none; }
+        .avatar-small { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; margin-right: 10px; }
+        .avatar-small img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-actions { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
+        .profile-actions a { margin-right: 10px; text-decoration: none; }
+        .profile-image-upload { margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px; }
+        .profile-image-upload form { display: flex; flex-direction: column; align-items: flex-start; }
+        .profile-image-upload input[type="file"] { margin-bottom: 10px; }
+        .profile-image-upload button { padding: 8px 12px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .search-container { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
+        .search-container form { display: flex; align-items: center; }
+        .search-container input[type="text"] { flex-grow: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-right: 10px; box-sizing: border-box; }
+        .search-container button { padding: 8px 12px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; 
+        }

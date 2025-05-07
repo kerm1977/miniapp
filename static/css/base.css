@@ -1,13 +1,15 @@
-/* base.css */
+/* base.css */  
 body {
     font-family: sans-serif;
     margin: 0;
+
 }
 
 .container {
     width: 80%;
     margin: 20px auto;
     padding: 20px;
+
 }
 
 .top-right {
@@ -130,6 +132,5 @@ input[type="text"], input[type="password"] {
 
 /* Nuevo estilo para el block content */
 .content-block {
-    margin: 200px;
-    margin-top: 150px; /* Cambiamos el margen superior a 150px */
+    margin: 150 0 200 0; /* Cambiamos el margen superior a 150px */
 }

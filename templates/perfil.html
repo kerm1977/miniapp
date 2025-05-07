@@ -8,7 +8,7 @@
         .profile-image img { width: 100%; height: 100%; object-fit: cover; }
         .profile-info p { margin-bottom: 10px; }
         .back-link { display: block; margin-top: 20px; text-decoration: none; color: #333; }
-        .users-list { border: 1px solid #eee; padding: 15px; }
+        .users-list { border: 1px solid #eee; padding: 15px; margin-top: 20px; }
         .users-list h3 { margin-top: 0; margin-bottom: 10px; }
         .user-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dotted #ccc; display: flex; align-items: center; justify-content: space-between; }
         .user-item:last-child { border-bottom: none; }
@@ -22,6 +22,12 @@
         .profile-image-upload form { display: flex; flex-direction: column; align-items: flex-start; }
         .profile-image-upload input[type="file"] { margin-bottom: 10px; }
         .profile-image-upload button { padding: 8px 12px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .search-container { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display: flex; align-items: center; }
+        .search-container form { display: flex; align-items: center; flex-grow: 1; margin-right: 10px; }
+        .search-container input[type="text"] { flex-grow: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-right: 10px; box-sizing: border-box; }
+        .search-container button { padding: 8px 12px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .clear-search-button { padding: 8px 12px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; }
+        .search-results-container { margin-top: 20px; }
     </style>
 
     <div class="profile-container">
@@ -61,24 +67,34 @@
         <p><a href="{{ url_for('logout') }}">Cerrar Sesión</a></p>
     </div>
 
-    <div class="users-list">
-        <h3>Otros Usuarios Registrados</h3>
+    <div class="search-container">
+        <form method="POST" action="{{ url_for('buscar_usuarios') }}">
+            {{ search_form.csrf_token }}
+            {{ search_form.search_term.label }}
+            {{ search_form.search_term }}
+            {{ search_form.submit }}
+        </form>
         {% if users %}
-            {% for user in users %}
-                {% if user != current_user %}
-                    <div class="user-item">
-                        <div style="display: flex; align-items: center;">
-                            {% if user.image_filename %}
-                                <div class="avatar-small">
-                                    <img src="{{ url_for('static', filename='images/' + user.image_filename) }}" alt="Avatar de {{ user.username }}">
-                                </div>
-                            {% endif %}
-                            <div class="user-info">
-                                <strong>Usuario:</strong> {{ user.username }}<br>
-                                <strong>Email:</strong> {{ user.email }}<br>
-                                <strong>Cédula:</strong> {{ user.cedula }}<br>
-                                <strong>Teléfono:</strong> {{ user.telefono }}
+            <a href="{{ url_for('limpiar_busqueda') }}" class="clear-search-button">Limpiar Búsqueda</a>
+        {% endif %}
+    </div>
+
+    {% if users %}
+    <div class="users-list search-results-container">
+        {% for user in users %}
+            {% if user != current_user %}
+                <div class="user-item">
+                    <div style="display: flex; align-items: center;">
+                        {% if user.image_filename %}
+                            <div class="avatar-small">
+                                <img src="{{ url_for('static', filename='images/' + user.image_filename) }}" alt="Avatar de {{ user.username }}">
                             </div>
+                        {% endif %}
+                        <div class="user-info">
+                            <strong>Usuario:</strong> {{ user.username }}<br>
+                            <strong>Email:</strong> {{ user.email }}<br>
+                            <strong>Cédula:</strong> {{ user.cedula }}<br>
+                            <strong>Teléfono:</strong> {{ user.telefono }}
                         </div>
                         <div class="user-actions">
                             <a href="{{ url_for('editar_usuario', user_id=user.id) }}">Editar</a>
@@ -87,10 +103,13 @@
                             </form>
                         </div>
                     </div>
-                {% endif %}
-            {% endfor %}
-        {% else %}
-            <p>No hay otros usuarios registrados.</p>
+                </div>
+            {% endif %}
+        {% endfor %}
+        {% if not users %}
+            <p>No se encontraron usuarios con ese criterio.</p>
         {% endif %}
     </div>
+    {% endif %}
+
 {% endblock %}

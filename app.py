@@ -89,6 +89,11 @@ class UpdateProfileImageForm(FlaskForm):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+class SearchForm(FlaskForm):
+    search_term = StringField('Buscar Contacto', validators=[DataRequired()])
+    submit = SubmitField('Buscar')
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -211,13 +216,6 @@ def actualizar_imagen():
                 flash(f'Error en el campo {getattr(form, field).label.text}: {error}', 'danger')
     return redirect(url_for('perfil'))
 
-@app.route('/perfil')
-@login_required
-def perfil():
-    users = User.query.all()
-    form = UpdateProfileImageForm()  # Add this line
-    return render_template('perfil.html', users=users, form=form) # and this change
-
 @app.route('/editar_usuario/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 def editar_usuario(user_id):
@@ -251,6 +249,36 @@ def borrar_usuario(user_id):
     db.session.commit()
     flash(f'El usuario {user.username} ha sido borrado.', 'success')
     return redirect(url_for('perfil'))
+
+@app.route('/buscar_usuarios', methods=['POST'])
+@login_required
+def buscar_usuarios():
+    form = SearchForm()
+    results = []
+    if form.validate_on_submit():
+        search_term = form.search_term.data.lower()
+        words = search_term.split()
+        if words:
+            conditions = []
+            for word in words:
+                conditions.append(db.func.lower(User.username).contains(word))
+                conditions.append(db.func.lower(User.email).contains(word))
+                conditions.append(db.func.lower(User.cedula).contains(word))
+                conditions.append(db.func.lower(User.telefono).contains(word))
+            results = User.query.filter(db.or_(*conditions)).all()
+    return render_template('perfil.html', users=results, form=UpdateProfileImageForm(), search_form=form)
+
+@app.route('/limpiar_busqueda')
+@login_required
+def limpiar_busqueda():
+    return redirect(url_for('perfil'))
+
+@app.route('/perfil')
+@login_required
+def perfil():
+    search_form = SearchForm()
+    form = UpdateProfileImageForm()
+    return render_template('perfil.html', form=form, search_form=search_form)
 
 if __name__ == '__main__':
     with app.app_context():
