@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Contactos{% endblock %}
+
+{% block content %}
+    <h1>Lista de Contactos</h1>
+    <a href="{{ url_for('crear_contacto') }}" class="btn btn-primary">Crear Nuevo Contacto</a>
+    {% if contactos %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Email</th>
+                    <th>Dirección</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contacto in contactos %}
+                    <tr>
+                        <td>{{ contacto.nombre }}</td>
+                        <td>{{ contacto.telefono }}</td>
+                        <td>{{ contacto.email or '-' }}</td>
+                        <td>{{ contacto.direccion or '-' }}</td>
+                        <td>
+                            <a href="{{ url_for('editar_contacto', id=contacto.id) }}" class="btn btn-sm btn-warning">Editar</a>
+                            <a href="{{ url_for('borrar_contacto', id=contacto.id) }}" class="btn btn-sm btn-danger">Borrar</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No tienes contactos en tu agenda.</p>
+    {% endif %}
+{% endblock %}

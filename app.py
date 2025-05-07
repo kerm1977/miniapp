@@ -59,6 +59,19 @@ class User(UserMixin, db.Model):
     def is_anonymous(self):
         return False
 
+class Contacto(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    telefono = db.Column(db.String(20), nullable=False)
+    email = db.Column(db.String(120))
+    direccion = db.Column(db.String(200))
+    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    usuario = db.relationship('User', backref=db.backref('contactos', lazy=True))
+
+    def __repr__(self):
+        return f'<Contacto {self.nombre}>'
+
+
 class RegistrationForm(FlaskForm):
     username = StringField('Usuario', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
@@ -93,6 +106,16 @@ class SearchForm(FlaskForm):
     search_term = StringField('Buscar Contacto', validators=[DataRequired()])
     submit = SubmitField('Buscar')
 
+
+class ContactoForm(FlaskForm):
+    nombre = StringField('Nombre', validators=[DataRequired()])
+    telefono = StringField('Teléfono', validators=[DataRequired()])
+    email = StringField('Email')
+    direccion = StringField('Dirección')
+    submit = SubmitField('Guardar')
+
+class BorrarContactoForm(FlaskForm):
+    submit = SubmitField('Confirmar Borrar')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -279,6 +302,56 @@ def perfil():
     search_form = SearchForm()
     form = UpdateProfileImageForm()
     return render_template('perfil.html', form=form, search_form=search_form)
+
+# CONTACTOS
+@app.route('/listar_contacto')
+@login_required
+def listar_contacto():
+    contactos = Contacto.query.filter_by(usuario_id=current_user.id).all()
+    return render_template('listar_contacto.html', contactos=contactos)
+
+@app.route('/crear_contacto', methods=['GET', 'POST'])
+@login_required
+def crear_contacto():
+    form = ContactoForm()
+    if form.validate_on_submit():
+        nombre = form.nombre.data
+        telefono = form.telefono.data
+        email = form.email.data
+        direccion = form.direccion.data
+        nuevo_contacto = Contacto(nombre=nombre, telefono=telefono, email=email, direccion=direccion, usuario_id=current_user.id)
+        db.session.add(nuevo_contacto)
+        db.session.commit()
+        flash('¡Contacto creado exitosamente!', 'success')
+        return redirect(url_for('listar_contacto'))
+    return render_template('crear_contacto.html', form=form)
+
+@app.route('/editar_contacto/<int:id>', methods=['GET', 'POST'])
+@login_required
+def editar_contacto(id):
+    contacto = Contacto.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+    form = ContactoForm(obj=contacto)
+    if form.validate_on_submit():
+        contacto.nombre = form.nombre.data
+        contacto.telefono = form.telefono.data
+        contacto.email = form.email.data
+        contacto.direccion = form.direccion.data
+        db.session.commit()
+        flash('¡Contacto actualizado exitosamente!', 'success')
+        return redirect(url_for('listar_contacto'))
+    return render_template('editar_contacto.html', form=form, contacto_id=id)
+
+@app.route('/borrar_contacto/<int:id>', methods=['GET', 'POST'])
+@login_required
+def borrar_contacto(id):
+    contacto = Contacto.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+    form = BorrarContactoForm()
+    if form.validate_on_submit():
+        db.session.delete(contacto)
+        db.session.commit()
+        flash('¡Contacto borrado exitosamente!', 'success')
+        return redirect(url_for('listar_contacto'))
+    return render_template('borrar_contacto.html', contacto=contacto, form=form)
 
 if __name__ == '__main__':
     with app.app_context():
