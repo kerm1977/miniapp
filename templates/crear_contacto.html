@@ -8,7 +8,7 @@
         {{ form.csrf_token }}
         <div class="mb-3">
             {{ form.nombre.label(class="form-label") }}
-            {{ form.nombre(class="form-control") }}
+            {{ form.nombre(class="rounded-pill") }}
             {% if form.nombre.errors %}
                 <ul class="errors">
                     {% for error in form.nombre.errors %}
@@ -19,7 +19,7 @@
         </div>
         <div class="mb-3">
             {{ form.telefono.label(class="form-label") }}
-            {{ form.telefono(class="form-control") }}
+            {{ form.telefono(class="rounded-pill") }}
             {% if form.telefono.errors %}
                 <ul class="errors">
                     {% for error in form.telefono.errors %}
@@ -30,7 +30,7 @@
         </div>
         <div class="mb-3">
             {{ form.email.label(class="form-label") }}
-            {{ form.email(class="form-control") }}
+            {{ form.email(class="rounded-pill") }}
             {% if form.email.errors %}
                 <ul class="errors">
                     {% for error in form.email.errors %}
@@ -41,7 +41,7 @@
         </div>
         <div class="mb-3">
             {{ form.direccion.label(class="form-label") }}
-            {{ form.direccion(class="form-control") }}
+            {{ form.direccion(class="rounded-pill") }}
             {% if form.direccion.errors %}
                 <ul class="errors">
                     {% for error in form.direccion.errors %}

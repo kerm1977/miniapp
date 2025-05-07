@@ -5,13 +5,7 @@
 {% block content %}
     <h1>Lista de Contactos</h1>
     <a href="{{ url_for('crear_contacto') }}" class="btn btn-primary">Crear Nuevo Contacto</a>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+  
     {% if contactos %}
         <table class="table">
             <thead>
