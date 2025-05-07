@@ -341,17 +341,19 @@ def editar_contacto(id):
         return redirect(url_for('listar_contacto'))
     return render_template('editar_contacto.html', form=form, contacto_id=id)
 
-@app.route('/borrar_contacto/<int:id>', methods=['GET', 'POST'])
+@app.route('/borrar_contacto/<int:id>', methods=['POST', 'DELETE'])
 @login_required
 def borrar_contacto(id):
     contacto = Contacto.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
-    form = BorrarContactoForm()
-    if form.validate_on_submit():
-        db.session.delete(contacto)
-        db.session.commit()
-        flash('¡Contacto borrado exitosamente!', 'success')
-        return redirect(url_for('listar_contacto'))
-    return render_template('borrar_contacto.html', contacto=contacto, form=form)
+    if contacto:
+        if request.method == 'POST' or request.method == 'DELETE':
+            db.session.delete(contacto)
+            db.session.commit()
+            flash('¡Contacto borrado exitosamente!', 'success')
+            return redirect(url_for('listar_contacto'))
+    else:
+        flash('Error al intentar borrar el contacto.', 'danger')
+    return redirect(url_for('listar_contacto'))
 
 if __name__ == '__main__':
     with app.app_context():

@@ -5,6 +5,13 @@
 {% block content %}
     <h1>Lista de Contactos</h1>
     <a href="{{ url_for('crear_contacto') }}" class="btn btn-primary">Crear Nuevo Contacto</a>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
     {% if contactos %}
         <table class="table">
             <thead>
@@ -25,7 +32,28 @@
                         <td>{{ contacto.direccion or '-' }}</td>
                         <td>
                             <a href="{{ url_for('editar_contacto', id=contacto.id) }}" class="btn btn-sm btn-warning">Editar</a>
-                            <a href="{{ url_for('borrar_contacto', id=contacto.id) }}" class="btn btn-sm btn-danger">Borrar</a>
+                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmarBorrarModal{{ contacto.id }}">Borrar</button>
+
+                            <div class="modal fade" id="confirmarBorrarModal{{ contacto.id }}" tabindex="-1" aria-labelledby="confirmarBorrarModalLabel{{ contacto.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="confirmarBorrarModalLabel{{ contacto.id }}">Confirmar Borrado</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            ¿Estás seguro de que deseas borrar a <strong>{{ contacto.nombre }}</strong>?
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <form method="POST" action="{{ url_for('borrar_contacto', id=contacto.id) }}" style="display: inline;">
+                                                {{ csrf_token }}
+                                                <button type="submit" class="btn btn-danger">Confirmar Borrar</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 {% endfor %}
