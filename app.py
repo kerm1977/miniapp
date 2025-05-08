@@ -259,6 +259,20 @@ class BusquedaContactoForm(FlaskForm):
 class BorrarContactoForm(FlaskForm):
     submit = SubmitField('Confirmar Borrar')
 
+
+
+
+
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/calendario')
+def calendario():
+    return render_template('calendario.html')
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -323,9 +337,7 @@ def logout():
     flash('Has cerrado sesión.', 'success')
     return redirect(url_for('index'))
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+
 
 @app.route('/editar_perfil', methods=['GET', 'POST'])
 @login_required
@@ -598,7 +610,7 @@ def buscar_contacto():
 
         resultados = contactos.all()
         return render_template('listar_contacto.html', contactos=resultados, form_busqueda=form_busqueda)
-        
+
     # Si la solicitud es GET o el formulario no es válido, mostrar todos los contactos con el formulario de búsqueda
     return render_template('listar_contacto.html', contactos=Contacto.query.filter_by(usuario_id=current_user.id).all(), form_busqueda=form_busqueda)
 
