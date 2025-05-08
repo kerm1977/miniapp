@@ -598,7 +598,7 @@ def buscar_contacto():
 
         resultados = contactos.all()
         return render_template('listar_contacto.html', contactos=resultados, form_busqueda=form_busqueda)
-
+        
     # Si la solicitud es GET o el formulario no es válido, mostrar todos los contactos con el formulario de búsqueda
     return render_template('listar_contacto.html', contactos=Contacto.query.filter_by(usuario_id=current_user.id).all(), form_busqueda=form_busqueda)
 
