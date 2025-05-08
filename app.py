@@ -12,10 +12,15 @@ from datetime import datetime
 from flask_migrate import Migrate
 from flask import send_file
 import io
+from io import BytesIO
 import vobject
 import base64
 import mimetypes
 import os
+import openpyxl
+from openpyxl.utils.dataframe import dataframe_to_rows
+import pandas as pd
+import numpy
 
 
 app = Flask(__name__)
@@ -535,8 +540,7 @@ def buscar_contacto():
 
 
 
-
-# VCARD
+# VCARD Individual
 @app.route('/exportar_vcard/<int:contacto_id>')
 @login_required
 def exportar_vcard(contacto_id):
@@ -546,54 +550,115 @@ def exportar_vcard(contacto_id):
     v.add('fn').value = f"{contacto.nombre} {contacto.primer_apellido or ''} {contacto.segundo_apellido or ''}".strip()
 
     if contacto.telefono:
-        tel_param = v.add('Teléfono')
-        tel_param.type_param = 'Fijo:'
+        tel_param = v.add('TEL')
+        tel_param.type_param = 'HOME'
         tel_param.value = contacto.telefono
     if contacto.movil:
-        tel_param = v.add('Movil')
-        tel_param.type_param = 'Celular:'
+        tel_param = v.add('TEL')
+        tel_param.type_param = 'CELL'
         tel_param.value = contacto.movil
     if contacto.email:
-        email_param = v.add('email')
-        email_param.type_param = 'Email:'
+        email_param = v.add('EMAIL')
+        email_param.type_param = 'INTERNET'
         email_param.value = contacto.email
     if contacto.direccion:
-        adr_param = v.add('adr')
-        adr_param.type_param = 'Dirección: '
+        adr_param = v.add('ADR')
+        adr_param.type_param = 'HOME'
         adr_param.value = vobject.vcard.Address(street=contacto.direccion) # Simple dirección, podrías desglosarla más
 
     vcard_content = v.serialize()
     filename = f"{contacto.nombre.lower()}_{contacto.primer_apellido.lower() if contacto.primer_apellido else ''}.vcf"
     buffer = io.BytesIO(vcard_content.encode('utf-8'))
+    return send_file(buffer, as_attachment=True, download_name=filename, mimetype='text/vcard')
+
+# VCARD Todos
+@app.route('/exportar_todos_vcard')
+@login_required
+def exportar_todos_vcard():
+    contactos = Contacto.query.filter_by(usuario_id=current_user.id).all()
+
+    if not contactos:
+        flash('No hay contactos para exportar.', 'info')
+        return redirect(url_for('listar_contacto'))
+
+    vcards = []
+    for contacto in contactos:
+        v = vobject.vCard()
+        v.add('fn').value = f"{contacto.nombre} {contacto.primer_apellido or ''} {contacto.segundo_apellido or ''}".strip()
+        if contacto.telefono:
+            tel_param = v.add('TEL')
+            tel_param.type_param = 'HOME'
+            tel_param.value = contacto.telefono
+        if contacto.movil:
+            tel_param = v.add('TEL')
+            tel_param.type_param = 'CELL'
+            tel_param.value = contacto.movil
+        if contacto.email:
+            email_param = v.add('EMAIL')
+            email_param.type_param = 'INTERNET'
+            email_param.value = contacto.email
+        if contacto.direccion:
+            adr_param = v.add('ADR')
+            adr_param.type_param = 'HOME'
+            adr_param.value = vobject.vcard.Address(street=contacto.direccion)
+
+        vcards.append(v.serialize())
+
+    all_vcards_content = "\n".join(vcards)
+    filename = f"todos_los_contactos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.vcf"
+    buffer = io.BytesIO(all_vcards_content.encode('utf-8'))
 
     return send_file(buffer, as_attachment=True, download_name=filename, mimetype='text/vcard')
 
-    # Manejo del avatar
-    if contacto.avatar_path:
-        try:
-            with open(contacto.avatar_path, 'rb') as f:
-                avatar_data = f.read()
-            b64_avatar = base64.b64encode(avatar_data).decode('utf-8')
-            photo = v.add('photo')
-            photo.encoding_param = 'b'
-            photo.type_param = mimetypes.guess_type(contacto.avatar_path)[0] or 'image/jpeg'
-            photo.value = b64_avatar
-        except FileNotFoundError:
-            print(f"Avatar no encontrado: {contacto.avatar_path}")
-        except Exception as e:
-            print(f"Error al leer el avatar: {e}")
+# EXCEL Todos
+@app.route('/exportar_todos_excel')
+@login_required
+def exportar_todos_excel():
+    contactos = Contacto.query.filter_by(usuario_id=current_user.id).all()
 
-    vcard_content = v.serialize()
-    filename = f"{contacto.nombre.lower()}_{contacto.primer_apellido.lower() if contacto.primer_apellido else ''}.vcf"
-    buffer = io.BytesIO(vcard_content.encode('utf-8'))
+    if not contactos:
+        flash('No hay contactos para exportar a Excel.', 'info')
+        return redirect(url_for('listar_contacto'))
 
-    return send_file(buffer, as_attachment=True, download_name=filename, mimetype='text/vcard')
+    # Crear una lista de diccionarios con los datos de los contactos
+    data = []
+    for contacto in contactos:
+        data.append({
+            'Nombre': contacto.nombre,
+            'Primer Apellido': contacto.primer_apellido or '',
+            'Segundo Apellido': contacto.segundo_apellido or '',
+            'Teléfono': contacto.telefono,
+            'Móvil': contacto.movil or '',
+            'Email': contacto.email or '',
+            'Dirección': contacto.direccion or '',
+            'Actividad': contacto.tipo_actividad or '',
+            'Nota': contacto.nota or '',
+            'Dirección Mapa': contacto.direccion_mapa or '',
+            'Fecha Ingreso': contacto.fecha_ingreso.strftime('%Y-%m-%d %H:%M:%S') if contacto.fecha_ingreso else ''
+        })
 
+    # Crear un DataFrame de pandas
+    df = pd.DataFrame(data)
 
+    # Crear un nuevo libro de Excel
+    wb = openpyxl.Workbook()
+    ws = wb.active
 
+    # Escribir los encabezados desde las columnas del DataFrame
+    ws.append(list(df.columns))
 
+    # Escribir los datos del DataFrame a la hoja de cálculo
+    for row in dataframe_to_rows(df, index=False, header=False):
+        ws.append(row)
 
+    # Crear un buffer en memoria para el archivo Excel
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
 
+    filename = f"todos_los_contactos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+
+    return send_file(buffer, as_attachment=True, download_name=filename, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
