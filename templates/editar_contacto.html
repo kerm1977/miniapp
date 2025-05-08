@@ -10,180 +10,204 @@
     {% else %}
     {% endif %}
 
-    <h1>Editar Contacto</h1>
-    <form method="POST" enctype="multipart/form-data">
-        {{ form.csrf_token }}
-        <div class="mb-3">
-            {{ form.nombre.label(class="form-label") }}
-            {{ form.nombre(class="rounded-pill", value=form.nombre.data) }}
-            {% if form.nombre.errors %}
-                <ul class="errors">
-                    {% for error in form.nombre.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            {{ form.primer_apellido.label(class="form-label") }}
-            {{ form.primer_apellido(class="rounded-pill", value=form.primer_apellido.data or '') }}
-            {% if form.primer_apellido.errors %}
-                <ul class="errors">
-                    {% for error in form.primer_apellido.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            {{ form.segundo_apellido.label(class="form-label") }}
-            {{ form.segundo_apellido(class="rounded-pill", value=form.segundo_apellido.data or '') }}
-            {% if form.segundo_apellido.errors %}
-                <ul class="errors">
-                    {% for error in form.segundo_apellido.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            {{ form.telefono.label(class="form-label") }}
-            {{ form.telefono(class="rounded-pill", value=form.telefono.data) }}
-            {% if form.telefono.errors %}
-                <ul class="errors">
-                    {% for error in form.telefono.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            {{ form.movil.label(class="form-label") }}
-            {{ form.movil(class="rounded-pill", value=form.movil.data or '') }}
-            {% if form.movil.errors %}
-                <ul class="errors">
-                    {% for error in form.movil.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            {{ form.email.label(class="form-label") }}
-            {{ form.email(class="rounded-pill", value=form.email.data or '') }}
-            {% if form.email.errors %}
-                <ul class="errors">
-                    {% for error in form.email.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            {{ form.direccion.label(class="form-label") }}
-            {{ form.direccion(class="rounded-pill", value=form.direccion.data or '') }}
-            {% if form.direccion.errors %}
-                <ul class="errors">
-                    {% for error in form.direccion.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            {{ form.tipo_actividad.label(class="form-label") }}
-            {{ form.tipo_actividad(class="form-select rounded-pill") }}
-            {% if form.tipo_actividad.errors %}
-                <ul class="errors">
-                    {% for error in form.tipo_actividad.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-         <div class="mb-3">
-            {{ form.nota.label(class="form-label") }}
-            {{ form.nota(class="rounded-pill", value=form.nota.data or '') }}
-            {% if form.nota.errors %}
-                <ul class="errors">
-                    {% for error in form.nota.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            {{ form.direccion_mapa.label(class="form-label") }}
-            {{ form.direccion_mapa(class="rounded-pill", value=form.direccion_mapa.data or '') }}
-            {% if form.direccion_mapa.errors %}
-                <ul class="errors">
-                    {% for error in form.direccion_mapa.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            {{ form.empresa.label(class="form-label") }}
-            {{ form.empresa(class="form-control rounded-pill", value=form.empresa.data or '') }}
-            {% if form.empresa.errors %}
-                <ul class="errors">
-                    {% for error in form.empresa.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            {{ form.sitio_web.label(class="form-label") }}
-            {{ form.sitio_web(class="form-control rounded-pill", value=form.sitio_web.data or '') }}
-             {% if form.sitio_web.errors %}
-                <ul class="errors">
-                    {% for error in form.sitio_web.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            {{ form.capacidad_persona.label(class="form-label") }}
-            {{ form.capacidad_persona(class="form-select rounded-pill", value=form.capacidad_persona.data or '') }}
-             {% if form.capacidad_persona.errors %}
-                <ul class="errors">
-                    {% for error in form.capacidad_persona.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            {{ form.participacion.label(class="form-label") }}
-            {{ form.participacion(class="form-select rounded-pill", value=form.participacion.data or '') }}
-             {% if form.participacion.errors %}
-                <ul class="errors">
-                    {% for error in form.participacion.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            {{ form.avatar.label(class="form-label") }}
-            {{ form.avatar(class="rounded-pill") }}
-            {% if form.avatar.errors %}
-                <ul class="errors">
-                    {% for error in form.avatar.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-            {% if contacto.avatar_path %}
-                <img src="{{ url_for('static', filename='images/' + contacto.avatar_path.split('/')[-1]) }}" alt="Avatar actual" style="width: 50px; height: 50px; border-radius: 50%; margin-top: 10px;">
-                <small class="form-text text-muted">Dejar en blanco para mantener el avatar actual.</small>
-            {% endif %}
-        </div>
-        {{ form.submit(class="btn btn-primary") }}
-        <a href="{{ url_for('listar_contacto') }}" class="btn btn-secondary">Cancelar</a>
-    </form>
+    <div class="card p-3 mb-5 bg-body rounded">
+        <div class="card-body">
+            <h1 class="card-title">Editar Contacto</h1>
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.csrf_token }}
+                <div class="mb-3">
+                    {{ form.nombre.label(class="form-label") }}
+                    {{ form.nombre(class="form-control rounded-pill", value=form.nombre.data) }}
+                    {% if form.nombre.errors %}
+                        <div class="error-feedback">
+                            {% for error in form.nombre.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.primer_apellido.label(class="form-label") }}
+                    {{ form.primer_apellido(class="form-control rounded-pill", value=form.primer_apellido.data or '') }}
+                    {% if form.primer_apellido.errors %}
+                        <div class="error-feedback">
+                            {% for error in form.primer_apellido.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.segundo_apellido.label(class="form-label") }}
+                    {{ form.segundo_apellido(class="form-control rounded-pill", value=form.segundo_apellido.data or '') }}
+                    {% if form.segundo_apellido.errors %}
+                        <div class="error-feedback">
+                            {% for error in form.segundo_apellido.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.telefono.label(class="form-label") }}
+                    {{ form.telefono(class="form-control rounded-pill", value=form.telefono.data) }}
+                    {% if form.telefono.errors %}
+                        <div class="error-feedback">
+                            {% for error in form.telefono.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.movil.label(class="form-label") }}
+                    {{ form.movil(class="form-control rounded-pill", value=form.movil.data or '') }}
+                    {% if form.movil.errors %}
+                        <div class="error-feedback">
+                            {% for error in form.movil.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control rounded-pill", value=form.email.data or '') }}
+                    {% if form.email.errors %}
+                        <div class="error-feedback">
+                            {% for error in form.email.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.direccion.label(class="form-label") }}
+                    {{ form.direccion(class="form-control rounded-pill", value=form.direccion.data or '') }}
+                    {% if form.direccion.errors %}
+                        <div class="error-feedback">
+                            {% for error in form.direccion.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.tipo_actividad.label(class="form-label") }}
+                    {{ form.tipo_actividad(class="form-select rounded-pill") }}
+                    {% if form.tipo_actividad.errors %}
+                        <div class="error-feedback">
+                            {% for error in form.tipo_actividad.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
 
+                <div class="mb-3">
+                    {{ form.direccion_mapa.label(class="form-label") }}
+                    {{ form.direccion_mapa(class="form-control rounded-pill", value=form.direccion_mapa.data or '') }}
+                    {% if form.direccion_mapa.errors %}
+                        <div class="error-feedback">
+                            {% for error in form.direccion_mapa.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.empresa.label(class="form-label") }}
+                    {{ form.empresa(class="form-control rounded-pill", value=form.empresa.data or '') }}
+                    {% if form.empresa.errors %}
+                        <div class="error-feedback">
+                            {% for error in form.empresa.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.sitio_web.label(class="form-label") }}
+                    {{ form.sitio_web(class="form-control rounded-pill", value=form.sitio_web.data or '') }}
+                    {% if form.sitio_web.errors %}
+                        <div class="error-feedback">
+                            {% for error in form.sitio_web.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.capacidad_persona.label(class="form-label") }}
+                    {{ form.capacidad_persona(class="form-select rounded-pill", value=form.capacidad_persona.data or '') }}
+                    {% if form.capacidad_persona.errors %}
+                        <div class="error-feedback">
+                            {% for error in form.capacidad_persona.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.participacion.label(class="form-label") }}
+                    {{ form.participacion(class="form-select rounded-pill", value=form.participacion.data or '') }}
+                    {% if form.participacion.errors %}
+                        <div class="error-feedback">
+                            {% for error in form.participacion.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.avatar.label(class="form-label") }}
+                    <div class="input-group">
+                        <input type="file" class="form-control rounded-pill" id="avatar" name="avatar" aria-describedby="avatarHelp">
+                        <label class="input-group-text rounded-pill" for="avatar">Subir</label>
+                    </div>
+                    {% if form.avatar.errors %}
+                        <div class="error-feedback">
+                            {% for error in form.avatar.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if contacto.avatar_path %}
+                        <img src="{{ url_for('static', filename='images/' + contacto.avatar_path.split('/')[-1]) }}" alt="Avatar actual" style="width: 50px; height: 50px; border-radius: 50%; margin-top: 10px;">
+                        <small class="form-text text-muted">Dejar en blanco para mantener el avatar actual.</small>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.nota.label(class="form-label") }}
+                    {{ form.nota(class="form-control", rows="3", value=form.nota.data or '') }}
+                    {% if form.nota.errors %}
+                        <div class="error-feedback">
+                            {% for error in form.nota.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {{ form.submit(class="btn btn-primary rounded-pill") }}
+                <a href="{{ url_for('listar_contacto') }}" class="btn btn-secondary rounded-pill">Cancelar</a>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .error-feedback {
+            color: red;
+            font-size: 0.8em;
+            margin-top: 0.25rem;
+        }
+        .input-group > .form-control:not(:first-child), .input-group > .form-select:not(:first-child) {
+            border-top-left-radius: 1.5rem !important;
+            border-bottom-left-radius: 1.5rem !important;
+        }
+        .input-group-text {
+            border-top-left-radius: 0 !important;
+            border-bottom-left-radius: 0 !important;
+        }
+    </style>
 {% endblock %}

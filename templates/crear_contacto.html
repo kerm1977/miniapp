@@ -11,11 +11,11 @@
     {% endif %}
 
     <h1>Crear Nuevo Contacto</h1>
-    <form method="POST" enctype="multipart/form-data">
+    <form method="POST" enctype="multipart/form-data" id="crearContactoForm">
         {{ form.csrf_token }}
         <div class="mb-3">
             {{ form.nombre.label(class="form-label") }}
-            {{ form.nombre(class="rounded-pill") }}
+            {{ form.nombre(class="rounded-pill form-control") }}
             {% if form.nombre.errors %}
                 <ul class="errors">
                     {% for error in form.nombre.errors %}
@@ -26,7 +26,7 @@
         </div>
         <div class="mb-3">
             {{ form.primer_apellido.label(class="form-label") }}
-            {{ form.primer_apellido(class="rounded-pill") }}
+            {{ form.primer_apellido(class="rounded-pill form-control") }}
             {% if form.primer_apellido.errors %}
                 <ul class="errors">
                     {% for error in form.primer_apellido.errors %}
@@ -37,7 +37,7 @@
         </div>
         <div class="mb-3">
             {{ form.segundo_apellido.label(class="form-label") }}
-            {{ form.segundo_apellido(class="rounded-pill") }}
+            {{ form.segundo_apellido(class="rounded-pill form-control") }}
             {% if form.segundo_apellido.errors %}
                 <ul class="errors">
                     {% for error in form.segundo_apellido.errors %}
@@ -48,7 +48,7 @@
         </div>
         <div class="mb-3">
             {{ form.telefono.label(class="form-label") }}
-            {{ form.telefono(class="rounded-pill") }}
+            {{ form.telefono(class="rounded-pill form-control") }}
             {% if form.telefono.errors %}
                 <ul class="errors">
                     {% for error in form.telefono.errors %}
@@ -59,7 +59,7 @@
         </div>
         <div class="mb-3">
             {{ form.movil.label(class="form-label") }}
-            {{ form.movil(class="rounded-pill") }}
+            {{ form.movil(class="rounded-pill form-control") }}
             {% if form.movil.errors %}
                 <ul class="errors">
                     {% for error in form.movil.errors %}
@@ -70,7 +70,7 @@
         </div>
         <div class="mb-3">
             {{ form.email.label(class="form-label") }}
-            {{ form.email(class="rounded-pill") }}
+            {{ form.email(class="rounded-pill form-control") }}
             {% if form.email.errors %}
                 <ul class="errors">
                     {% for error in form.email.errors %}
@@ -81,7 +81,7 @@
         </div>
         <div class="mb-3">
             {{ form.direccion.label(class="form-label") }}
-            {{ form.direccion(class="rounded-pill") }}
+            {{ form.direccion(class="rounded-pill form-control") }}
             {% if form.direccion.errors %}
                 <ul class="errors">
                     {% for error in form.direccion.errors %}
@@ -92,7 +92,7 @@
         </div>
         <div class="mb-3">
             {{ form.tipo_actividad.label(class="form-label") }}
-            {{ form.tipo_actividad(class="rounded-pill") }}
+            {{ form.tipo_actividad(class="rounded-pill form-select") }}
             {% if form.tipo_actividad.errors %}
                 <ul class="errors">
                     {% for error in form.tipo_actividad.errors %}
@@ -103,7 +103,7 @@
         </div>
         <div class="mb-3">
             {{ form.nota.label(class="form-label") }}
-            {{ form.nota(class="input") }}
+            {{ form.nota(class="form-control") }}
             {% if form.nota.errors %}
                 <ul class="errors">
                     {% for error in form.nota.errors %}
@@ -114,7 +114,7 @@
         </div>
         <div class="mb-3">
             {{ form.direccion_mapa.label(class="form-label") }}
-            {{ form.direccion_mapa(class="input") }}
+            {{ form.direccion_mapa(class="form-control") }}
             {% if form.direccion_mapa.errors %}
                 <ul class="errors">
                     {% for error in form.direccion_mapa.errors %}
@@ -125,7 +125,7 @@
         </div>
         <div class="mb-3">
             {{ form.avatar.label(class="form-label") }}
-            {{ form.avatar(class="rounded-pill") }}
+            {{ form.avatar(class="rounded-pill form-control") }}
             {% if form.avatar.errors %}
                 <ul class="errors">
                     {% for error in form.avatar.errors %}
@@ -134,7 +134,66 @@
                 </ul>
             {% endif %}
         </div>
-        {{ form.submit(class="btn btn-primary") }}
+        <div class="mb-3" style="display: none;">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
         <a href="{{ url_for('listar_contacto') }}" class="btn btn-secondary">Cancelar</a>
     </form>
+
+    <style>
+        .top-right {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .username-display {
+            margin-right: 10px;
+        }
+
+        .gear-icon, .logout-icon {
+            margin-left: 5px;
+            color: #6c757d;
+            text-decoration: none;
+        }
+
+        .gear-icon:hover, .logout-icon:hover {
+            color: #007bff;
+        }
+
+        .errors {
+            color: red;
+            list-style-type: none;
+            padding: 0;
+            margin-top: 0.25rem;
+            font-size: 0.875em;
+        }
+
+        .floating-button {
+            position: fixed;
+            bottom: 80px; /* Subir el botón */
+            right: 20px;
+            background-color: #28a745; /* Color verde para guardar */
+            color: white;
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            text-decoration: none;
+        }
+
+        .floating-button:hover {
+            background-color: #1e7e34;
+            color: white;
+        }
+    </style>
+
+    <a href="#" onclick="document.getElementById('crearContactoForm').submit(); return false;" class="floating-button">
+        <i class="fas fa-save"></i>
+    </a>
 {% endblock %}
