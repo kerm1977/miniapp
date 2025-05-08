@@ -203,8 +203,11 @@ class ContactoForm(FlaskForm):
 
     submit = SubmitField('Guardar', render_kw={"class": "btn btn-primary"})
 
+from flask_wtf import FlaskForm
+from wtforms import SelectField, SubmitField
+
 class BusquedaContactoForm(FlaskForm):
-    busqueda = SelectField('Buscar por Actividad', choices=[
+    busqueda_actividad = SelectField('Buscar por Actividad', choices=[
         ('', 'Seleccionar Actividad'),
         ('La Tribu', 'La Tribu'),
         ('Senderista', 'Senderista'),
@@ -232,7 +235,24 @@ class BusquedaContactoForm(FlaskForm):
         ('Aerolínea', 'Aerolínea'),
         ('Guía', 'Guía'),
         ('Banco', 'Banco'),
-        ('Otros', 'Otros') # Cambié 'Otros (especifique)' a 'Otros' para la búsqueda
+        ('Otros', 'Otros')
+    ], render_kw={"class": "rounded-pill form-select"})
+    busqueda_capacidad_persona = SelectField('Buscar por Capacidad', choices=[
+        ('', 'Seleccionar Capacidad'),
+        ('Rápido', 'Rápido'),
+        ('Intermedio', 'Intermedio'),
+        ('Básico', 'Básico'),
+        ('Iniciante', 'Iniciante')
+    ], render_kw={"class": "rounded-pill form-select"})
+    busqueda_participacion = SelectField('Buscar por Participación', choices=[
+        ('', 'Seleccionar Participación'),
+        ('Solo de La Tribu', 'Solo de La Tribu'),
+        ('constante', 'constante'),
+        ('inconstante', 'inconstante'),
+        ('El Camino de Costa Rica', 'El Camino de Costa Rica'),
+        ('Parques Nacionales', 'Parques Nacionales'),
+        ('Paseo | Recreativo', 'Paseo | Recreativo'),
+        ('Revisar/Eliminar', 'Revisar/Eliminar')
     ], render_kw={"class": "rounded-pill form-select"})
     submit_buscar = SubmitField('Buscar', render_kw={"class": "btn btn-secondary"})
 
@@ -560,18 +580,27 @@ def borrar_contacto(id):
 @login_required
 def buscar_contacto():
     form_busqueda = BusquedaContactoForm()
+    contactos = Contacto.query.filter_by(usuario_id=current_user.id)
+
     if form_busqueda.validate_on_submit():
-        termino_busqueda = form_busqueda.busqueda.data
-        if termino_busqueda: # Asegurarse de que se haya seleccionado algo
-            contactos = Contacto.query.filter(
-                Contacto.tipo_actividad.like(f'%{termino_busqueda}%')
-            ).filter_by(usuario_id=current_user.id).all()
-            return render_template('listar_contacto.html', contactos=contactos, form_busqueda=form_busqueda)
-        else:
-            # Si no se selecciona ninguna actividad, mostrar todos los contactos
-            contactos = Contacto.query.filter_by(usuario_id=current_user.id).all()
-            return render_template('listar_contacto.html', contactos=contactos, form_busqueda=form_busqueda)
-    return redirect(url_for('listar_contacto'))
+        termino_actividad = form_busqueda.busqueda_actividad.data
+        termino_capacidad = form_busqueda.busqueda_capacidad_persona.data
+        termino_participacion = form_busqueda.busqueda_participacion.data
+
+        if termino_actividad:
+            contactos = contactos.filter(Contacto.tipo_actividad == termino_actividad)
+
+        if termino_capacidad:
+            contactos = contactos.filter(Contacto.capacidad_persona == termino_capacidad)
+
+        if termino_participacion:
+            contactos = contactos.filter(Contacto.participacion == termino_participacion)
+
+        resultados = contactos.all()
+        return render_template('listar_contacto.html', contactos=resultados, form_busqueda=form_busqueda)
+
+    # Si la solicitud es GET o el formulario no es válido, mostrar todos los contactos con el formulario de búsqueda
+    return render_template('listar_contacto.html', contactos=Contacto.query.filter_by(usuario_id=current_user.id).all(), form_busqueda=form_busqueda)
 
 
 

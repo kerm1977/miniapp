@@ -18,16 +18,22 @@
     <div class="mt-3">
         <form method="POST" action="{{ url_for('buscar_contacto') }}" class="row g-3 align-items-center">
             {{ form_busqueda.csrf_token }}
-            <div class="col-auto">
-                {{ form_busqueda.busqueda.label(class="form-label") }}
-                {{ form_busqueda.busqueda(class="rounded-pill form-control") }}
+            <div class="col-md-4">
+                {{ form_busqueda.busqueda_actividad.label(class="form-label") }}
+                {{ form_busqueda.busqueda_actividad(class="rounded-pill form-select") }}
             </div>
-
+            <div class="col-md-4">
+                {{ form_busqueda.busqueda_capacidad_persona.label(class="form-label") }}
+                {{ form_busqueda.busqueda_capacidad_persona(class="rounded-pill form-select") }}
+            </div>
+            <div class="col-md-4">
+                {{ form_busqueda.busqueda_participacion.label(class="form-label") }}
+                {{ form_busqueda.busqueda_participacion(class="rounded-pill form-select") }}
+            </div>
             <div class="col-auto">
                 {{ form_busqueda.submit_buscar(class="btn btn-secondary") }}
             </div>
         </form>
-
         <a href="{{ url_for('listar_contacto') }}" class="btn btn-outline-secondary mt-2">Limpiar Búsqueda</a>
     </div>
 
