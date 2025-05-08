@@ -92,7 +92,7 @@
         </div>
         <div class="mb-3">
             {{ form.tipo_actividad.label(class="form-label") }}
-            {{ form.tipo_actividad(class="rounded-pill") }}
+            {{ form.tipo_actividad(class="form-select rounded-pill") }}
             {% if form.tipo_actividad.errors %}
                 <ul class="errors">
                     {% for error in form.tipo_actividad.errors %}
@@ -101,7 +101,7 @@
                 </ul>
             {% endif %}
         </div>
-        <div class="mb-3">
+         <div class="mb-3">
             {{ form.nota.label(class="form-label") }}
             {{ form.nota(class="rounded-pill", value=form.nota.data or '') }}
             {% if form.nota.errors %}
@@ -118,6 +118,50 @@
             {% if form.direccion_mapa.errors %}
                 <ul class="errors">
                     {% for error in form.direccion_mapa.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.empresa.label(class="form-label") }}
+            {{ form.empresa(class="form-control rounded-pill", value=form.empresa.data or '') }}
+            {% if form.empresa.errors %}
+                <ul class="errors">
+                    {% for error in form.empresa.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.sitio_web.label(class="form-label") }}
+            {{ form.sitio_web(class="form-control rounded-pill", value=form.sitio_web.data or '') }}
+             {% if form.sitio_web.errors %}
+                <ul class="errors">
+                    {% for error in form.sitio_web.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.capacidad_persona.label(class="form-label") }}
+            {{ form.capacidad_persona(class="form-select rounded-pill", value=form.capacidad_persona.data or '') }}
+             {% if form.capacidad_persona.errors %}
+                <ul class="errors">
+                    {% for error in form.capacidad_persona.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.participacion.label(class="form-label") }}
+            {{ form.participacion(class="form-select rounded-pill", value=form.participacion.data or '') }}
+             {% if form.participacion.errors %}
+                <ul class="errors">
+                    {% for error in form.participacion.errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
                 </ul>

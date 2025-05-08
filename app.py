@@ -91,6 +91,11 @@ class Contacto(db.Model):
     fecha_ingreso = db.Column(db.DateTime, default=datetime.utcnow)
     usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     usuario = db.relationship('User', backref=db.backref('contactos', lazy=True))
+    empresa = db.Column(db.String(100))
+    sitio_web = db.Column(db.String(200))
+    # Nuevos campos select
+    capacidad_persona = db.Column(db.String(20))
+    participacion = db.Column(db.String(30))
 
     def __repr__(self):
         return f'<Contacto {self.nombre}>'
@@ -129,7 +134,6 @@ def allowed_file(filename):
 class SearchForm(FlaskForm):
     search_term = StringField('Buscar Contacto', validators=[DataRequired()])
     submit = SubmitField('Buscar')
-
 
 class ContactoForm(FlaskForm):
     nombre = StringField('Nombre', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
@@ -173,6 +177,30 @@ class ContactoForm(FlaskForm):
     nota = TextAreaField('Nota', render_kw={"class": "rounded-pill"})
     direccion_mapa = StringField('Dirección del Mapa', render_kw={"class": "rounded-pill"})
     avatar = FileField('Avatar', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif'])], render_kw={"class": "rounded-pill"})
+    empresa = StringField('Empresa', render_kw={"class": "rounded-pill"})
+    sitio_web = StringField('Sitio Web', render_kw={"class": "rounded-pill"})
+    # Nuevos campos select en el formulario
+    capacidad_persona_choices = [
+        ('', 'Seleccionar Capacidad'),
+        ('Rápido', 'Rápido'),
+        ('Intermedio', 'Intermedio'),
+        ('Básico', 'Básico'),
+        ('Iniciante', 'Iniciante')
+    ]
+    capacidad_persona = SelectField('Capacidad de persona', choices=capacidad_persona_choices, render_kw={"class": "rounded-pill form-select"})
+
+    participacion_choices = [
+        ('', 'Seleccionar Participación'),
+        ('Solo de La Tribu', 'Solo de La Tribu'),
+        ('constante', 'constante'),
+        ('inconstante', 'inconstante'),
+        ('El Camino de Costa Rica', 'El Camino de Costa Rica'),
+        ('Parques Nacionales', 'Parques Nacionales'),
+        ('Paseo | Recreativo', 'Paseo | Recreativo'),
+        ('Revisar/Eliminar', 'Revisar/Eliminar')
+    ]
+    participacion = SelectField('PARTICIPACION', choices=participacion_choices, render_kw={"class": "rounded-pill form-select"})
+
     submit = SubmitField('Guardar', render_kw={"class": "btn btn-primary"})
 
 class BusquedaContactoForm(FlaskForm):
@@ -207,7 +235,6 @@ class BusquedaContactoForm(FlaskForm):
         ('Otros', 'Otros') # Cambié 'Otros (especifique)' a 'Otros' para la búsqueda
     ], render_kw={"class": "rounded-pill form-select"})
     submit_buscar = SubmitField('Buscar', render_kw={"class": "btn btn-secondary"})
-
 
 class BorrarContactoForm(FlaskForm):
     submit = SubmitField('Confirmar Borrar')
@@ -444,6 +471,10 @@ def crear_contacto():
         tipo_actividad = form.tipo_actividad.data
         nota = form.nota.data
         direccion_mapa = form.direccion_mapa.data
+        empresa = form.empresa.data
+        sitio_web = form.sitio_web.data
+        capacidad_persona = form.capacidad_persona.data
+        participacion = form.participacion.data
 
         # Manejo del avatar
         if form.avatar.data:
@@ -465,7 +496,11 @@ def crear_contacto():
             nota=nota,
             direccion_mapa=direccion_mapa,
             avatar_path=avatar_path,
-            usuario_id=current_user.id
+            usuario_id=current_user.id,
+            empresa=empresa,
+            sitio_web=sitio_web,
+            capacidad_persona=capacidad_persona,
+            participacion=participacion
         )
         db.session.add(nuevo_contacto)
         db.session.commit()
@@ -489,6 +524,10 @@ def editar_contacto(id):
         contacto.tipo_actividad = form.tipo_actividad.data
         contacto.nota = form.nota.data
         contacto.direccion_mapa = form.direccion_mapa.data
+        contacto.empresa = form.empresa.data
+        contacto.sitio_web = form.sitio_web.data
+        contacto.capacidad_persona = form.capacidad_persona.data
+        contacto.participacion = form.participacion.data
 
         # Manejo del avatar en la edición
         if form.avatar.data:
@@ -564,7 +603,17 @@ def exportar_vcard(contacto_id):
     if contacto.direccion:
         adr_param = v.add('ADR')
         adr_param.type_param = 'HOME'
-        adr_param.value = vobject.vcard.Address(street=contacto.direccion) # Simple dirección, podrías desglosarla más
+        adr_param.value = vobject.vcard.Address(street=contacto.direccion)
+    if contacto.empresa:
+        org_param = v.add('ORG')
+        org_param.value = [contacto.empresa]  # ORG es una lista
+    if contacto.sitio_web:
+        url_param = v.add('URL')
+        url_param.value = contacto.sitio_web
+    if contacto.capacidad_persona:
+        v.add('X-CAPACIDAD-PERSONA').value = contacto.capacidad_persona # Campo personalizado
+    if contacto.participacion:
+        v.add('X-PARTICIPACION').value = contacto.participacion # Campo personalizado
 
     vcard_content = v.serialize()
     filename = f"{contacto.nombre.lower()}_{contacto.primer_apellido.lower() if contacto.primer_apellido else ''}.vcf"
@@ -601,6 +650,16 @@ def exportar_todos_vcard():
             adr_param = v.add('ADR')
             adr_param.type_param = 'HOME'
             adr_param.value = vobject.vcard.Address(street=contacto.direccion)
+        if contacto.empresa:
+            org_param = v.add('ORG')
+            org_param.value = [contacto.empresa]
+        if contacto.sitio_web:
+            url_param = v.add('URL')
+            url_param.value = contacto.sitio_web
+        if contacto.capacidad_persona:
+            v.add('X-CAPACIDAD-PERSONA').value = contacto.capacidad_persona
+        if contacto.participacion:
+            v.add('X-PARTICIPACION').value = contacto.participacion
 
         vcards.append(v.serialize())
 
@@ -634,7 +693,11 @@ def exportar_todos_excel():
             'Actividad': contacto.tipo_actividad or '',
             'Nota': contacto.nota or '',
             'Dirección Mapa': contacto.direccion_mapa or '',
-            'Fecha Ingreso': contacto.fecha_ingreso.strftime('%Y-%m-%d %H:%M:%S') if contacto.fecha_ingreso else ''
+            'Fecha Ingreso': contacto.fecha_ingreso.strftime('%Y-%m-%d %H:%M:%S') if contacto.fecha_ingreso else '',
+            'Empresa': contacto.empresa or '',
+            'Sitio Web': contacto.sitio_web or '',
+            'Capacidad Persona': contacto.capacidad_persona or '',
+            'Participacion': contacto.participacion or '',
         })
 
     # Crear un DataFrame de pandas
@@ -659,6 +722,27 @@ def exportar_todos_excel():
     filename = f"todos_los_contactos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
 
     return send_file(buffer, as_attachment=True, download_name=filename, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
