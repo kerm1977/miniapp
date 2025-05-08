@@ -1,27 +1,24 @@
 {% extends 'base.html' %}
 {% block title %}Lista de Contactos{% endblock %}
 {% block content %}
-    {% if current_user.is_authenticated %}
-        <div class="top-right">
-            <span class="username-display">{{ current_user.username }}</span>
-            <a href="{{ url_for('perfil') }}" class="gear-icon"><i class="fas fa-cog"></i></a>
-            <a href="{{ url_for('logout') }}" class="logout-icon"><i class="fas fa-sign-out-alt"></i></a>
-        </div>
-    {% else %}
-    {% endif %}
+    <div class="top-right">
+        <span class="username-display">{{ current_user.username }}</span>
+        <a href="{{ url_for('perfil') }}" class="gear-icon"><i class="fas fa-cog"></i></a>
+        <a href="{{ url_for('logout') }}" class="logout-icon"><i class="fas fa-sign-out-alt"></i></a>
+    </div>
 
     <h1>Lista de Contactos</h1>
     <div class="mt-3">
         <input type="text" id="searchInput" class="form-control rounded-pill mb-2" placeholder="Buscar en todos los campos...">
-    
+    </div>
 
 
     <div class="mt-3">
-    <a href="{{ url_for('crear_contacto') }}" class="btn btn-primary">Crear Nuevo Contacto</a>
-    <a href="{{ url_for('exportar_todos_vcard') }}" class="btn btn-info">Exportar Todos a vCard</a>
-    <a href="{{ url_for('exportar_todos_excel') }}" class="btn btn-success">Exportar Todos a Excel</a>
+        <a href="{{ url_for('crear_contacto') }}" class="btn btn-primary">Crear Nuevo Contacto</a>
+        <a href="{{ url_for('exportar_todos_vcard') }}" class="btn btn-info">Exportar Todos a vCard</a>
+        <a href="{{ url_for('exportar_todos_excel') }}" class="btn btn-success">Exportar Todos a Excel</a>
     </div>
-    
+
 
     <div class="mt-3">
         <form method="POST" action="{{ url_for('buscar_contacto') }}" class="row g-3 align-items-center">
@@ -46,82 +43,72 @@
     </div>
 
     {% if contactos %}
-        <table class="table mt-3" id="contactTable">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Primer Apellido</th>
-                    <th>Segundo Apellido</th>
-                    <th>Teléfono</th>
-                    <th>Móvil</th>
-                    <th>Email</th>
-                    <th>Dirección</th>
-                    <th>Actividad</th>
-                    <th>Nota</th>
-                    <th>Dirección Mapa</th>
-                    <th>Capacidad</th>
-                    <th>Participación</th>
-                    <th>Empresa</th>
-                    <th>Sitio Web</th>
-                    <th>Avatar</th>
-                    <th>Fecha Ingreso</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for contacto in contactos %}
-                    <tr class="contact-row">
-                        <td>{{ contacto.nombre | title}}</td>
-                        <td>{{ contacto.primer_apellido | title or '-' }}</td>
-                        <td>{{ contacto.segundo_apellido | title or '-' }}</td>
-                        <td>{{ contacto.telefono }}</td>
-                        <td>{{ contacto.movil or '-' }}</td>
-                        <td>{{ contacto.email or '-' }}</td>
-                        <td>{{ contacto.direccion or '-' }}</td>
-                        <td>{{ contacto.tipo_actividad or '-' }}</td>
-                        <td>{{ contacto.nota or '-' }}</td>
-                        <td>{{ contacto.direccion_mapa or '-' }}</td>
-                        <td>{{ contacto.capacidad_persona or '-' }}</td>
-                        <td>{{ contacto.participacion or '-' }}</td>
-                        <td>{{ contacto.empresa or '-' }}</td>
-                        <td><a href="{{ contacto.sitio_web }}" target="_blank">{{ contacto.sitio_web or '-' }}</a></td>
-                        <td>
+        <div class="mt-4">
+            {% for contacto in contactos %}
+                <div class="card border rounded-4 mb-3" style="border-width: 0.5px; border-color: #ccc;">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ contacto.nombre | title }} {% if contacto.primer_apellido %}{{ contacto.primer_apellido | title }}{% endif %} {% if contacto.segundo_apellido %}{{ contacto.segundo_apellido | title }}{% endif %}</h5>
+                        <p class="card-text">
+                            <strong>Teléfono:</strong>
+                            {% if contacto.telefono and not contacto.telefono.startswith('2') %}
+                                <a href="https://wa.me/506{{ contacto.telefono }}">{{ contacto.telefono }}</a>
+                            {% else %}
+                                {{ contacto.telefono }}
+                            {% endif %}
+                            <br>
+                            {% if contacto.movil %}<strong>Móvil:</strong> {{ contacto.movil }}<br>{% endif %}
+                            {% if contacto.email %}<strong>Email:</strong> {{ contacto.email }}<br>{% endif %}
+                            {% if contacto.direccion %}<strong>Dirección:</strong> {{ contacto.direccion }}<br>{% endif %}
+                            {% if contacto.tipo_actividad %}<strong>Actividad:</strong> {{ contacto.tipo_actividad }}<br>{% endif %}
+                            {% if contacto.nota %}<strong>Nota:</strong> {{ contacto.nota }}<br>{% endif %}
+                            {% if contacto.direccion_mapa %}<strong>Dirección Mapa:</strong> {{ contacto.direccion_mapa }}<br>{% endif %}
+                            {% if contacto.capacidad_persona %}<strong>Capacidad:</strong> {{ contacto.capacidad_persona }}<br>{% endif %}
+                            {% if contacto.participacion %}<strong>Participación:</strong> {{ contacto.participacion }}<br>{% endif %}
+                            {% if contacto.empresa %}<strong>Empresa:</strong> {{ contacto.empresa }}<br>{% endif %}
+                            {% if contacto.sitio_web %}<strong>Sitio Web:</strong> <a href="{{ contacto.sitio_web }}" target="_blank">{{ contacto.sitio_web }}</a><br>{% endif %}
+                            <strong>Avatar:</strong>
                             {% if contacto.avatar_path %}
                                 <img src="{{ url_for('static', filename='images/' + contacto.avatar_path.split('/')[-1]) }}" alt="Avatar" style="width: 50px; height: 50px; border-radius: 50%;">
                             {% else %}
                                 -
                             {% endif %}
-                        </td>
-                        <td>{{ contacto.fecha_ingreso.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                        <td>
-                            <a href="{{ url_for('editar_contacto', id=contacto.id) }}" class="btn btn-sm btn-warning">Editar</a>
-                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmarBorrarModal{{ contacto.id }}">Borrar</button>
-                            <a href="{{ url_for('exportar_vcard', contacto_id=contacto.id) }}" class="btn btn-sm btn-info">vCard</a>
-                            <div class="modal fade" id="confirmarBorrarModal{{ contacto.id }}" tabindex="-1" aria-labelledby="confirmarBorrarModalLabel{{ contacto.id }}" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="confirmarBorrarModalLabel{{ contacto.id }}">Confirmar Borrado</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            ¿Estás seguro de que deseas borrar a <strong>{{ contacto.nombre }}</strong>?
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                            <form method="POST" action="{{ url_for('borrar_contacto', id=contacto.id) }}" style="display: inline;">
-                                                {{ csrf_token }}
-                                                <button type="submit" class="btn btn-danger">Confirmar Borrar</button>
-                                            </form>
+                            <br>
+                            <strong>Fecha Ingreso:</strong> {{ contacto.fecha_ingreso.strftime('%Y-%m-%d %H:%M:%S') }}<br>
+                        </p>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="gap-2">
+                                <a href="{{ url_for('editar_contacto', id=contacto.id) }}" class="btn btn-sm btn-warning">Editar</a>
+                                <a href="{{ url_for('exportar_vcard', contacto_id=contacto.id) }}" class="btn btn-sm btn-info">vCard</a>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmarBorrarModal{{ contacto.id }}">Borrar</button>
+                                <div class="modal fade" id="confirmarBorrarModal{{ contacto.id }}" tabindex="-1" aria-labelledby="confirmarBorrarModalLabel{{ contacto.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="confirmarBorrarModalLabel{{ contacto.id }}">Confirmar Borrado</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                ¿Estás seguro de que deseas borrar a <strong>{{ contacto.nombre }}</strong>?
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <form method="POST" action="{{ url_for('borrar_contacto', id=contacto.id) }}" style="display: inline;">
+                                                    {{ csrf_token }}
+                                                    <button type="submit" class="btn btn-danger">Confirmar Borrar</button>
+                                                </form>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
     {% else %}
         <p>No tienes contactos en tu agenda.</p>
     {% endif %}
@@ -129,26 +116,25 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('searchInput');
-            const contactTable = document.getElementById('contactTable');
-            const contactRows = contactTable.querySelectorAll('tbody tr.contact-row');
+            const contactCards = document.querySelectorAll('.card');
 
             searchInput.addEventListener('input', function() {
                 const searchTerm = searchInput.value.toLowerCase();
 
-                contactRows.forEach(row => {
-                    let rowMatch = false;
-                    const cells = row.querySelectorAll('td');
+                contactCards.forEach(card => {
+                    let cardMatch = false;
+                    const textElements = card.querySelectorAll('h5, p');
 
-                    cells.forEach(cell => {
-                        if (cell.textContent.toLowerCase().includes(searchTerm)) {
-                            rowMatch = true;
+                    textElements.forEach(element => {
+                        if (element.textContent.toLowerCase().includes(searchTerm)) {
+                            cardMatch = true;
                         }
                     });
 
-                    if (rowMatch) {
-                        row.style.display = ''; // Mostrar la fila
+                    if (cardMatch) {
+                        card.style.display = ''; // Mostrar la tarjeta
                     } else {
-                        row.style.display = 'none'; // Ocultar la fila
+                        card.style.display = 'none'; // Ocultar la tarjeta
                     }
                 });
             });
