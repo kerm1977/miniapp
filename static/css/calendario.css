@@ -1,0 +1,207 @@
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    justify-content: center;
+}
+
+.controls select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+}
+
+.day {
+    padding: 10px;
+    border: 1px solid #eee;
+    text-align: center;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.floating-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    line-height: 50px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000; /* Asegura que esté por encima de otros elementos */
+}
+
+.floating-btn:hover {
+    background-color: #0056b3;
+}
+
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4);  Black w/ opacity */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+    border-radius: 8px;
+    position: relative;
+}
+
+.close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#new-event-form div {
+    margin-bottom: 10px;
+}
+
+#new-event-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#new-event-form input[type=text],
+#new-event-form input[type=date],
+#new-event-form textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+#new-event-form textarea {
+    resize: vertical;
+}
+
+#new-event-form button[type=submit] {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#new-event-form button[type=submit]:hover {
+    background-color: #1e7e34;
+}
+
+.weekday-name {
+    font-weight: bold;
+    text-align: center;
+    padding: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+}
+
+#calendar.year-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Ajustar el ancho mínimo de cada mes */
+    gap: 15px;
+    padding: 20px;
+}
+
+.mini-month {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+}
+
+.mini-month h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: #333;
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+.mini-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    font-size: 0.8em;
+    color: #777;
+    margin-bottom: 4px;
+}
+
+.mini-weekdays div {
+    text-align: center;
+}
+
+.mini-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    font-size: 0.9em;
+}
+
+.mini-days div {
+    text-align: center;
+    padding: 6px 0; /* Ajustar el espaciado vertical */
+}
+
+.mini-days div:empty {
+    background: none;
+    border: none;
+}
+
+#calendar.day-view {
+    text-align: center;
+    font-size: 1.5em;
+    padding: 20px;
+}
+
+.day,
+.mini-days div[data-day] {
+    cursor: pointer; /* Cambiar el cursor a una manita */
+}
+
+.day:hover {
+    background-color: #e0e0e0; /* Cambiar el color de fondo al pasar el ratón en la vista de mes */
+}
+
+.mini-days div[data-day]:hover {
+    background-color: #e0e0e0; /* Cambiar el color de fondo al pasar el ratón en la vista de año */
+}

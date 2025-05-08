@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Calendario{% endblock %}
+{% block content %}
+   <div class="container">
+        <h1>Calendario</h1>
+
+        <div class="controls">
+            <select id="view-select">
+                <option value="month" selected>Mes</option>
+                <option value="week">Semana</option>
+                <option value="day">Día</option>
+                <option value="year">Año</option>
+            </select>
+            <select id="year-select">
+                </select>
+            <select id="month-select">
+                <option value="1">Enero</option>
+                <option value="2">Febrero</option>
+                <option value="3">Marzo</option>
+                <option value="4">Abril</option>
+                <option value="5">Mayo</option>
+                <option value="6">Junio</option>
+                <option value="7">Julio</option>
+                <option value="8">Agosto</option>
+                <option value="9">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+            </select>
+        </div>
+
+        <div id="calendar">
+            <div class="weekday-name">Dom</div>
+            <div class="weekday-name">Lun</div>
+            <div class="weekday-name">Mar</div>
+            <div class="weekday-name">Mié</div>
+            <div class="weekday-name">Jue</div>
+            <div class="weekday-name">Vie</div>
+            <div class="weekday-name">Sáb</div>
+        </div>
+
+        <button id="add-event-btn" class="floating-btn">+</button>
+
+        <div id="event-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn">&times;</span>
+                <h2>Nuevo Evento</h2>
+                <form id="new-event-form">
+                    <div>
+                        <label for="event-date">Fecha:</label>
+                        <input type="date" id="event-date" name="event-date" required>
+                    </div>
+                    <div>
+                        <label for="event-title">Título:</label>
+                        <input type="text" id="event-title" name="event-title" required>
+                    </div>
+                    <div>
+                        <label for="event-description">Descripción:</label>
+                        <textarea id="event-description" name="event-description"></textarea>
+                    </div>
+                    <button type="submit">Guardar Evento</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='calendario.js') }}"></script>
+{% endblock %}
