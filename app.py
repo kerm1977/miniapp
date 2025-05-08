@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, flash
+from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, SelectField, FileField, TextAreaField,PasswordField, BooleanField # Asegúrate de que SelectField y TextAreaField estén aquí
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Regexp
@@ -99,6 +99,28 @@ class Contacto(db.Model):
 
     def __repr__(self):
         return f'<Contacto {self.nombre}>'
+
+# Definición del modelo de datos (si usan SQLAlchemy)
+class Event(db.Model):
+    __tablename__ = 'event'
+    __table_args__ = {'extend_existing': True}
+
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False)
+    title = db.Column(db.String(80), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'date': self.date.isoformat(),
+            'title': self.title,
+            'description': self.description
+        }
+
+with app.app_context():
+    db.create_all()
 
 
 class RegistrationForm(FlaskForm):
@@ -769,6 +791,39 @@ def exportar_todos_excel():
 
 
 
+
+
+
+
+@app.route('/api/events', methods=['POST'])
+def add_event():
+    data = request.get_json()
+    date_str = data.get('date')
+    title = data.get('title')
+    description = data.get('description')
+
+    if not date_str or not title:
+        return jsonify({'error': 'La fecha y el título son obligatorios'}), 400
+
+    try:
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+        new_event = Event(date=date_obj, title=title, description=description)
+        db.session.add(new_event)
+        db.session.commit()
+        return jsonify({'message': 'Evento guardado exitosamente', 'id': new_event.id, 'event': new_event.to_dict()}), 201
+    except ValueError as ve:
+        db.session.rollback()
+        print(f"Error de formato de fecha: {ve}")
+        return jsonify({'error': f'Formato de fecha inválido (YYYY-MM-DD): {ve}'}), 400
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al guardar el evento: {e}")
+        return jsonify({'error': f'Error al guardar el evento: {e}'}), 500
+
+@app.route('/api/events', methods=['GET'])
+def get_events():
+    events = Event.query.order_by(Event.date).all()
+    return jsonify([event.to_dict() for event in events])
 
 
 

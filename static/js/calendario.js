@@ -7,8 +7,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('event-modal');
     const closeBtn = modal.querySelector('.close-btn');
     const eventDateInput = document.getElementById('event-date');
+    const eventListContainer = document.createElement('div');
+    eventListContainer.id = 'event-list-container';
+    calendarDiv.parentNode.insertBefore(eventListContainer, calendarDiv.nextSibling);
 
-    // Función para generar las opciones del selector de años
     function populateYearSelect() {
         const currentYear = new Date().getFullYear();
         for (let i = currentYear - 5; i <= currentYear + 5; i++) {
@@ -22,13 +24,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Función para obtener el primer día de la semana (Domingo = 0, Lunes = 1, ...)
     function getFirstDayOfWeek(date) {
         const day = date.getDay();
-        return day === 0 ? 0 : day - 1; // Ajustar para que Lunes sea el inicio de la semana (si lo prefieres, deja solo `return day;` para Domingo)
+        return day === 0 ? 0 : day - 1;
     }
 
-    // Función para generar un mini calendario para un mes específico
     function generateMiniCalendar(year, month) {
         const firstDayOfMonth = new Date(year, month - 1, 1);
         const lastDayOfMonth = new Date(year, month, 0);
@@ -43,25 +43,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         for (let day = 1; day <= daysInMonth; day++) {
-            calendarHTML += `<div data-day="${day}" data-month="${month}" data-year="${year}">${day}</div>`; // Añadir data-month y data-year
+            calendarHTML += `<div data-day="${day}" data-month="${month}" data-year="${year}">${day}</div>`;
         }
 
         calendarHTML += '</div></div>';
         return calendarHTML;
     }
 
-    // Función para generar la vista del año actual con mini calendarios
     function generateYearView() {
-        calendarDiv.innerHTML = ''; // Limpiar el calendario
+        calendarDiv.innerHTML = '';
         const currentYear = new Date().getFullYear();
 
         for (let month = 1; month <= 12; month++) {
             calendarDiv.innerHTML += generateMiniCalendar(currentYear, month);
         }
-        calendarDiv.classList.add('year-view'); // Añadir clase para estilos específicos
+        calendarDiv.classList.add('year-view');
         calendarDiv.classList.remove('month-view', 'day-view');
 
-        // Añadir event listener a los días de los mini-calendarios
         const miniDays = calendarDiv.querySelectorAll('.mini-days div[data-day]');
         miniDays.forEach(dayElement => {
             dayElement.addEventListener('click', function() {
@@ -75,7 +73,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Función para generar el calendario del mes
     function generateMonthView(year, month) {
         calendarDiv.innerHTML = `
             <div class="weekday-name">Dom</div>
@@ -103,29 +100,27 @@ document.addEventListener('DOMContentLoaded', function() {
             const dayCell = document.createElement('div');
             dayCell.classList.add('day');
             dayCell.textContent = day;
-            dayCell.dataset.day = day; // Almacenar el día en un atributo data
+            dayCell.dataset.day = day;
             calendarDiv.appendChild(dayCell);
 
-            // Añadir event listener a cada día para abrir el modal
             dayCell.addEventListener('click', function() {
                 const selectedDay = this.dataset.day;
                 const selectedMonth = monthSelect.value;
                 const selectedYear = yearSelect.value;
                 const formattedDate = `${selectedYear}-${selectedMonth.padStart(2, '0')}-${selectedDay.padStart(2, '0')}`;
-                eventDateInput.value = formattedDate; // Pre-llenar la fecha
-                modal.style.display = 'block'; // Mostrar el modal
+                eventDateInput.value = formattedDate;
+                modal.style.display = 'block';
             });
         }
     }
 
-    // Función para generar la vista de la semana actual
     function generateWeekView() {
-        calendarDiv.innerHTML = ''; // Limpiar el calendario
+        calendarDiv.innerHTML = '';
         calendarDiv.classList.remove('year-view', 'month-view', 'day-view');
 
         const today = new Date();
-        const currentDayOfWeek = today.getDay(); // 0 para Domingo, 6 para Sábado
-        const diff = today.getDate() - currentDayOfWeek + (currentDayOfWeek === 0 ? -6 : 1); // Ajustar para el lunes como inicio de semana
+        const currentDayOfWeek = today.getDay();
+        const diff = today.getDate() - currentDayOfWeek + (currentDayOfWeek === 0 ? -6 : 1);
 
         for (let i = 0; i < 7; i++) {
             const day = new Date(today.setDate(diff + i));
@@ -137,10 +132,9 @@ document.addEventListener('DOMContentLoaded', function() {
             dayCell.innerHTML = `<strong>${dayOfWeek}</strong><br>${dayOfMonth}`;
             calendarDiv.appendChild(dayCell);
         }
-        today.setDate(today.getDate() - 7); // Restaurar la fecha original para futuros cálculos
+        today.setDate(today.getDate() - 7);
     }
 
-    // Función para generar la vista del día (por ahora, muestra la fecha seleccionada)
     function generateDayView(year, month, day) {
         calendarDiv.innerHTML = '';
         calendarDiv.classList.add('day-view');
@@ -152,7 +146,6 @@ document.addEventListener('DOMContentLoaded', function() {
         calendarDiv.appendChild(dayViewElement);
     }
 
-    // Función para actualizar la vista del calendario según la selección
     function updateCalendarView() {
         const selectedView = viewSelect.value;
         const currentYear = parseInt(yearSelect.value);
@@ -176,15 +169,43 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (selectedView === 'day') {
             generateDayView(currentYear, currentMonth, currentDay);
         }
+        fetchAndRenderEvents();
     }
 
-    // Inicializar los selectores y el calendario
+    function fetchAndRenderEvents() {
+        fetch('/api/events')
+            .then(response => response.json())
+            .then(events => {
+                eventListContainer.innerHTML = '<h2>Próximos Eventos:</h2>';
+                if (events && events.length > 0) {
+                    const ul = document.createElement('ul');
+                    events.forEach(event => {
+                        const li = document.createElement('li');
+                        const formattedDate = new Date(event.date).toLocaleDateString();
+                        li.textContent = `${formattedDate} - ${event.title}: ${event.description || 'Sin descripción'}`;
+                        ul.appendChild(li);
+                    });
+                    eventListContainer.appendChild(ul);
+                } else {
+                    const p = document.createElement('p');
+                    p.textContent = 'No hay eventos guardados.';
+                    eventListContainer.appendChild(p);
+                }
+            })
+            .catch(error => {
+                console.error('Error al obtener los eventos:', error);
+                const p = document.createElement('p');
+                p.textContent = 'Error al cargar los eventos.';
+                eventListContainer.appendChild(p);
+            });
+    }
+
     populateYearSelect();
     const initialYear = parseInt(yearSelect.value);
     const initialMonth = parseInt(monthSelect.value);
     generateMonthView(initialYear, initialMonth);
+    fetchAndRenderEvents();
 
-    // Event listeners
     viewSelect.addEventListener('change', updateCalendarView);
 
     yearSelect.addEventListener('change', function() {
@@ -201,31 +222,56 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Mostrar el modal al hacer clic en el botón "+"
     addButton.addEventListener('click', function() {
         modal.style.display = 'block';
     });
 
-    // Ocultar el modal al hacer clic en la "x"
     closeBtn.addEventListener('click', function() {
         modal.style.display = 'none';
     });
 
-    // Ocultar el modal al hacer clic fuera del modal
     window.addEventListener('click', function(event) {
         if (event.target === modal) {
             modal.style.display = 'none';
         }
     });
 
-    // Aquí iría la lógica para enviar el formulario y guardar el evento
     const eventForm = document.getElementById('new-event-form');
     eventForm.addEventListener('submit', function(event) {
         event.preventDefault();
         const date = document.getElementById('event-date').value;
         const title = document.getElementById('event-title').value;
         const description = document.getElementById('event-description').value;
-        console.log('Evento a guardar:', { date, title, description });
-        modal.style.display = 'none';
+
+        const eventData = {
+            date: date,
+            title: title,
+            description: description
+        };
+
+        fetch('/api/events', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(eventData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Error al guardar el evento:', data.error);
+                alert('Hubo un error al guardar el evento.');
+            } else {
+                console.log('Evento guardado:', data);
+                alert('Evento guardado exitosamente.');
+                modal.style.display = 'none';
+                eventForm.reset();
+                fetchAndRenderEvents();
+            }
+        })
+        .catch(error => {
+            console.error('Error de red:', error);
+            alert('Error de red al intentar guardar el evento.');
+        });
     });
 });
