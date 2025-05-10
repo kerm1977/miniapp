@@ -1,102 +1,151 @@
-    {% extends 'base.html' %}
-    {% block title %}Crear Contacto{% endblock %}
-    {% block content %}
-        <h1>Crear Nuevo Contacto</h1>
-        <form method="POST" enctype="multipart/form-data" id="crearContactoForm">
-            {{ form.csrf_token }}
-            <div class="mb-3">
-                {{ form.nombre.label(class="form-label") }}
-                {{ form.nombre(class="rounded-pill form-control") }}
-                {% for error in form.nombre.errors %}
-                    <ul class="errors"><li>{{ error }}</li></ul>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.primer_apellido.label(class="form-label") }}
-                {{ form.primer_apellido(class="rounded-pill form-control") }}
-                {% for error in form.primer_apellido.errors %}
-                    <ul class="errors"><li>{{ error }}</li></ul>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.segundo_apellido.label(class="form-label") }}
-                {{ form.segundo_apellido(class="rounded-pill form-control") }}
-                {% for error in form.segundo_apellido.errors %}
-                    <ul class="errors"><li>{{ error }}</li></ul>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.telefono.label(class="form-label") }}
-                {{ form.telefono(class="rounded-pill form-control") }}
-                {% for error in form.telefono.errors %}
-                    <ul class="errors"><li>{{ error }}</li></ul>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.movil.label(class="form-label") }}
-                {{ form.movil(class="rounded-pill form-control") }}
-                {% for error in form.movil.errors %}
-                    <ul class="errors"><li>{{ error }}</li></ul>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.email.label(class="form-label") }}
-                {{ form.email(class="rounded-pill form-control") }}
-                {% for error in form.email.errors %}
-                    <ul class="errors"><li>{{ error }}</li></ul>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.direccion.label(class="form-label") }}
-                {{ form.direccion(class="rounded-pill form-control") }}
-                {% for error in form.direccion.errors %}
-                    <ul class="errors"><li>{{ error }}</li></ul>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.tipo_actividad.label(class="form-label") }}
-                {{ form.tipo_actividad(class="rounded-pill form-select") }}
-                {% for error in form.tipo_actividad.errors %}
-                    <ul class="errors"><li>{{ error }}</li></ul>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.nota.label(class="form-label") }}
-                {{ form.nota(class="form-control") }}
-                {% for error in form.nota.errors %}
-                    <ul class="errors"><li>{{ error }}</li></ul>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.direccion_mapa.label(class="form-label") }}
-                {{ form.direccion_mapa(class="form-control") }}
-                {% for error in form.direccion_mapa.errors %}
-                    <ul class="errors"><li>{{ error }}</li></ul>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.avatar.label(class="form-label") }}
-                {{ form.avatar(class="rounded-pill form-control") }}
-                {% for error in form.avatar.errors %}
-                    <ul class="errors"><li>{{ error }}</li></ul>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.capacidad_persona.label(class="form-label") }}
-                {{ form.capacidad_persona(class="rounded-pill form-select") }}
-                {% for error in form.capacidad_persona.errors %}
-                    <ul class="errors"><li>{{ error }}</li></ul>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.participacion.label(class="form-label") }}
-                {{ form.participacion(class="rounded-pill form-select") }}
-                {% for error in form.participacion.errors %}
-                    <ul class="errors"><li>{{ error }}</li></ul>
-                {% endfor %}
-            </div>
-            <button type="submit" class="btn btn-primary">Guardar</button>
-            <a href="{{ url_for('listar_contacto') }}" class="btn btn-secondary">Cancelar</a>
-            </form>
+{% extends 'base.html' %}
+{% block title %}Crear Contacto{% endblock %}
+{% block content %}
+<style>
+.crear-contacto-container {
+    /* Puedes agregar estilos específicos para esta página si lo deseas */
+}
 
-        {% endblock %}
+.crear-contacto-container h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 2rem;
+}
+
+.floating-save-button {
+    position: fixed;
+    bottom: 100px;
+    right: 20px;
+    background-color: #28a745; /* Un verde para indicar guardar */
+    color: white;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    text-decoration: none;
+}
+
+.floating-save-button:hover {
+    background-color: #1e7e34;
+    color: white;
+}
+
+.floating-save-button i {
+    /* Asegúrate de que el icono no sea demasiado grande */
+    font-size: 1.5rem;
+}
+
+/* Estilos para el formulario para que no se oculte detrás del botón flotante */
+#crearContactoForm {
+    padding-bottom: 70px; /* Ajusta este valor según la altura de tu botón flotante */
+}
+</style>
+
+<div class="crear-contacto-container">
+    <h1>Crear Nuevo Contacto</h1>
+    <form method="POST" enctype="multipart/form-data" id="crearContactoForm">
+        {{ form.csrf_token }}
+        <div class="mb-3">
+            {{ form.nombre.label(class="form-label") }}
+            {{ form.nombre(class="rounded-pill form-control") }}
+            {% for error in form.nombre.errors %}
+                <ul class="errors"><li>{{ error }}</li></ul>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.primer_apellido.label(class="form-label") }}
+            {{ form.primer_apellido(class="rounded-pill form-control") }}
+            {% for error in form.primer_apellido.errors %}
+                <ul class="errors"><li>{{ error }}</li></ul>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.segundo_apellido.label(class="form-label") }}
+            {{ form.segundo_apellido(class="rounded-pill form-control") }}
+            {% for error in form.segundo_apellido.errors %}
+                <ul class="errors"><li>{{ error }}</li></ul>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.telefono.label(class="form-label") }}
+            {{ form.telefono(class="rounded-pill form-control") }}
+            {% for error in form.telefono.errors %}
+                <ul class="errors"><li>{{ error }}</li></ul>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.movil.label(class="form-label") }}
+            {{ form.movil(class="rounded-pill form-control") }}
+            {% for error in form.movil.errors %}
+                <ul class="errors"><li>{{ error }}</li></ul>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="rounded-pill form-control") }}
+            {% for error in form.email.errors %}
+                <ul class="errors"><li>{{ error }}</li></ul>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.direccion.label(class="form-label") }}
+            {{ form.direccion(class="rounded-pill form-control") }}
+            {% for error in form.direccion.errors %}
+                <ul class="errors"><li>{{ error }}</li></ul>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.tipo_actividad.label(class="form-label") }}
+            {{ form.tipo_actividad(class="rounded-pill form-select") }}
+            {% for error in form.tipo_actividad.errors %}
+                <ul class="errors"><li>{{ error }}</li></ul>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.nota.label(class="form-label") }}
+            {{ form.nota(class="form-control") }}
+            {% for error in form.nota.errors %}
+                <ul class="errors"><li>{{ error }}</li></ul>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.direccion_mapa.label(class="form-label") }}
+            {{ form.direccion_mapa(class="form-control") }}
+            {% for error in form.direccion_mapa.errors %}
+                <ul class="errors"><li>{{ error }}</li></ul>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.avatar.label(class="form-label") }}
+            {{ form.avatar(class="rounded-pill form-control") }}
+            {% for error in form.avatar.errors %}
+                <ul class="errors"><li>{{ error }}</li></ul>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.capacidad_persona.label(class="form-label") }}
+            {{ form.capacidad_persona(class="rounded-pill form-select") }}
+            {% for error in form.capacidad_persona.errors %}
+                <ul class="errors"><li>{{ error }}</li></ul>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.participacion.label(class="form-label") }}
+            {{ form.participacion(class="rounded-pill form-select") }}
+            {% for error in form.participacion.errors %}
+                <ul class="errors"><li>{{ error }}</li></ul>
+            {% endfor %}
+        </div>
+        <a href="{{ url_for('listar_contacto') }}" class="btn btn-secondary">Cancelar</a>
+    </form>
+
+    <button type="submit" form="crearContactoForm" class="floating-save-button">
+        <i class="fas fa-save"></i>
+    </button>
+</div>
+{% endblock %}
