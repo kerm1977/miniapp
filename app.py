@@ -788,10 +788,6 @@ def exportar_todos_excel():
 
 
 
-
-
-
-
 @app.route('/api/events', methods=['POST', 'GET'])
 def handle_events():
     if request.method == 'GET':
@@ -800,6 +796,7 @@ def handle_events():
     elif request.method == 'POST':
         data = request.get_json()
         date_str = data.get('date')
+        time_str = data.get('time')  # Obtener la hora del request
         title = data.get('title')
         description = data.get('description')
 
@@ -808,14 +805,17 @@ def handle_events():
 
         try:
             date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
-            new_event = Event(date=date_obj, title=title, description=description)
+            time_obj = None # Inicializar time_obj
+            if time_str:
+                time_obj = datetime.strptime(time_str, '%H:%M').time()  # Convertir la hora a objeto time
+            new_event = Event(date=date_obj, time=time_obj, title=title, description=description)
             db.session.add(new_event)
             db.session.commit()
             return jsonify({'message': 'Evento guardado exitosamente', 'id': new_event.id, 'event': new_event.to_dict()}), 201
         except ValueError as ve:
             db.session.rollback()
-            print(f"Error de formato de fecha: {ve}")
-            return jsonify({'error': f'Formato de fecha inválido (YYYY-MM-DD): {ve}'}), 400
+            print(f"Error de formato de fecha/hora: {ve}")
+            return jsonify({'error': f'Formato de fecha/hora inválido (YYYY-MM-DD HH:MM): {ve}'}), 400
         except Exception as e:
             db.session.rollback()
             print(f"Error al guardar el evento: {e}")
@@ -836,6 +836,7 @@ def handle_single_event(id):
     elif request.method == 'PUT':
         data = request.get_json()
         date_str = data.get('date')
+        time_str = data.get('time') # Obtener la hora del request
         title = data.get('title')
         description = data.get('description')
 
@@ -844,6 +845,13 @@ def handle_single_event(id):
                 event.date = datetime.strptime(date_str, '%Y-%m-%d').date()
             except ValueError:
                 return jsonify({'error': 'Formato de fecha inválido (YYYY-MM-DD)'}), 400
+        if time_str:
+            try:
+                event.time = datetime.strptime(time_str, '%H:%M').time()  # Convertir la hora a objeto time
+            except ValueError:
+                return jsonify({'error': 'Formato de hora inválido (HH:MM)'}), 400
+        elif 'time' in data and data['time'] is None:
+            event.time = None
         if title:
             event.title = title
         if description is not None:  # Permitir borrar la descripción si se envía null
@@ -853,12 +861,14 @@ def handle_single_event(id):
         return jsonify({'message': f'Evento con ID {id} actualizado exitosamente', 'event': event.to_dict()}), 200
 
 
+
 @app.route('/api/events/<int:id>', methods=['PUT'])
 def update_event(id):
     event = db.session.get(Event, id)
     if event:
         data = request.get_json()
         date_str = data.get('date')
+        time_str = data.get('time')  # Obtener la hora del request
         title = data.get('title')
         description = data.get('description')
 
@@ -867,6 +877,13 @@ def update_event(id):
                 event.date = datetime.strptime(date_str, '%Y-%m-%d').date()
             except ValueError:
                 return jsonify({'error': 'Formato de fecha inválido (YYYY-MM-DD)'}), 400
+        if time_str:
+            try:
+                event.time = datetime.strptime(time_str, '%H:%M').time()
+            except ValueError:
+                return jsonify({'error': 'Formato de hora inválido (HH:MM)'}), 400
+        elif 'time' in data and data['time'] is None:
+            event.time = None
         if title:
             event.title = title
         if description is not None:  # Permitir borrar la descripción si se envía null

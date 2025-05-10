@@ -1,5 +1,8 @@
+{% extends 'base.html' %}
+{% block title %}Lista de Contactos{% endblock %}
+{% block content %}
 <style>
-.contactos-container { /* Nuevo contenedor para los estilos de contactos */
+.contactos-container {
   /* Estilos generales */
   font-family: Arial, sans-serif;
   color: #333;
@@ -26,7 +29,6 @@
 .contactos-container .gear-icon,
 .contactos-container .logout-icon {
   color: #6c757d;
-  /* Gris suave */
   font-size: 1.2rem;
   text-decoration: none;
 }
@@ -45,23 +47,19 @@
   gap: 0.5rem;
   margin-bottom: 1rem;
   flex-wrap: wrap;
-  /* Permite que los botones se apilen en pantallas pequeñas */
 }
 
 .contactos-container .export-buttons .btn {
   margin-bottom: 0.5rem;
-  /* Espacio entre botones apilados */
 }
 
 @media (min-width: 576px) {
   .contactos-container .export-buttons {
     flex-wrap: nowrap;
-    /* Evita que los botones se apilen en pantallas medianas y grandes */
   }
 
   .contactos-container .export-buttons .btn {
     margin-bottom: 0;
-    /* Elimina el margen inferior en pantallas más grandes */
   }
 }
 
@@ -72,17 +70,16 @@
 .contactos-container .contacts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  /* Ajusta el ancho mínimo según necesites */
   gap: 1.5rem;
 }
 
 .contactos-container .contact-card {
   display: flex;
   flex-direction: column;
-  background-color: #f8f9fa; /* Añadido un color de fondo claro a las tarjetas */
+  background-color: #f8f9fa;
   border: 1px solid #e0e0e0;
   border-radius: 0.5rem;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.071); /* Sutil sombra */
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.071);
 }
 
 .contactos-container .contact-card .card-body {
@@ -92,19 +89,23 @@
 .contactos-container .contact-card .card-title {
   margin-bottom: 0.75rem;
   font-size: 1.25rem;
-  color: #2c3e50; /* Título más oscuro */
+  color: #2c3e50;
 }
 
 .contactos-container .contact-card .card-text {
   font-size: 0.9rem;
   line-height: 1.5;
   margin-bottom: 0.5rem;
-  color: #495057; /* Texto un poco más oscuro */
+  color: #495057;
+  /* Nuevas propiedades para controlar el desbordamiento del texto */
+  overflow: hidden;         /* Oculta el texto que se desborda del contenedor */
+  text-overflow: ellipsis;  /* Muestra puntos suspensivos (...) para indicar texto oculto */
+  word-wrap: break-word;    /* Permite que las palabras se dividan y pasen a la siguiente línea */
 }
 
 .contactos-container .contact-card .card-text strong {
   font-weight: bold;
-  color: #2c3e50; /* Resaltar en negrita */
+  color: #2c3e50;
 }
 
 .contactos-container .contact-card .card-text a {
@@ -215,152 +216,191 @@
 .contactos-container .modal-footer>* {
   margin: 0.25rem;
 }
+
+/* Estilos para el botón de borrado con SweetAlert2 */
+.borrar-contacto-btn-swal {
+    background-color: #dc3545 !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 0.25rem !important;
+    cursor: pointer !important;
+    font-size: 0.9rem !important;
+    transition: background-color 0.3s ease !important;
+}
+
+.borrar-contacto-btn-swal:hover {
+    background-color: #c82333 !important;
+}
+
+.borrar-contacto-btn-swal i {
+    margin-right: 0.25rem;
+}
 </style>
 
-{% extends 'base.html' %}
-{% block title %}Lista de Contactos{% endblock %}
-{% block content %}
-    <div class="contactos-container">
+
+  <div class="contactos-container">
+    {% if current_user.is_authenticated %}
         <div class="top-right">
             <span class="username-display">{{ current_user.username }}</span>
             <a href="{{ url_for('perfil') }}" class="gear-icon"><i class="fas fa-cog"></i></a>
             <a href="{{ url_for('logout') }}" class="logout-icon"><i class="fas fa-sign-out-alt"></i></a>
         </div>
+    {% else %}
+    {% endif %}
 
-        <h1>Lista de Contactos</h1>
+    <h1>Lista de Contactos</h1>
 
-        <div class="search-container mt-3">
-            <input type="text" id="searchInput" class="form-control rounded-pill" placeholder="Buscar en todos los campos...">
-        </div>
-
-        <div class="export-buttons mt-3">
-            <a href="{{ url_for('exportar_todos_vcard') }}" class="btn btn-info">Exportar Todos a vCard</a>
-            <a href="{{ url_for('exportar_todos_excel') }}" class="btn btn-success">Exportar Todos a Excel</a>
-        </div>
-
-        <div class="filter-form mt-3">
-            <form method="POST" action="{{ url_for('buscar_contacto') }}" class="row g-3 align-items-center">
-                {{ form_busqueda.csrf_token }}
-                <div class="col-md-4">
-                    {{ form_busqueda.busqueda_actividad.label(class="form-label") }}
-                    {{ form_busqueda.busqueda_actividad(class="rounded-pill form-select") }}
-                </div>
-                <div class="col-md-4">
-                    {{ form_busqueda.busqueda_capacidad_persona.label(class="form-label") }}
-                    {{ form_busqueda.busqueda_capacidad_persona(class="rounded-pill form-select") }}
-                </div>
-                <div class="col-md-4">
-                    {{ form_busqueda.busqueda_participacion.label(class="form-label") }}
-                    {{ form_busqueda.busqueda_participacion(class="rounded-pill form-select") }}
-                </div>
-                <div class="col-auto">
-                    {{ form_busqueda.submit_buscar(class="btn btn-secondary") }}
-                </div>
-            </form>
-            <a href="{{ url_for('listar_contacto') }}" class="btn btn-outline-secondary mt-2">Limpiar Búsqueda</a>
-        </div>
-
-        <div class="contacts-grid mt-4">
-            {% if contactos %}
-                {% for contacto in contactos %}
-                    <div class="contact-card border rounded-4" style="border-width: 0.5px; border-color: #ccc;">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ contacto.nombre | title }} {% if contacto.primer_apellido %}{{ contacto.primer_apellido | title }}{% endif %} {% if contacto.segundo_apellido %}{{ contacto.segundo_apellido | title }}{% endif %}</h5>
-                            <p class="card-text">
-                                <strong>Teléfono:</strong>
-                                {% if contacto.telefono and not contacto.telefono.startswith('2') %}
-                                    <a href="https://wa.me/506{{ contacto.telefono }}">{{ contacto.telefono }}</a>
-                                {% else %}
-                                    {{ contacto.telefono }}
-                                {% endif %}
-                                <br>
-                                {% if contacto.movil %}<strong>Móvil:</strong> {{ contacto.movil }}<br>{% endif %}
-                                {% if contacto.email %}<strong>Email:</strong> {{ contacto.email }}<br>{% endif %}
-                                {% if contacto.direccion %}<strong>Dirección:</strong> {{ contacto.direccion }}<br>{% endif %}
-                                {% if contacto.tipo_actividad %}<strong>Actividad:</strong> {{ contacto.tipo_actividad }}<br>{% endif %}
-                                {% if contacto.nota %}<strong>Nota:</strong> {{ contacto.nota }}<br>{% endif %}
-                                {% if contacto.direccion_mapa %}<strong>Dirección Mapa:</strong> {{ contacto.direccion_mapa }}<br>{% endif %}
-                                {% if contacto.capacidad_persona %}<strong>Capacidad:</strong> {{ contacto.capacidad_persona }}<br>{% endif %}
-                                {% if contacto.participacion %}<strong>Participación:</strong> {{ contacto.participacion }}<br>{% endif %}
-                                {% if contacto.empresa %}<strong>Empresa:</strong> {{ contacto.empresa }}<br>{% endif %}
-                                {% if contacto.sitio_web %}<strong>Sitio Web:</strong> <a href="{{ contacto.sitio_web }}" target="_blank">{{ contacto.sitio_web }}</a><br>{% endif %}
-                                <strong>Avatar:</strong>
-                                {% if contacto.avatar_path %}
-                                    <img src="{{ url_for('static', filename='images/' + contacto.avatar_path.split('/')[-1]) }}" alt="Avatar" style="width: 50px; height: 50px; border-radius: 50%;">
-                                {% else %}
-                                    -
-                                {% endif %}
-                                <br>
-                                <strong>Fecha Ingreso:</strong> {{ contacto.fecha_ingreso.strftime('%Y-%m-%d %H:%M:%S') }}<br>
-                            </p>
-                            <hr>
-                            <div class="contact-actions">
-                                <div class="action-buttons">
-                                    <a href="{{ url_for('editar_contacto', id=contacto.id) }}" class="btn btn-sm btn-warning">Editar</a>
-                                    <a href="{{ url_for('exportar_vcard', contacto_id=contacto.id) }}" class="btn btn-sm btn-info">vCard</a>
-                                </div>
-                                <div>
-                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmarBorrarModal{{ contacto.id }}">Borrar</button>
-                                    <div class="modal fade" id="confirmarBorrarModal{{ contacto.id }}" tabindex="-1" aria-labelledby="confirmarBorrarModalLabel{{ contacto.id }}" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="confirmarBorrarModalLabel{{ contacto.id }}">Confirmar Borrado</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    ¿Estás seguro de que deseas borrar a <strong>{{ contacto.nombre }}</strong>?
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                    <form method="POST" action="{{ url_for('borrar_contacto', id=contacto.id) }}" style="display: inline;">
-                                                        {{ csrf_token }}
-                                                        <button type="submit" class="btn btn-danger">Confirmar Borrar</button>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <p>No tienes contactos en tu agenda.</p>
-            {% endif %}
-        </div>
-
-        <a href="{{ url_for('crear_contacto') }}" class="floating-button">
-            <i class="fas fa-plus"></i>
-        </a>
-
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const searchInput = document.getElementById('searchInput');
-                const contactCards = document.querySelectorAll('.contact-card');
-
-                searchInput.addEventListener('input', function() {
-                    const searchTerm = searchInput.value.toLowerCase();
-
-                    contactCards.forEach(card => {
-                        let cardMatch = false;
-                        const textElements = card.querySelectorAll('h5, p');
-
-                        textElements.forEach(element => {
-                            if (element.textContent.toLowerCase().includes(searchTerm)) {
-                                cardMatch = true;
-                            }
-                        });
-
-                        if (cardMatch) {
-                            card.style.display = ''; // Mostrar la tarjeta
-                        } else {
-                            card.style.display = 'none'; // Ocultar la tarjeta
-                        }
-                    });
-                });
-            });
-        </script>
+    <div class="search-container mt-3">
+      <input type="text" id="searchInput" class="form-control rounded-pill" placeholder="Buscar en todos los campos...">
     </div>
+
+    <div class="export-buttons mt-3">
+      <a href="{{ url_for('exportar_todos_vcard') }}" class="btn btn-info">Exportar Todos a vCard</a>
+      <a href="{{ url_for('exportar_todos_excel') }}" class="btn btn-success">Exportar Todos a Excel</a>
+    </div>
+
+    <div class="filter-form mt-3">
+      <form method="POST" action="{{ url_for('buscar_contacto') }}" class="row g-3 align-items-center">
+        {{ form_busqueda.csrf_token }}
+        <div class="col-md-4">
+          {{ form_busqueda.busqueda_actividad.label(class="form-label") }}
+          {{ form_busqueda.busqueda_actividad(class="rounded-pill form-select") }}
+        </div>
+        <div class="col-md-4">
+          {{ form_busqueda.busqueda_capacidad_persona.label(class="form-label") }}
+          {{ form_busqueda.busqueda_capacidad_persona(class="rounded-pill form-select") }}
+        </div>
+        <div class="col-md-4">
+          {{ form_busqueda.busqueda_participacion.label(class="form-label") }}
+          {{ form_busqueda.busqueda_participacion(class="rounded-pill form-select") }}
+        </div>
+        <div class="col-auto">
+          {{ form_busqueda.submit_buscar(class="btn btn-secondary") }}
+        </div>
+      </form>
+      <a href="{{ url_for('listar_contacto') }}" class="btn btn-outline-secondary mt-2">Limpiar Búsqueda</a>
+    </div>
+
+    <div class="contacts-grid mt-4">
+      {% if contactos %}
+        {% for contacto in contactos %}
+          <div class="contact-card border rounded-4" style="border-width: 0.5px; border-color: #ccc;">
+            <div class="card-body">
+              <h5 class="card-title">{{ contacto.nombre | title }} {% if contacto.primer_apellido %}{{ contacto.primer_apellido | title }}{% endif %} {% if contacto.segundo_apellido %}{{ contacto.segundo_apellido | title }}{% endif %}</h5>
+              <p class="card-text">
+                <strong>Teléfono:</strong>
+                {% if contacto.telefono and not contacto.telefono.startswith('2') %}
+                  <a href="https://wa.me/506{{ contacto.telefono }}">{{ contacto.telefono }}</a>
+                {% else %}
+                  {{ contacto.telefono }}
+                {% endif %}
+                <br>
+                {% if contacto.movil %}<strong>Móvil:</strong> {{ contacto.movil }}<br>{% endif %}
+                {% if contacto.email %}<strong>Email:</strong> {{ contacto.email }}<br>{% endif %}
+                {% if contacto.direccion %}<strong>Dirección:</strong> {{ contacto.direccion }}<br>{% endif %}
+                {% if contacto.tipo_actividad %}<strong>Actividad:</strong> {{ contacto.tipo_actividad }}<br>{% endif %}
+                {% if contacto.nota %}<strong>Nota:</strong> {{ contacto.nota }}<br>{% endif %}
+                {% if contacto.direccion_mapa %}<strong>Dirección Mapa:</strong> {{ contacto.direccion_mapa }}<br>{% endif %}
+                {% if contacto.capacidad_persona %}<strong>Capacidad:</strong> {{ contacto.capacidad_persona }}<br>{% endif %}
+                {% if contacto.participacion %}<strong>Participación:</strong> {{ contacto.participacion }}<br>{% endif %}
+                {% if contacto.empresa %}<strong>Empresa:</strong> {{ contacto.empresa }}<br>{% endif %}
+                {% if contacto.sitio_web %}<strong>Sitio Web:</strong> <a href="{{ contacto.sitio_web }}" target="_blank">{{ contacto.sitio_web }}</a><br>{% endif %}
+                <strong>Avatar:</strong>
+                {% if contacto.avatar_path %}
+                  <img src="{{ url_for('static', filename='images/' + contacto.avatar_path.split('/')[-1]) }}" alt="Avatar" style="width: 50px; height: 50px; border-radius: 50%;">
+                {% else %}
+                  -
+                {% endif %}
+                <br>
+                <strong>Fecha Ingreso:</strong> {{ contacto.fecha_ingreso.strftime('%Y-%m-%d %H:%M:%S') }}<br>
+              </p>
+              <hr>
+              <div class="contact-actions">
+                <div class="action-buttons">
+                  <a href="{{ url_for('editar_contacto', id=contacto.id) }}" class="btn btn-sm btn-warning">Editar</a>
+                  <a href="{{ url_for('exportar_vcard', contacto_id=contacto.id) }}" class="btn btn-sm btn-info">vCard</a>
+                </div>
+                <div>
+                  <button type="button" class="btn btn-sm btn-danger borrar-contacto-btn-swal"
+                          data-contacto-id="{{ contacto.id }}"
+                          data-contacto-nombre="{{ contacto.nombre }}">
+                    <i class="fas fa-trash-alt"></i> Borrar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>No tienes contactos en tu agenda.</p>
+      {% endif %}
+    </div>
+
+    <a href="{{ url_for('crear_contacto') }}" class="floating-button">
+      <i class="fas fa-plus"></i>
+    </a>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const contactCards = document.querySelectorAll('.contact-card');
+        const botonesBorrar = document.querySelectorAll('.borrar-contacto-btn-swal');
+
+        searchInput.addEventListener('input', function() {
+          const searchTerm = searchInput.value.toLowerCase();
+
+          contactCards.forEach(card => {
+            let cardMatch = false;
+            const textElements = card.querySelectorAll('h5, p, strong, a');
+
+            textElements.forEach(element => {
+              if (element.textContent.toLowerCase().includes(searchTerm)) {
+                cardMatch = true;
+              }
+            });
+
+            if (cardMatch) {
+              card.style.display = '';
+            } else {
+              card.style.display = 'none';
+            }
+          });
+        });
+
+        botonesBorrar.forEach(boton => {
+          boton.addEventListener('click', function() {
+            const contactoId = this.dataset.contactoId;
+            const contactoNombre = this.dataset.contactoNombre;
+
+            Swal.fire({
+              title: '¿Estás seguro?',
+              text: `¿Deseas borrar a ${contactoNombre}?`,
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#dc3545',
+              cancelButtonColor: '#6c757d',
+              confirmButtonText: 'Sí, borrar',
+              cancelButtonText: 'Cancelar'
+            }).then((result) => {
+              if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/borrar_contacto/${contactoId}`;
+
+                const csrfTokenInput = document.createElement('input');
+                csrfTokenInput.type = 'hidden';
+                csrfTokenInput.name = 'csrf_token';
+                csrfTokenInput.value = "{{ csrf_token }}";
+
+                form.appendChild(csrfTokenInput);
+                document.body.appendChild(form);
+                form.submit();
+              }
+            });
+          });
+        });
+      });
+    </script>
+  </div>
 {% endblock %}

@@ -1,14 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}Editar Contacto{% endblock %}
 {% block content %}
-    {% if current_user.is_authenticated %}
-        <div class="top-right">
-            <span class="username-display">{{ current_user.username }}</span>
-            <a href="{{ url_for('perfil') }}" class="gear-icon"><i class="fas fa-cog"></i></a>
-            <a href="{{ url_for('logout') }}" class="logout-icon"><i class="fas fa-sign-out-alt"></i></a>
-        </div>
-    {% else %}
-    {% endif %}
 
     <div class="card p-3 mb-5 bg-body rounded">
         <div class="card-body">
