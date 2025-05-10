@@ -1,0 +1,431 @@
+.contactos-container { /* Nuevo contenedor para los estilos de contactos */
+  /* Estilos generales */
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+
+.contactos-container h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 2rem;
+}
+
+.contactos-container .top-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1rem;
+}
+
+.contactos-container .username-display {
+  font-weight: bold;
+}
+
+.contactos-container .gear-icon,
+.contactos-container .logout-icon {
+  color: #6c757d;
+  /* Gris suave */
+  font-size: 1.2rem;
+  text-decoration: none;
+}
+
+.contactos-container .gear-icon:hover,
+.contactos-container .logout-icon:hover {
+  color: #0056b3;
+}
+
+.contactos-container .search-container {
+  margin-bottom: 1rem;
+}
+
+.contactos-container .export-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  /* Permite que los botones se apilen en pantallas pequeñas */
+}
+
+.contactos-container .export-buttons .btn {
+  margin-bottom: 0.5rem;
+  /* Espacio entre botones apilados */
+}
+
+@media (min-width: 576px) {
+  .contactos-container .export-buttons {
+    flex-wrap: nowrap;
+    /* Evita que los botones se apilen en pantallas medianas y grandes */
+  }
+
+  .contactos-container .export-buttons .btn {
+    margin-bottom: 0;
+    /* Elimina el margen inferior en pantallas más grandes */
+  }
+}
+
+.contactos-container .filter-form {
+  margin-bottom: 1.5rem;
+}
+
+.contactos-container .contacts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  /* Ajusta el ancho mínimo según necesites */
+  gap: 1.5rem;
+}
+
+.contactos-container .contact-card {
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f9fa; /* Añadido un color de fondo claro a las tarjetas */
+  border: 1px solid #e0e0e0;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.071); /* Sutil sombra */
+}
+
+.contactos-container .contact-card .card-body {
+  padding: 1rem;
+}
+
+.contactos-container .contact-card .card-title {
+  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
+  color: #2c3e50; /* Título más oscuro */
+}
+
+.contactos-container .contact-card .card-text {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+  color: #495057; /* Texto un poco más oscuro */
+}
+
+.contactos-container .contact-card .card-text strong {
+  font-weight: bold;
+  color: #2c3e50; /* Resaltar en negrita */
+}
+
+.contactos-container .contact-card .card-text a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.contactos-container .contact-card .card-text a:hover {
+  text-decoration: underline;
+}
+
+.contactos-container .contact-card img {
+  vertical-align: middle;
+  margin-left: 0.25rem;
+  border-radius: 50%;
+}
+
+.contactos-container .contact-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.contactos-container .action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.contactos-container .floating-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  text-decoration: none;
+}
+
+.contactos-container .floating-button:hover {
+  background-color: #0056b3;
+  color: white;
+}
+
+.contactos-container .modal-dialog {
+  max-width: 400px;
+  margin: 1.75rem auto;
+}
+
+.contactos-container .modal-content {
+  border-radius: 0.3rem;
+}
+
+.contactos-container .modal-header {
+  border-bottom: 1px solid #dee2e6;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top-left-radius: 0.3rem;
+  border-top-right-radius: 0.3rem;
+}
+
+.contactos-container .modal-title {
+  margin-bottom: 0;
+  line-height: 1.5;
+  font-size: 1rem;
+}
+
+.contactos-container .btn-close {
+  padding: 0.5rem 0.5rem;
+  margin: -0.5rem -0.5rem -0.5rem auto;
+  font-size: 1rem;
+  background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath fill-rule='evenodd' d='M15.854 2.146a.5.5 0 0 1 0 .708L8.707 8l7.147 7.146a.5.5 0 0 1-.708.708L8 8.707l-7.146 7.147a.5.5 0 0 1-.708-.708L7.293 8 0.146 0.854a.5.5 0 0 1 .708-.708L8 7.293l7.146-7.147a.5.5 0 0 1 .708 0z'/%3e%3c/svg%3e") center/1em auto no-repeat;
+  border: 0;
+  border-radius: 0.25rem;
+  opacity: .5;
+}
+
+.contactos-container .btn-close:hover {
+  opacity: .75;
+}
+
+.contactos-container .modal-body {
+  padding: 1rem;
+}
+
+.contactos-container .modal-footer {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.75rem;
+  border-top: 1px solid #dee2e6;
+  border-bottom-right-radius: 0.3rem;
+  border-bottom-left-radius: 0.3rem;
+}
+
+.contactos-container .modal-footer>* {
+  margin: 0.25rem;
+}.contactos-container { /* Nuevo contenedor para los estilos de contactos */
+  /* Estilos generales */
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+
+.contactos-container h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 2rem;
+}
+
+.contactos-container .top-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1rem;
+}
+
+.contactos-container .username-display {
+  font-weight: bold;
+}
+
+.contactos-container .gear-icon,
+.contactos-container .logout-icon {
+  color: #6c757d;
+  /* Gris suave */
+  font-size: 1.2rem;
+  text-decoration: none;
+}
+
+.contactos-container .gear-icon:hover,
+.contactos-container .logout-icon:hover {
+  color: #0056b3;
+}
+
+.contactos-container .search-container {
+  margin-bottom: 1rem;
+}
+
+.contactos-container .export-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  /* Permite que los botones se apilen en pantallas pequeñas */
+}
+
+.contactos-container .export-buttons .btn {
+  margin-bottom: 0.5rem;
+  /* Espacio entre botones apilados */
+}
+
+@media (min-width: 576px) {
+  .contactos-container .export-buttons {
+    flex-wrap: nowrap;
+    /* Evita que los botones se apilen en pantallas medianas y grandes */
+  }
+
+  .contactos-container .export-buttons .btn {
+    margin-bottom: 0;
+    /* Elimina el margen inferior en pantallas más grandes */
+  }
+}
+
+.contactos-container .filter-form {
+  margin-bottom: 1.5rem;
+}
+
+.contactos-container .contacts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  /* Ajusta el ancho mínimo según necesites */
+  gap: 1.5rem;
+}
+
+.contactos-container .contact-card {
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f9fa; /* Añadido un color de fondo claro a las tarjetas */
+  border: 1px solid #e0e0e0;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.071); /* Sutil sombra */
+}
+
+.contactos-container .contact-card .card-body {
+  padding: 1rem;
+}
+
+.contactos-container .contact-card .card-title {
+  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
+  color: #2c3e50; /* Título más oscuro */
+}
+
+.contactos-container .contact-card .card-text {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+  color: #495057; /* Texto un poco más oscuro */
+}
+
+.contactos-container .contact-card .card-text strong {
+  font-weight: bold;
+  color: #2c3e50; /* Resaltar en negrita */
+}
+
+.contactos-container .contact-card .card-text a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.contactos-container .contact-card .card-text a:hover {
+  text-decoration: underline;
+}
+
+.contactos-container .contact-card img {
+  vertical-align: middle;
+  margin-left: 0.25rem;
+  border-radius: 50%;
+}
+
+.contactos-container .contact-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.contactos-container .action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.contactos-container .floating-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  text-decoration: none;
+}
+
+.contactos-container .floating-button:hover {
+  background-color: #0056b3;
+  color: white;
+}
+
+.contactos-container .modal-dialog {
+  max-width: 400px;
+  margin: 1.75rem auto;
+}
+
+.contactos-container .modal-content {
+  border-radius: 0.3rem;
+}
+
+.contactos-container .modal-header {
+  border-bottom: 1px solid #dee2e6;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top-left-radius: 0.3rem;
+  border-top-right-radius: 0.3rem;
+}
+
+.contactos-container .modal-title {
+  margin-bottom: 0;
+  line-height: 1.5;
+  font-size: 1rem;
+}
+
+.contactos-container .btn-close {
+  padding: 0.5rem 0.5rem;
+  margin: -0.5rem -0.5rem -0.5rem auto;
+  font-size: 1rem;
+  background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath fill-rule='evenodd' d='M15.854 2.146a.5.5 0 0 1 0 .708L8.707 8l7.147 7.146a.5.5 0 0 1-.708.708L8 8.707l-7.146 7.147a.5.5 0 0 1-.708-.708L7.293 8 0.146 0.854a.5.5 0 0 1 .708-.708L8 7.293l7.146-7.147a.5.5 0 0 1 .708 0z'/%3e%3c/svg%3e") center/1em auto no-repeat;
+  border: 0;
+  border-radius: 0.25rem;
+  opacity: .5;
+}
+
+.contactos-container .btn-close:hover {
+  opacity: .75;
+}
+
+.contactos-container .modal-body {
+  padding: 1rem;
+}
+
+.contactos-container .modal-footer {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.75rem;
+  border-top: 1px solid #dee2e6;
+  border-bottom-right-radius: 0.3rem;
+  border-bottom-left-radius: 0.3rem;
+}
+
+.contactos-container .modal-footer>* {
+  margin: 0.25rem;
+}

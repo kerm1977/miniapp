@@ -4,5 +4,7 @@
 @import url('forms.css');
 @import url('perfil.css');
 @import url('calendario.css');
+@import url('listar_contacto.css');
+
 /*FUENTES*/
 @import url('../fontawesome/css/all.min.css');

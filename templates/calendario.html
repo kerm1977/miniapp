@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Calendario{% endblock %}
 {% block content %}
-   <div class="container">
+    <div class="container">
         <h1>Calendario</h1>
 
         <div class="controls">
@@ -11,8 +11,7 @@
                 <option value="day">Día</option>
                 <option value="year">Año</option>
             </select>
-            <select id="year-select">
-                </select>
+            <select id="year-select"></select>
             <select id="month-select">
                 <option value="1">Enero</option>
                 <option value="2">Febrero</option>
@@ -29,6 +28,12 @@
             </select>
         </div>
 
+        <div class="month-navigation">
+            <button id="prev-month-btn">&lt;</button>
+            <span id="current-month-year"></span>
+            <button id="next-month-btn">&gt;</button>
+        </div>
+
         <div id="calendar">
             <div class="weekday-name">Dom</div>
             <div class="weekday-name">Lun</div>
@@ -39,7 +44,9 @@
             <div class="weekday-name">Sáb</div>
         </div>
 
-        <button id="add-event-btn" class="floating-btn">+</button>
+          
+        <button id="add-event-btn" class="floating-btn"><i class="fas fa-plus"></i>
+</button>
 
         <div id="event-modal" class="modal">
             <div class="modal-content">
@@ -63,6 +70,12 @@
             </div>
         </div>
     </div>
-
-    <script src="{{ url_for('static', filename='calendario.js') }}"></script>
+    <div id="event-list-container"></div>
+    <div id="events-of-day-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>Eventos del día <span id="selected-date-display"></span></h3>
+            <ul id="events-list-of-day"></ul>
+        </div>
+    </div>
 {% endblock %}

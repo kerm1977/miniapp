@@ -795,37 +795,90 @@ def exportar_todos_excel():
 
 
 
-@app.route('/api/events', methods=['POST'])
-def add_event():
-    data = request.get_json()
-    date_str = data.get('date')
-    title = data.get('title')
-    description = data.get('description')
+@app.route('/api/events', methods=['POST', 'GET'])
+def handle_events():
+    if request.method == 'GET':
+        events = Event.query.order_by(Event.date).all()
+        return jsonify([event.to_dict() for event in events])
+    elif request.method == 'POST':
+        data = request.get_json()
+        date_str = data.get('date')
+        title = data.get('title')
+        description = data.get('description')
 
-    if not date_str or not title:
-        return jsonify({'error': 'La fecha y el título son obligatorios'}), 400
+        if not date_str or not title:
+            return jsonify({'error': 'La fecha y el título son obligatorios'}), 400
 
-    try:
-        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
-        new_event = Event(date=date_obj, title=title, description=description)
-        db.session.add(new_event)
+        try:
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+            new_event = Event(date=date_obj, title=title, description=description)
+            db.session.add(new_event)
+            db.session.commit()
+            return jsonify({'message': 'Evento guardado exitosamente', 'id': new_event.id, 'event': new_event.to_dict()}), 201
+        except ValueError as ve:
+            db.session.rollback()
+            print(f"Error de formato de fecha: {ve}")
+            return jsonify({'error': f'Formato de fecha inválido (YYYY-MM-DD): {ve}'}), 400
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error al guardar el evento: {e}")
+            return jsonify({'error': f'Error al guardar el evento: {e}'}), 500
+
+@app.route('/api/events/<int:id>', methods=['GET', 'DELETE', 'PUT'])
+def handle_single_event(id):
+    event = db.session.get(Event, id)
+    if not event:
+        return jsonify({'error': f'Evento con ID {id} no encontrado'}), 404
+
+    if request.method == 'GET':
+        return jsonify({'event': event.to_dict()}), 200  # Devuelve el evento como JSON
+    elif request.method == 'DELETE':
+        db.session.delete(event)
         db.session.commit()
-        return jsonify({'message': 'Evento guardado exitosamente', 'id': new_event.id, 'event': new_event.to_dict()}), 201
-    except ValueError as ve:
-        db.session.rollback()
-        print(f"Error de formato de fecha: {ve}")
-        return jsonify({'error': f'Formato de fecha inválido (YYYY-MM-DD): {ve}'}), 400
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error al guardar el evento: {e}")
-        return jsonify({'error': f'Error al guardar el evento: {e}'}), 500
+        return jsonify({'message': f'Evento con ID {id} eliminado exitosamente'}), 200
+    elif request.method == 'PUT':
+        data = request.get_json()
+        date_str = data.get('date')
+        title = data.get('title')
+        description = data.get('description')
 
-@app.route('/api/events', methods=['GET'])
-def get_events():
-    events = Event.query.order_by(Event.date).all()
-    return jsonify([event.to_dict() for event in events])
+        if date_str:
+            try:
+                event.date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            except ValueError:
+                return jsonify({'error': 'Formato de fecha inválido (YYYY-MM-DD)'}), 400
+        if title:
+            event.title = title
+        if description is not None:  # Permitir borrar la descripción si se envía null
+            event.description = description
+
+        db.session.commit()
+        return jsonify({'message': f'Evento con ID {id} actualizado exitosamente', 'event': event.to_dict()}), 200
 
 
+@app.route('/api/events/<int:id>', methods=['PUT'])
+def update_event(id):
+    event = db.session.get(Event, id)
+    if event:
+        data = request.get_json()
+        date_str = data.get('date')
+        title = data.get('title')
+        description = data.get('description')
+
+        if date_str:
+            try:
+                event.date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            except ValueError:
+                return jsonify({'error': 'Formato de fecha inválido (YYYY-MM-DD)'}), 400
+        if title:
+            event.title = title
+        if description is not None:  # Permitir borrar la descripción si se envía null
+            event.description = description
+
+        db.session.commit()
+        return jsonify({'message': f'Evento con ID {id} actualizado exitosamente', 'event': event.to_dict()}), 200
+    else:
+        return jsonify({'error': f'Evento con ID {id} no encontrado'}), 404
 
 
 
