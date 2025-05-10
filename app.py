@@ -100,13 +100,13 @@ class Contacto(db.Model):
     def __repr__(self):
         return f'<Contacto {self.nombre}>'
 
-# Definición del modelo de datos (si usan SQLAlchemy)
 class Event(db.Model):
     __tablename__ = 'event'
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False)
+    time = db.Column(db.Time, nullable=True)  # Nuevo campo para la hora
     title = db.Column(db.String(80), nullable=False)
     description = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -115,13 +115,10 @@ class Event(db.Model):
         return {
             'id': self.id,
             'date': self.date.isoformat(),
+            'time': self.time.strftime('%H:%M') if self.time else None, # Formatea la hora para la respuesta
             'title': self.title,
             'description': self.description
         }
-
-with app.app_context():
-    db.create_all()
-
 
 class RegistrationForm(FlaskForm):
     username = StringField('Usuario', validators=[DataRequired()])
@@ -803,6 +800,7 @@ def handle_events():
     elif request.method == 'POST':
         data = request.get_json()
         date_str = data.get('date')
+        time_str = data.get('time')  # Obtiene la hora del request
         title = data.get('title')
         description = data.get('description')
 
@@ -811,18 +809,20 @@ def handle_events():
 
         try:
             date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
-            new_event = Event(date=date_obj, title=title, description=description)
+            event_time = datetime.strptime(time_str, '%H:%M').time() if time_str else None  # Convierte la hora
+            new_event = Event(date=date_obj, time=event_time, title=title, description=description)
             db.session.add(new_event)
             db.session.commit()
             return jsonify({'message': 'Evento guardado exitosamente', 'id': new_event.id, 'event': new_event.to_dict()}), 201
         except ValueError as ve:
             db.session.rollback()
-            print(f"Error de formato de fecha: {ve}")
-            return jsonify({'error': f'Formato de fecha inválido (YYYY-MM-DD): {ve}'}), 400
+            print(f"Error de formato de fecha/hora: {ve}")
+            return jsonify({'error': f'Formato de fecha/hora inválido (YYYY-MM-DD HH:MM): {ve}'}), 400
         except Exception as e:
             db.session.rollback()
             print(f"Error al guardar el evento: {e}")
             return jsonify({'error': f'Error al guardar el evento: {e}'}), 500
+
 
 @app.route('/api/events/<int:id>', methods=['GET', 'DELETE', 'PUT'])
 def handle_single_event(id):
@@ -839,54 +839,30 @@ def handle_single_event(id):
     elif request.method == 'PUT':
         data = request.get_json()
         date_str = data.get('date')
+        time_str = data.get('time')  # Obtiene la hora del request
         title = data.get('title')
         description = data.get('description')
 
-        if date_str:
-            try:
+        try:
+            if date_str:
                 event.date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            except ValueError:
-                return jsonify({'error': 'Formato de fecha inválido (YYYY-MM-DD)'}), 400
-        if title:
-            event.title = title
-        if description is not None:  # Permitir borrar la descripción si se envía null
-            event.description = description
+            if time_str:
+                event.time = datetime.strptime(time_str, '%H:%M').time()  # Convierte la hora
+            if title:
+                event.title = title
+            if description is not None:  # Permite borrar la descripción si se envía null
+                event.description = description
 
-        db.session.commit()
-        return jsonify({'message': f'Evento con ID {id} actualizado exitosamente', 'event': event.to_dict()}), 200
-
-
-@app.route('/api/events/<int:id>', methods=['PUT'])
-def update_event(id):
-    event = db.session.get(Event, id)
-    if event:
-        data = request.get_json()
-        date_str = data.get('date')
-        title = data.get('title')
-        description = data.get('description')
-
-        if date_str:
-            try:
-                event.date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            except ValueError:
-                return jsonify({'error': 'Formato de fecha inválido (YYYY-MM-DD)'}), 400
-        if title:
-            event.title = title
-        if description is not None:  # Permitir borrar la descripción si se envía null
-            event.description = description
-
-        db.session.commit()
-        return jsonify({'message': f'Evento con ID {id} actualizado exitosamente', 'event': event.to_dict()}), 200
-    else:
-        return jsonify({'error': f'Evento con ID {id} no encontrado'}), 404
-
-
-
-
-
-
-
-
+            db.session.commit()
+            return jsonify({'message': f'Evento con ID {id} actualizado exitosamente', 'event': event.to_dict()}), 200
+        except ValueError as ve:
+            db.session.rollback()
+            print(f"Error de formato de fecha/hora: {ve}")
+            return jsonify({'error': f'Formato de fecha/hora inválido (YYYY-MM-DD HH:MM): {ve}'}), 400
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error al actualizar el evento: {e}")
+            return jsonify({'error': f'Error al actualizar el evento: {e}'}), 500
 
 
 

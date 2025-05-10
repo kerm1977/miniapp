@@ -309,99 +309,100 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function fetchAndRenderEvents() {
-        fetch('/api/events')
-            .then(response => response.json())
-            .then(events => {
-                cachedEvents = events;
-                eventListContainer.innerHTML = '<h2 class="mt-3">Próximos Eventos:</h2>'; // Añadimos margen superior
+    fetch('/api/events')
+        .then(response => response.json())
+        .then(events => {
+            cachedEvents = events;
+            eventListContainer.innerHTML = '<h2 class="mt-3">Próximos Eventos:</h2>';
 
-                if (events && events.length > 0) {
-                    const ul = document.createElement('ul');
-                    ul.classList.add('list-group'); // Clase para un listado básico de Bootstrap
+            if (events && events.length > 0) {
+                const ul = document.createElement('ul');
+                ul.classList.add('list-group');
 
-                    events.forEach(event => {
-                        const formattedDate = new Date(event.date).toLocaleDateString();
-                        const li = document.createElement('li');
-                        li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center'); // Elemento de lista con flexbox para alinear contenido
+                events.forEach(event => {
+                    const formattedDate = new Date(event.date).toLocaleDateString();
+                    const eventTime = event.time ? ` (${event.time})` : ''; // Agrega la hora si existe
+                    const li = document.createElement('li');
+                    li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
 
-                        const eventInfo = document.createElement('div');
-                        eventInfo.innerHTML = `<span class="font-weight-bold">${formattedDate}</span> - ${event.title}: ${event.description || 'Sin descripción'}`;
-                        li.appendChild(eventInfo);
+                    const eventInfo = document.createElement('div');
+                    eventInfo.innerHTML = `<span class="font-weight-bold">${formattedDate}${eventTime}</span> - ${event.title}: ${event.description || 'Sin descripción'}`;
+                    li.appendChild(eventInfo);
 
-                        const actions = document.createElement('div');
-                        actions.classList.add('btn-group', 'btn-group-sm'); // Grupo de botones pequeños
+                    const actions = document.createElement('div');
+                    actions.classList.add('btn-group', 'btn-group-sm');
 
-                        const deleteButton = document.createElement('button');
-                        deleteButton.textContent = 'Borrar';
-                        deleteButton.classList.add('btn', 'btn-danger');
-                        deleteButton.dataset.id = event.id;
-                        deleteButton.addEventListener('click', function() {
-                            const eventIdToDelete = this.dataset.id;
-                            if (confirm(`¿Seguro que quieres borrar el evento "${event.title}"?`)) {
-                                fetch(`/api/events/${eventIdToDelete}`, {
-                                    method: 'DELETE'
-                                })
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        if (data.message) {
-                                            alert(data.message);
-                                            fetchAndRenderEvents();
-                                        } else if (data.error) {
-                                            alert(data.error);
-                                        }
-                                    })
-                                    .catch(error => {
-                                        console.error('Error al borrar el evento:', error);
-                                        alert('Error al intentar borrar el evento.');
-                                    });
-                            }
-                        });
-
-                        const editButton = document.createElement('button');
-                        editButton.textContent = 'Editar';
-                        editButton.classList.add('btn', 'btn-secondary', 'ml-2'); // Añadimos margen izquierdo
-                        editButton.dataset.id = event.id;
-                        editButton.addEventListener('click', function() {
-                            const eventIdToEdit = this.dataset.id;
-                            currentEditingEventId = eventIdToEdit;
-                            fetch(`/api/events/${eventIdToEdit}`)
-                                .then(response => response.json())
-                                .then(eventData => {
-                                    eventDateInput.value = eventData.date;
-                                    eventTitleInput.value = eventData.title;
-                                    eventDescriptionInput.value = eventData.description || '';
-                                    modal.style.display = 'block';
-                                })
-                                .catch(error => {
-                                    console.error('Error al obtener el evento para editar:', error);
-                                    alert('Error al cargar los detalles del evento para editar.');
-                                });
-                        });
-
-                        actions.appendChild(deleteButton);
-                        actions.appendChild(editButton);
-                        li.appendChild(actions);
-                        ul.appendChild(li);
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Borrar';
+                    deleteButton.classList.add('btn', 'btn-danger');
+                    deleteButton.dataset.id = event.id;
+                    deleteButton.addEventListener('click', function() {
+                        const eventIdToDelete = this.dataset.id;
+                        if (confirm(`¿Seguro que quieres borrar el evento "${event.title}"?`)) {
+                            fetch(`/api/events/${eventIdToDelete}`, {
+                                method: 'DELETE'
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.message) {
+                                    alert(data.message);
+                                    fetchAndRenderEvents();
+                                } else if (data.error) {
+                                    alert(data.error);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error al borrar el evento:', error);
+                                alert('Error al intentar borrar el evento.');
+                            });
+                        }
                     });
-                    eventListContainer.appendChild(ul);
-                } else {
-                    const p = document.createElement('p');
-                    p.classList.add('mt-2'); // Añadimos margen superior
-                    p.textContent = 'No hay eventos guardados.';
-                    eventListContainer.appendChild(p);
-                }
-                updateCalendarView();
-            })
-            .catch(error => {
-                console.error('Error al obtener los eventos:', error);
-                const p = document.createElement('p');
-                p.classList.add('mt-2', 'text-danger'); // Añadimos margen superior y color de texto rojo
-                p.textContent = 'Error al cargar los eventos.';
-                eventListContainer.appendChild(p);
-                updateCalendarView();
-            });
-    }
 
+                    const editButton = document.createElement('button');
+                    editButton.textContent = 'Editar';
+                    editButton.classList.add('btn', 'btn-secondary', 'ml-2');
+                    editButton.dataset.id = event.id;
+                    editButton.addEventListener('click', function() {
+                        const eventIdToEdit = this.dataset.id;
+                        currentEditingEventId = eventIdToEdit;
+                        fetch(`/api/events/${eventIdToEdit}`)
+                            .then(response => response.json())
+                            .then(eventData => {
+                                eventDateInput.value = eventData.date;
+                                document.getElementById('event-time').value = eventData.time || ''; // Establecer la hora para editar
+                                eventTitleInput.value = eventData.title;
+                                eventDescriptionInput.value = eventData.description || '';
+                                modal.style.display = 'block';
+                            })
+                            .catch(error => {
+                                console.error('Error al obtener el evento para editar:', error);
+                                alert('Error al cargar los detalles del evento para editar.');
+                            });
+                    });
+
+                    actions.appendChild(deleteButton);
+                    actions.appendChild(editButton);
+                    li.appendChild(actions);
+                    ul.appendChild(li);
+                });
+                eventListContainer.appendChild(ul);
+            } else {
+                const p = document.createElement('p');
+                p.classList.add('mt-2');
+                p.textContent = 'No hay eventos guardados.';
+                eventListContainer.appendChild(p);
+            }
+            updateCalendarView();
+        })
+        .catch(error => {
+            console.error('Error al obtener los eventos:', error);
+            const p = document.createElement('p');
+            p.classList.add('mt-2', 'text-danger');
+            p.textContent = 'Error al cargar los eventos.';
+            eventListContainer.appendChild(p);
+            updateCalendarView();
+        });
+}
     populateYearSelect();
     updateMonthYearDisplay(); // Llamamos a la función para mostrar el mes y el año actual
     const initialYear = parseInt(yearSelect.value);
@@ -472,45 +473,47 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    eventForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        const date = eventDateInput.value;
-        const title = eventTitleInput.value;
-        const description = eventDescriptionInput.value;
+eventForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+    const date = eventDateInput.value;
+    const time = document.getElementById('event-time').value; // Obtener el valor de la hora
+    const title = eventTitleInput.value;
+    const description = eventDescriptionInput.value;
 
-        const eventData = {
-            date: date,
-            title: title,
-            description: description
-        };
+    const eventData = {
+        date: date,
+        time: time, // Incluir la hora en los datos
+        title: title,
+        description: description
+    };
 
-        const method = currentEditingEventId ? 'PUT' : 'POST';
-        const url = currentEditingEventId ? `/api/events/${currentEditingEventId}` : '/api/events';
+    const method = currentEditingEventId ? 'PUT' : 'POST';
+    const url = currentEditingEventId ? `/api/events/${currentEditingEventId}` : '/api/events';
 
-        fetch(url, {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(eventData)
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    console.error(`Error al ${method === 'PUT' ? 'editar' : 'guardar'} el evento:`, data.error);
-                    alert(`Hubo un error al ${method === 'PUT' ? 'editar' : 'guardar'} el evento.`);
-                } else {
-                    console.log(`Evento ${method === 'PUT' ? 'editado' : 'guardado'}:`, data);
-                    alert(`Evento ${method === 'PUT' ? 'editado' : 'guardado'} exitosamente.`);
-                    modal.style.display = 'none';
-                    eventForm.reset();
-                    fetchAndRenderEvents();
-                    currentEditingEventId = null;
-                }
-            })
-            .catch(error => {
-                console.error(`Error de red al intentar ${method === 'PUT' ? 'editar' : 'guardar'} el evento:`, error);
-                alert(`Error de red al intentar ${method === 'PUT' ? 'editar' : 'guardar'} el evento.`);
-            });
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(eventData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            console.error(`Error al ${method === 'PUT' ? 'editar' : 'guardar'} el evento:`, data.error);
+            alert(`Hubo un error al ${method === 'PUT' ? 'editar' : 'guardar'} el evento.`);
+        } else {
+            console.log(`Evento ${method === 'PUT' ? 'editado' : 'guardado'}:`, data);
+            alert(`Evento ${method === 'PUT' ? 'editado' : 'guardado'} exitosamente.`);
+            modal.style.display = 'none';
+            eventForm.reset();
+            fetchAndRenderEvents();
+            currentEditingEventId = null;
+        }
+    })
+    .catch(error => {
+        console.error(`Error de red al intentar ${method === 'PUT' ? 'editar' : 'guardar'} el evento:`, error);
+        alert(`Error de red al intentar ${method === 'PUT' ? 'editar' : 'guardar'} el evento.`);
     });
+});
 });
