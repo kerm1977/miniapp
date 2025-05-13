@@ -1,0 +1,90 @@
+SCRIPTS PARA G
+
+EN BASE A ESA APP SIN MODIFICAR NADA DE LO EXISTENTE NECESITO CREA UN CRUD DE POSTS QUE TENGA LOS SIGUIENTES CAMPOS. RECUERDO NO SE DEBE POR NINGUN MOTIVO CAMBIAS TABLAS, MODELOS, VISTAS NI OTRAS FUNCIONES Y VA A TENER RELACION CON EL USUARIO QUE CREO DICHO POST Y EL CRUD VA A TENER  LAS VISTAS Y FUNCIONES 
+
+PRIMERO y unicamente crear la tabla qye  SE VA A LLAMAR POST que VA A TENER LOS SIGUIENTES CAMPOS ----------
+
+
+IMAGEN_POST para agregar flyers
+
+TIPO CAMINATA SELECT (PARQUE NACIONALE, RESERVA, REFUGIO AMBIENTAL, ISLA, CERRO, RIO, PLAYA, VOLCAN, CATARATA, CENTRO RECREACION, SENDERO, EL CAMINO DE COSTA RICA) aqui termina el select
+
+Nombre del Lugar:
+
+OJO SI EN EL SELECT TIPO CAMINATA LA OPCIÓN ES == a EL CAMINO DE COSTA RICA entonces debe HABILITAR otro select llamado ETAPAS 
+(1a & 1b PARISMINA-CIMARRONES, 
+1a PARISMINA-BARRA PACUARE, 
+1b MUELLE GOSHEN-CIMARRONES, 
+2 CIMARRONES-LAS BRISAS(TSINIKISHA), 
+3 TSINIKISHA-TSIOBATA, 
+4 TIOBATA-HACIENDA TRES EQUIS, 
+5 HACIENDA TRES EQUIS-PACAYITAS,
+6 PACAYITAS-LA SUIZA
+7 LA SUIZA-HUMO DE PEJIBAYE
+8 HUMO DE PEJIBAYE A TAPANTI
+9 TAPANTI-MUÑECO NAVARRO
+10 MUÑECO NAVARRO-PALO VERDE
+11 PALO VERDE-CERRO ALTO
+12 CERRO ALTO-SAN PABLO LEON CORTES
+13 SAN PABLO LEON CORTES-NAPOLES
+14 NAPOLES-NARANJITO
+15 NARANJITO-ESQUIPULAS
+16 ESQUIPULAS-QUIPOS) aqui termina el select
+
+
+otro SELECT LLAMADO --> PROVINCIA (ALAJUELA, CARTAGO, HEREDIA, SAN JOSE, PUNTARENAS, LIMON, GUANACASTE)
+
+FECHA <-- Campo para seleccionar fecha
+HORA <-- Campo para seleccionar hora
+
+PRECIO <-- con un placeholder ¢
+
+NOTA: 
+
+otro  SELECT LLAMADO --> INCLUYE(Transporte, Tranporte + Entrada, Tranporte + Entrada + Guia ) aqui termina el select
+
+otro  SELECT LLAMADO --> DIFICULTAD(Iniciante, Básico, Básico-Intermedio, Intermedio, Intermedio-Dificil, 
+
+Dificil, Muy Dificil) aqui termina el select
+
+DITANCIA
+
+OTRO SELECT LLAMAD CAPACIDAD BUSETA con las opciones (14,15,17,) aqui termina el select
+
+otro  SELECT LLAMADO --> SALIMOS DE:  (PARQUE DE TRES RÍOS DIAGONAL A LA ESCUELA, PARQUE DE TRES RÍOS 
+
+FRENTE A LA CRUZ ROJA, SAN DIEGO LA PLAZA, SAN DIEGO FRENTE A LA IGLESIA) aqui termina el select
+
+otro SELECT LLAMADO -->  SE RECOGE EN: (CARTAGO-TURRIALBA, CARTAGO-PZ, SAN JOSE) aqui termina el select ojo, necesito una condicional con lo siguiente:
+
+si la opción es == CARTAGO-TURRIALBA, habilite debajo de este select una lista ol, li que digan: SAN RAFAEL, EL FIERRO, LA ULTIMA COPA, METROCENTRO, PLAZA IGLESIAS, CABALLO BLANCO, PARAISO 
+
+si la opción es == CARTAGO-PZ, habilite debajo de este select una lista ol, li que digan: EL FIERRO, LA ULTIMA COPA, METROCENTRO, LOS SALESIANOS, EL QUIJONGO
+
+si la opción es == SAN JOSE, habilite debajo de este select una lista ol, li que digan: PLAZA DEL SOL, PARQUE J.F. KENNEDY, COORDINAR PUNTO DE ENCUENTRO)
+
+UN SELECT LLAMADO --> RESERVA CON(¢5000,¢7000,¢8000,¢1000,¢15000,¢20000,¢30000,¢35000,¢40000,¢45000,¢50000) aqui termina el select
+
+Altitud máxima
+Altitud mínima
+select llamados BAÑOS (NO APLICA, SI, NO)
+select llamados DUCHAS (NO APLICA, SI, NO)
+select llamados PARQUEO (NO APLICA, SI, NO)
+select llamados SINPE (Jenny Ceciliano Cordoba - 8652 9837, Kenneth Ruiz Matamoros - 86227500, Jenny Ceciliano Cordoba - 87984232)
+
+
+Apenas tengas esto listo avisas para no perder el control de lo que se hacer cuando yo lo agrege al código te digo que continues creas la función encargada de crear posts
+
+
+CREATE_POST <-- la creas  Te detienes y te digo continuar para que hagas la siguiente función
+
+READ_POST <-- la creas Te detienes y te digo continuar para que hagas la siguiente función
+
+UPDATE_POST <-- la creas  Te detienes y te digo continuar para que hagas la siguiente función
+
+DELETE_POST <-- la creas  Te detienes y te digo continuar para que hagas la siguiente función
+
+
+y luego me haces las vistas html con estilos bootstrap las funciones creadas
+
+
