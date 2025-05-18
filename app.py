@@ -366,27 +366,22 @@ class CrearFacturaForm(FlaskForm):
         self.cliente_id.choices = [(contacto.id, contacto.nombre) for contacto in Contacto.query.filter_by(usuario_id=current_user.id).all()]
 
 class EditarFacturaForm(FlaskForm):
-    numero_factura = StringField('Número de Factura', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
-    cliente_id = SelectField('Cliente', coerce=int, validators=[DataRequired()], render_kw={"class": "rounded-pill form-select"})
-    fecha_emision = StringField('Fecha de Emisión (YYYY-MM-DD)', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
+    numero_factura = StringField('Número de Factura', render_kw={"class": "rounded-pill"}) # Eliminado DataRequired()
+    cliente_id = SelectField('Cliente', coerce=int, render_kw={"class": "rounded-pill form-select"}) # Eliminado DataRequired()
+    fecha_emision = StringField('Fecha de Emisión (YYYY-MM-DD)', render_kw={"class": "rounded-pill"}) # Eliminado DataRequired()
     descripcion = TextAreaField('Descripción', render_kw={"class": "rounded-pill"})
-    monto_total = StringField('Monto Total', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
+    monto_total = StringField('Monto Total', render_kw={"class": "rounded-pill"}) # Eliminado DataRequired()
     submit = SubmitField('Guardar Cambios', render_kw={"class": "btn btn-primary"})
 
     def __init__(self, factura, *args, **kwargs):
         super(EditarFacturaForm, self).__init__(*args, **kwargs)
         self.cliente_id.choices = [(contacto.id, contacto.nombre) for contacto in Contacto.query.filter_by(usuario_id=current_user.id).all()]
-        self.cliente_id.default = factura.cliente_id # Establecer el cliente actual como preseleccionado
-        self.process() # Necesario para que se aplique el default
-
-
-
-
-
-
-
-
-
+        self.cliente_id.data = factura.cliente_id
+        self.numero_factura.data = factura.numero_factura
+        self.fecha_emision.data = factura.fecha_emision.strftime('%Y-%m-%d') if factura.fecha_emision else ''
+        self.descripcion.data = factura.descripcion
+        self.monto_total.data = str(factura.monto_total) if factura.monto_total is not None else ''
+        # No necesitamos process() aquí si usamos 'data'
 
 
 @app.route('/')
@@ -1049,7 +1044,18 @@ def crear_factura():
 @login_required
 def editar_factura(id):
     factura = Factura.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
-    form = EditarFacturaForm(factura=factura, obj=factura)
+    form = EditarFacturaForm(factura)
+
+    print(f"Tipo de numero_factura: {type(factura.numero_factura)}, Valor: {factura.numero_factura}")
+    print(f"Tipo de fecha_emision: {type(factura.fecha_emision)}, Valor: {factura.fecha_emision}")
+    print(f"Tipo de monto_total: {type(factura.monto_total)}, Valor: {factura.monto_total}")
+
+    form.numero_factura.data = factura.numero_factura
+    form.cliente_id.data = factura.cliente_id
+    form.fecha_emision.data = factura.fecha_emision.strftime('%Y-%m-%d') if factura.fecha_emision else ''
+    form.descripcion.data = factura.descripcion
+    form.monto_total.data = str(factura.monto_total) if factura.monto_total is not None else ''
+
     if form.validate_on_submit():
         factura.numero_factura = form.numero_factura.data
         factura.cliente_id = form.cliente_id.data
@@ -1064,9 +1070,11 @@ def editar_factura(id):
             return redirect(url_for('ver_facturas'))
         except ValueError:
             flash('Formato de fecha de emisión inválido (YYYY-MM-DD).', 'danger')
-            return render_template('editar_factura.html', form=form)
+            return render_template('editar_factura.html', form=form, factura_id=id)
 
     return render_template('editar_factura.html', form=form, factura_id=id)
+
+
 
 @app.route('/borrar_factura/<int:id>', methods=['POST'])
 @login_required
