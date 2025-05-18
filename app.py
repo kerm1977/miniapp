@@ -44,6 +44,7 @@ def is_authenticated(self):
     return True
 
 
+# MODELOS
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
 
@@ -121,6 +122,77 @@ class Event(db.Model):
             'description': self.description
         }
 
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    imagen_post = db.Column(db.String(255))
+    tipo_caminata = db.Column(db.Enum('PARQUE NACIONAL', 'RESERVA', 'REFUGIO AMBIENTAL', 'ISLA', 'CERRO', 'RIO', 'PLAYA', 'VOLCAN', 'CATARATA', 'CENTRO RECREACION', 'SENDERO', 'EL CAMINO DE COSTA RICA'), nullable=False)
+    etapas = db.Column(db.Enum(
+        '1a & 1b PARISMINA-CIMARRONES',
+        '1a PARISMINA-BARRA PACUARE',
+        '1b MUELLE GOSHEN-CIMARRONES',
+        '2 CIMARRONES-LAS BRISAS(TSINIKISHA)',
+        '3 TSINIKISHA-TSIOBATA',
+        '4 TIOBATA-HACIENDA TRES EQUIS',
+        '5 HACIENDA TRES EQUIS-PACAYITAS',
+        '6 PACAYITAS-LA SUIZA',
+        '7 LA SUIZA-HUMO DE PEJIBAYE',
+        '8 HUMO DE PEJIBAYE A TAPANTI',
+        '9 TAPANTI-MUÑECO NAVARRO',
+        '10 MUÑECO NAVARRO-PALO VERDE',
+        '11 PALO VERDE-CERRO ALTO',
+        '12 CERRO ALTO-SAN PABLO LEON CORTES',
+        '13 SAN PABLO LEON CORTES-NAPOLES',
+        '14 NAPOLES-NARANJITO',
+        '15 NARANJITO-ESQUIPULAS',
+        '16 ESQUIPULAS-QUIPOS'
+    ))
+    nombre_lugar = db.Column(db.String(255), nullable=False)
+    provincia = db.Column(db.Enum('ALAJUELA', 'CARTAGO', 'HEREDIA', 'SAN JOSE', 'PUNTARENAS', 'LIMON', 'GUANACASTE'), nullable=False)
+    fecha = db.Column(db.Date, nullable=False)
+    hora = db.Column(db.Time, nullable=False)
+    precio = db.Column(db.Numeric(10, 2))
+    incluye = db.Column(db.Enum('Transporte', 'Tranporte + Entrada', 'Tranporte + Entrada + Guia'))
+    dificultad = db.Column(db.Enum('Iniciante', 'Básico', 'Básico-Intermedio', 'Intermedio', 'Intermedio-Dificil', 'Dificil', 'Muy Dificil'))
+    distancia = db.Column(db.String(50))
+    capacidad_buseta = db.Column(db.Enum('14', '15', '17'))
+    salimos_de = db.Column(db.Enum('PARQUE DE TRES RÍOS DIAGONAL A LA ESCUELA', 'PARQUE DE TRES RÍOS FRENTE A LA CRUZ ROJA', 'SAN DIEGO LA PLAZA', 'SAN DIEGO FRENTE A LA IGLESIA'))
+    se_recoge_en = db.Column(db.Enum('CARTAGO-TURRIALBA', 'CARTAGO-PZ', 'SAN JOSE'))
+    reserva_con = db.Column(db.Numeric(10, 2))
+    altitud_maxima = db.Column(db.String(50))
+    altitud_minima = db.Column(db.String(50))
+    banos = db.Column(db.Enum('NO APLICA', 'SI', 'NO'))
+    duchas = db.Column(db.Enum('NO APLICA', 'SI', 'NO'))
+    parqueo = db.Column(db.Enum('NO APLICA', 'SI', 'NO'))
+    sinpe = db.Column(db.Enum('Jenny Ceciliano Cordoba - 8652 9837', 'Kenneth Ruiz Matamoros - 86227500', 'Jenny Ceciliano Cordoba - 87984232'))
+
+    # Relación con el modelo de Usuario (asumiendo que se llama 'User')
+    user = db.relationship('User', backref=db.backref('posts', lazy=True))
+
+    def __repr__(self):
+        return f"<Post {self.nombre_lugar}>"
+
+class Factura(db.Model):
+    __tablename__ = 'facturas'
+
+    id = db.Column(db.Integer, primary_key=True)
+    numero_factura = db.Column(db.String(100), unique=True, nullable=False)
+    fecha_emision = db.Column(db.Date, nullable=False, default=datetime.utcnow)
+    cliente_id = db.Column(db.Integer, db.ForeignKey('contacto.id'), nullable=False)
+    cliente = db.relationship('Contacto', backref=db.backref('facturas', lazy=True))
+    descripcion = db.Column(db.Text)
+    monto_total = db.Column(db.Numeric(10, 2), nullable=False)
+    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    usuario = db.relationship('User', backref=db.backref('facturas', lazy=True))
+
+    def __repr__(self):
+        return f'<Factura {self.numero_factura}>'
+
+
+
+
+# FORMS
 class RegistrationForm(FlaskForm):
     username = StringField('Usuario', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
@@ -279,55 +351,39 @@ class BusquedaContactoForm(FlaskForm):
 class BorrarContactoForm(FlaskForm):
     submit = SubmitField('Confirmar Borrar')
 
-class Post(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    imagen_post = db.Column(db.String(255))
-    tipo_caminata = db.Column(db.Enum('PARQUE NACIONAL', 'RESERVA', 'REFUGIO AMBIENTAL', 'ISLA', 'CERRO', 'RIO', 'PLAYA', 'VOLCAN', 'CATARATA', 'CENTRO RECREACION', 'SENDERO', 'EL CAMINO DE COSTA RICA'), nullable=False)
-    etapas = db.Column(db.Enum(
-        '1a & 1b PARISMINA-CIMARRONES',
-        '1a PARISMINA-BARRA PACUARE',
-        '1b MUELLE GOSHEN-CIMARRONES',
-        '2 CIMARRONES-LAS BRISAS(TSINIKISHA)',
-        '3 TSINIKISHA-TSIOBATA',
-        '4 TIOBATA-HACIENDA TRES EQUIS',
-        '5 HACIENDA TRES EQUIS-PACAYITAS',
-        '6 PACAYITAS-LA SUIZA',
-        '7 LA SUIZA-HUMO DE PEJIBAYE',
-        '8 HUMO DE PEJIBAYE A TAPANTI',
-        '9 TAPANTI-MUÑECO NAVARRO',
-        '10 MUÑECO NAVARRO-PALO VERDE',
-        '11 PALO VERDE-CERRO ALTO',
-        '12 CERRO ALTO-SAN PABLO LEON CORTES',
-        '13 SAN PABLO LEON CORTES-NAPOLES',
-        '14 NAPOLES-NARANJITO',
-        '15 NARANJITO-ESQUIPULAS',
-        '16 ESQUIPULAS-QUIPOS'
-    ))
-    nombre_lugar = db.Column(db.String(255), nullable=False)
-    provincia = db.Column(db.Enum('ALAJUELA', 'CARTAGO', 'HEREDIA', 'SAN JOSE', 'PUNTARENAS', 'LIMON', 'GUANACASTE'), nullable=False)
-    fecha = db.Column(db.Date, nullable=False)
-    hora = db.Column(db.Time, nullable=False)
-    precio = db.Column(db.Numeric(10, 2))
-    incluye = db.Column(db.Enum('Transporte', 'Tranporte + Entrada', 'Tranporte + Entrada + Guia'))
-    dificultad = db.Column(db.Enum('Iniciante', 'Básico', 'Básico-Intermedio', 'Intermedio', 'Intermedio-Dificil', 'Dificil', 'Muy Dificil'))
-    distancia = db.Column(db.String(50))
-    capacidad_buseta = db.Column(db.Enum('14', '15', '17'))
-    salimos_de = db.Column(db.Enum('PARQUE DE TRES RÍOS DIAGONAL A LA ESCUELA', 'PARQUE DE TRES RÍOS FRENTE A LA CRUZ ROJA', 'SAN DIEGO LA PLAZA', 'SAN DIEGO FRENTE A LA IGLESIA'))
-    se_recoge_en = db.Column(db.Enum('CARTAGO-TURRIALBA', 'CARTAGO-PZ', 'SAN JOSE'))
-    reserva_con = db.Column(db.Numeric(10, 2))
-    altitud_maxima = db.Column(db.String(50))
-    altitud_minima = db.Column(db.String(50))
-    banos = db.Column(db.Enum('NO APLICA', 'SI', 'NO'))
-    duchas = db.Column(db.Enum('NO APLICA', 'SI', 'NO'))
-    parqueo = db.Column(db.Enum('NO APLICA', 'SI', 'NO'))
-    sinpe = db.Column(db.Enum('Jenny Ceciliano Cordoba - 8652 9837', 'Kenneth Ruiz Matamoros - 86227500', 'Jenny Ceciliano Cordoba - 87984232'))
 
-    # Relación con el modelo de Usuario (asumiendo que se llama 'User')
-    user = db.relationship('User', backref=db.backref('posts', lazy=True))
+# RELACION A LAS FACTURAS
+class CrearFacturaForm(FlaskForm):
+    numero_factura = StringField('Número de Factura', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
+    cliente_id = SelectField('Cliente', coerce=int, validators=[DataRequired()], render_kw={"class": "rounded-pill form-select"})
+    fecha_emision = StringField('Fecha de Emisión (YYYY-MM-DD)', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
+    descripcion = TextAreaField('Descripción', render_kw={"class": "rounded-pill"})
+    monto_total = StringField('Monto Total', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
+    submit = SubmitField('Guardar Factura', render_kw={"class": "btn btn-primary"})
 
-    def __repr__(self):
-        return f"<Post {self.nombre_lugar}>"
+    def __init__(self, *args, **kwargs):
+        super(CrearFacturaForm, self).__init__(*args, **kwargs)
+        self.cliente_id.choices = [(contacto.id, contacto.nombre) for contacto in Contacto.query.filter_by(usuario_id=current_user.id).all()]
+
+class EditarFacturaForm(FlaskForm):
+    numero_factura = StringField('Número de Factura', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
+    cliente_id = SelectField('Cliente', coerce=int, validators=[DataRequired()], render_kw={"class": "rounded-pill form-select"})
+    fecha_emision = StringField('Fecha de Emisión (YYYY-MM-DD)', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
+    descripcion = TextAreaField('Descripción', render_kw={"class": "rounded-pill"})
+    monto_total = StringField('Monto Total', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
+    submit = SubmitField('Guardar Cambios', render_kw={"class": "btn btn-primary"})
+
+    def __init__(self, factura, *args, **kwargs):
+        super(EditarFacturaForm, self).__init__(*args, **kwargs)
+        self.cliente_id.choices = [(contacto.id, contacto.nombre) for contacto in Contacto.query.filter_by(usuario_id=current_user.id).all()]
+        self.cliente_id.default = factura.cliente_id # Establecer el cliente actual como preseleccionado
+        self.process() # Necesario para que se aplique el default
+
+
+
+
+
+
 
 
 
@@ -944,6 +1000,85 @@ def update_event(id):
         return jsonify({'error': f'Evento con ID {id} no encontrado'}), 404
 
 
+
+
+# FACTURAS
+# FACTURAS
+@app.route('/ver_facturas')
+@login_required
+def ver_facturas():
+    facturas = Factura.query.filter_by(usuario_id=current_user.id).all()
+    return render_template('ver_facturas.html', facturas=facturas)
+
+@app.route('/crear_factura', methods=['GET', 'POST'])
+@login_required
+def crear_factura():
+    form = CrearFacturaForm()
+    if form.validate_on_submit():
+        numero_factura = form.numero_factura.data
+        cliente_id = form.cliente_id.data
+        fecha_emision_str = form.fecha_emision.data
+        descripcion = form.descripcion.data
+        monto_total = form.monto_total.data
+
+        if Factura.query.filter_by(numero_factura=numero_factura, usuario_id=current_user.id).first():
+            flash('El número de factura ya existe.', 'danger')
+            return render_template('crear_factura.html', form=form)
+
+        try:
+            fecha_emision = datetime.strptime(fecha_emision_str, '%Y-%m-%d').date()
+            nueva_factura = Factura(
+                numero_factura=numero_factura,
+                cliente_id=cliente_id,
+                fecha_emision=fecha_emision,
+                descripcion=descripcion,
+                monto_total=monto_total,
+                usuario_id=current_user.id
+            )
+            db.session.add(nueva_factura)
+            db.session.commit()
+            flash('¡Factura creada exitosamente!', 'success')
+            return redirect(url_for('ver_facturas'))
+        except ValueError:
+            flash('Formato de fecha de emisión inválido (YYYY-MM-DD).', 'danger')
+            return render_template('crear_factura.html', form=form)
+
+    return render_template('crear_factura.html', form=form)
+
+@app.route('/editar_factura/<int:id>', methods=['GET', 'POST'])
+@login_required
+def editar_factura(id):
+    factura = Factura.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+    form = EditarFacturaForm(factura=factura, obj=factura)
+    if form.validate_on_submit():
+        factura.numero_factura = form.numero_factura.data
+        factura.cliente_id = form.cliente_id.data
+        fecha_emision_str = form.fecha_emision.data
+        factura.descripcion = form.descripcion.data
+        factura.monto_total = form.monto_total.data
+
+        try:
+            factura.fecha_emision = datetime.strptime(fecha_emision_str, '%Y-%m-%d').date()
+            db.session.commit()
+            flash('¡Factura actualizada exitosamente!', 'success')
+            return redirect(url_for('ver_facturas'))
+        except ValueError:
+            flash('Formato de fecha de emisión inválido (YYYY-MM-DD).', 'danger')
+            return render_template('editar_factura.html', form=form)
+
+    return render_template('editar_factura.html', form=form, factura_id=id)
+
+@app.route('/borrar_factura/<int:id>', methods=['POST'])
+@login_required
+def borrar_factura(id):
+    factura = Factura.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+    if factura:
+        db.session.delete(factura)
+        db.session.commit()
+        flash('¡Factura borrada exitosamente!', 'success')
+    else:
+        flash('Error al intentar borrar la factura.', 'danger')
+    return redirect(url_for('ver_facturas'))
 
 
 
