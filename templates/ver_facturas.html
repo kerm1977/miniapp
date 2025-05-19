@@ -32,28 +32,13 @@
                     <td>{{ factura.fecha_registro.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                     <td>
                         <a href="{{ url_for('editar_factura', id=factura.id) }}" class="btn btn-sm btn-primary rounded-pill">Editar</a>
-                        <button type="button" class="btn btn-sm btn-danger rounded-pill" data-bs-toggle="modal" data-bs-target="#borrarFacturaModal{{ factura.id }}">Borrar</button>
+                        <button type="button" class="btn btn-sm btn-danger rounded-pill borrar-factura-btn-swal"
+                                data-factura-id="{{ factura.id }}"
+                                data-factura-numero="{{ factura.numero_factura }}">
+                            Borrar
+                        </button>
                     </td>
                 </tr>
-                <div class="modal fade" id="borrarFacturaModal{{ factura.id }}" tabindex="-1" aria-labelledby="borrarFacturaModalLabel{{ factura.id }}" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="borrarFacturaModalLabel{{ factura.id }}">Confirmar Borrar Factura</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                ¿Estás seguro de que quieres borrar la factura número <strong>{{ factura.numero_factura }}</strong>?
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
-                                <form action="{{ url_for('borrar_factura', id=factura.id) }}" method="POST" style="display: inline;">
-                                    <button type="submit" class="btn btn-danger rounded-pill">Borrar</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 {% endfor %}
             </tbody>
         </table>
@@ -61,4 +46,43 @@
         <p>No hay facturas registradas.</p>
     {% endif %}
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const botonesBorrar = document.querySelectorAll('.borrar-factura-btn-swal');
+
+        botonesBorrar.forEach(boton => {
+            boton.addEventListener('click', function() {
+                const facturaId = this.dataset.facturaId;
+                const facturaNumero = this.dataset.facturaNumero;
+
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: `¿Deseas borrar la factura número ${facturaNumero}?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, borrar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = `/borrar_factura/${facturaId}`;
+
+                        const csrfTokenInput = document.createElement('input');
+                        csrfTokenInput.type = 'hidden';
+                        csrfTokenInput.name = 'csrf_token';
+                        csrfTokenInput.value = "{{ csrf_token }}";
+
+                        form.appendChild(csrfTokenInput);
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
 {% endblock %}
