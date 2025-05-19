@@ -612,7 +612,7 @@ def perfil():
 @login_required
 def listar_contacto():
     form_busqueda = BusquedaContactoForm()
-    contactos = Contacto.query.filter_by(usuario_id=current_user.id).all()
+    contactos = Contacto.query.filter_by(usuario_id=current_user.id).order_by(Contacto.nombre, Contacto.primer_apellido, Contacto.segundo_apellido).all()
     return render_template('listar_contacto.html', contactos=contactos, form_busqueda=form_busqueda)
 
 @app.route('/crear_contacto', methods=['GET', 'POST'])
@@ -735,13 +735,11 @@ def buscar_contacto():
         if termino_participacion:
             contactos = contactos.filter(Contacto.participacion == termino_participacion)
 
-        resultados = contactos.all()
+        resultados = contactos.order_by(Contacto.nombre, Contacto.primer_apellido, Contacto.segundo_apellido).all()
         return render_template('listar_contacto.html', contactos=resultados, form_busqueda=form_busqueda)
 
-    # Si la solicitud es GET o el formulario no es válido, mostrar todos los contactos con el formulario de búsqueda
-    return render_template('listar_contacto.html', contactos=Contacto.query.filter_by(usuario_id=current_user.id).all(), form_busqueda=form_busqueda)
-
-
+    # Si la solicitud es GET o el formulario no es válido, mostrar todos los contactos ordenados
+    return render_template('listar_contacto.html', contactos=Contacto.query.filter_by(usuario_id=current_user.id).order_by(Contacto.nombre, Contacto.primer_apellido, Contacto.segundo_apellido).all(), form_busqueda=form_busqueda)
 
 
 
