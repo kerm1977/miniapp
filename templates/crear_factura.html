@@ -32,7 +32,7 @@
         <div class="mb-3">
             {{ form.fecha_emision.label(class="form-label") }}
             {{ form.fecha_emision(class="form-control") }}
-            <small class="form-text text-muted">Formato: YYYY-MM-DD</small>
+            <small class="form-text text-muted">Formato: AAAA-MM-DD</small>
             {% if form.fecha_emision.errors %}
                 <ul class="errors">
                     {% for error in form.fecha_emision.errors %}

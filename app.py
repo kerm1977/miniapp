@@ -355,33 +355,41 @@ class BorrarContactoForm(FlaskForm):
 # RELACION A LAS FACTURAS
 class CrearFacturaForm(FlaskForm):
     numero_factura = StringField('Número de Factura', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
-    cliente_id = SelectField('Cliente', coerce=int, validators=[DataRequired()], render_kw={"class": "rounded-pill form-select"})
+    cliente_id = SelectField('Cliente', coerce=int, validators=[DataRequired()], render_kw={"class": "form-select rounded-pill"})
     fecha_emision = StringField('Fecha de Emisión (YYYY-MM-DD)', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
     descripcion = TextAreaField('Descripción', render_kw={"class": "rounded-pill"})
     monto_total = StringField('Monto Total', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
-    submit = SubmitField('Guardar Factura', render_kw={"class": "btn btn-primary"})
+    submit = SubmitField('Guardar Factura', render_kw={"class": "btn btn-success rounded-pill"})
 
     def __init__(self, *args, **kwargs):
         super(CrearFacturaForm, self).__init__(*args, **kwargs)
-        self.cliente_id.choices = [(contacto.id, contacto.nombre) for contacto in Contacto.query.filter_by(usuario_id=current_user.id).all()]
+        self.cliente_id.choices = [(
+            contacto.id,
+            f"{contacto.nombre.title()} {contacto.primer_apellido.title() if contacto.primer_apellido else ''} {contacto.segundo_apellido.title() if contacto.segundo_apellido else ''} - {contacto.movil if contacto.movil else contacto.telefono}"
+        ) for contacto in Contacto.query.filter_by(usuario_id=current_user.id).order_by(Contacto.nombre, Contacto.primer_apellido).all()]
+
 
 class EditarFacturaForm(FlaskForm):
-    numero_factura = StringField('Número de Factura', render_kw={"class": "rounded-pill"}) # Eliminado DataRequired()
-    cliente_id = SelectField('Cliente', coerce=int, render_kw={"class": "rounded-pill form-select"}) # Eliminado DataRequired()
-    fecha_emision = StringField('Fecha de Emisión (YYYY-MM-DD)', render_kw={"class": "rounded-pill"}) # Eliminado DataRequired()
+    numero_factura = StringField('Número de Factura', render_kw={"class": "rounded-pill"})
+    cliente_id = SelectField('Cliente', coerce=int, render_kw={"class": "rounded-pill form-select"})
+    fecha_emision = StringField('Fecha de Emisión (YYYY-MM-DD)', render_kw={"class": "rounded-pill"})
     descripcion = TextAreaField('Descripción', render_kw={"class": "rounded-pill"})
-    monto_total = StringField('Monto Total', render_kw={"class": "rounded-pill"}) # Eliminado DataRequired()
+    monto_total = StringField('Monto Total', render_kw={"class": "rounded-pill"})
     submit = SubmitField('Guardar Cambios', render_kw={"class": "btn btn-primary"})
 
     def __init__(self, factura, *args, **kwargs):
         super(EditarFacturaForm, self).__init__(*args, **kwargs)
-        self.cliente_id.choices = [(contacto.id, contacto.nombre) for contacto in Contacto.query.filter_by(usuario_id=current_user.id).all()]
+        self.cliente_id.choices = [(
+            contacto.id,
+            f"{contacto.nombre.title()} {contacto.primer_apellido.title() if contacto.primer_apellido else ''} {contacto.segundo_apellido.title() if contacto.segundo_apellido else ''} - {contacto.movil if contacto.movil else contacto.telefono}"
+        ) for contacto in Contacto.query.filter_by(usuario_id=current_user.id).order_by(Contacto.nombre, Contacto.primer_apellido).all()]
         self.cliente_id.data = factura.cliente_id
         self.numero_factura.data = factura.numero_factura
         self.fecha_emision.data = factura.fecha_emision.strftime('%Y-%m-%d') if factura.fecha_emision else ''
         self.descripcion.data = factura.descripcion
         self.monto_total.data = str(factura.monto_total) if factura.monto_total is not None else ''
         # No necesitamos process() aquí si usamos 'data'
+
 
 
 @app.route('/')

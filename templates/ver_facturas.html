@@ -26,7 +26,7 @@
                     <td>{{ loop.index }}</td>
                     <td>{{ factura.numero_factura }}</td>
                     <td>{{ factura.fecha_emision.strftime('%Y-%m-%d') }}</td>
-                    <td>{{ factura.cliente.nombre }} {{ factura.cliente.primer_apellido or '' }}</td>
+                    <td>{{ factura.cliente.nombre | title }} {{ factura.cliente.primer_apellido | title or '' }}</td>
                     <td>{{ factura.descripcion | default('', True) | truncate(50) }}</td>
                     <td>₡{{ factura.monto_total }}</td>
                     <td>{{ factura.fecha_registro.strftime('%Y-%m-%d %H:%M:%S') }}</td>
@@ -34,7 +34,8 @@
                         <a href="{{ url_for('editar_factura', id=factura.id) }}" class="btn btn-sm btn-primary rounded-pill">Editar</a>
                         <button type="button" class="btn btn-sm btn-danger rounded-pill borrar-factura-btn-swal"
                                 data-factura-id="{{ factura.id }}"
-                                data-factura-numero="{{ factura.numero_factura }}">
+                                data-factura-numero="{{ factura.numero_factura }}"
+                                data-factura-cliente="{{ factura.cliente.nombre | title }} {{ factura.cliente.primer_apellido | title or '' }}">
                             Borrar
                         </button>
                     </td>
@@ -55,9 +56,10 @@
             boton.addEventListener('click', function() {
                 const facturaId = this.dataset.facturaId;
                 const facturaNumero = this.dataset.facturaNumero;
+                const clienteNombreCompleto = this.dataset.facturaCliente;
 
                 Swal.fire({
-                    title: '¿Estás seguro?',
+                    title: `¿Estás seguro de borrar a ${clienteNombreCompleto}?`,
                     text: `¿Deseas borrar la factura número ${facturaNumero}?`,
                     icon: 'warning',
                     showCancelButton: true,
