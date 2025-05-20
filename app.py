@@ -172,24 +172,6 @@ class Post(db.Model):
     def __repr__(self):
         return f"<Post {self.nombre_lugar}>"
 
-class Factura(db.Model):
-    __tablename__ = 'facturas'
-
-    id = db.Column(db.Integer, primary_key=True)
-    numero_factura = db.Column(db.String(100), unique=True, nullable=False)
-    fecha_emision = db.Column(db.Date, nullable=False, default=datetime.utcnow)
-    cliente_id = db.Column(db.Integer, db.ForeignKey('contacto.id'), nullable=False)
-    cliente = db.relationship('Contacto', backref=db.backref('facturas', lazy=True))
-    descripcion = db.Column(db.Text)
-    monto_total = db.Column(db.Numeric(10, 2), nullable=False)
-    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
-    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    usuario = db.relationship('User', backref=db.backref('facturas', lazy=True))
-
-    def __repr__(self):
-        return f'<Factura {self.numero_factura}>'
-
-
 
 
 # FORMS
@@ -295,9 +277,6 @@ class ContactoForm(FlaskForm):
 
     submit = SubmitField('Guardar', render_kw={"class": "btn btn-primary"})
 
-from flask_wtf import FlaskForm
-from wtforms import SelectField, SubmitField
-
 class BusquedaContactoForm(FlaskForm):
     busqueda_actividad = SelectField('Buscar por Actividad', choices=[
         ('', 'Seleccionar Actividad'),
@@ -352,7 +331,25 @@ class BorrarContactoForm(FlaskForm):
     submit = SubmitField('Confirmar Borrar')
 
 
-# RELACION A LAS FACTURAS
+
+# FACTURAS
+class Factura(db.Model):
+    __tablename__ = 'facturas'
+
+    id = db.Column(db.Integer, primary_key=True)
+    numero_factura = db.Column(db.String(100), unique=True, nullable=False)
+    fecha_emision = db.Column(db.Date, nullable=False, default=datetime.utcnow)
+    cliente_id = db.Column(db.Integer, db.ForeignKey('contacto.id'), nullable=False)
+    cliente = db.relationship('Contacto', backref=db.backref('facturas', lazy=True))
+    descripcion = db.Column(db.Text)
+    monto_total = db.Column(db.Numeric(10, 2), nullable=False)
+    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    usuario = db.relationship('User', backref=db.backref('facturas', lazy=True))
+
+    def __repr__(self):
+        return f'<Factura {self.numero_factura}>'
+
 class CrearFacturaForm(FlaskForm):
     numero_factura = StringField('Número de Factura', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
     cliente_id = SelectField('Cliente', coerce=int, validators=[DataRequired()], render_kw={"class": "form-select rounded-pill"})
@@ -367,7 +364,6 @@ class CrearFacturaForm(FlaskForm):
             contacto.id,
             f"{contacto.nombre.title()} {contacto.primer_apellido.title() if contacto.primer_apellido else ''} {contacto.segundo_apellido.title() if contacto.segundo_apellido else ''} - {contacto.movil if contacto.movil else contacto.telefono}"
         ) for contacto in Contacto.query.filter_by(usuario_id=current_user.id).order_by(Contacto.nombre, Contacto.primer_apellido).all()]
-
 
 class EditarFacturaForm(FlaskForm):
     numero_factura = StringField('Número de Factura', render_kw={"class": "rounded-pill"})
@@ -392,6 +388,11 @@ class EditarFacturaForm(FlaskForm):
 
 
 
+
+
+
+
+# FUNCIONES
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -743,8 +744,6 @@ def buscar_contacto():
 
 
 
-
-
 # VCARD Individual
 @app.route('/exportar_vcard/<int:contacto_id>')
 @login_required
@@ -891,9 +890,7 @@ def exportar_todos_excel():
 
 
 
-
-
-
+# CALENDARIO
 @app.route('/api/events', methods=['POST', 'GET'])
 def handle_events():
     if request.method == 'GET':
@@ -966,8 +963,6 @@ def handle_single_event(id):
         db.session.commit()
         return jsonify({'message': f'Evento con ID {id} actualizado exitosamente', 'event': event.to_dict()}), 200
 
-
-
 @app.route('/api/events/<int:id>', methods=['PUT'])
 def update_event(id):
     event = db.session.get(Event, id)
@@ -1003,7 +998,7 @@ def update_event(id):
 
 
 
-# FACTURAS
+
 # FACTURAS
 @app.route('/ver_facturas')
 @login_required
@@ -1079,8 +1074,6 @@ def editar_factura(id):
             return render_template('editar_factura.html', form=form, factura_id=id)
 
     return render_template('editar_factura.html', form=form, factura_id=id)
-
-
 
 @app.route('/borrar_factura/<int:id>', methods=['POST'])
 @login_required
