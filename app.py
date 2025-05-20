@@ -363,19 +363,19 @@ class Factura(db.Model):
 # --- Formulario para Crear Facturas ---
 class CrearFacturaForm(FlaskForm):
     # Campos existentes
-    cliente_id = SelectField('Cliente', coerce=int, validators=[DataRequired()], render_kw={"class": "form-select rounded-pill"})
-    fecha_emision = StringField('Fecha de Emisión (YYYY-MM-DD)', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
-    descripcion = TextAreaField('Descripción', render_kw={"class": "rounded-pill"})
-    monto_total = StringField('Monto Total', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
+    cliente_id = SelectField('Caminante', coerce=int, validators=[DataRequired()], render_kw={"class": "form-select form-control"})
+    fecha_emision = StringField('Fecha de Emisión (YYYY-MM-DD)', validators=[DataRequired()], render_kw={"class": "form-control"})
+    descripcion = TextAreaField('Descripción', render_kw={"class": "form-control"})
+    monto_total = StringField('Monto Total', validators=[DataRequired()], render_kw={"class": "form-control"})
 
     # --- NUEVOS CAMPOS ---
-    interes = SelectField('Interés', choices=[('Factura', 'Factura'), ('Cotizacion', 'Cotización')], validators=[DataRequired()], render_kw={"class": "form-select rounded-pill"})
-    realizado_por = SelectField('Realizado por', choices=[('Jenny Ceciliano Cordoba', 'Jenny Ceciliano Cordoba'), ('Kenneth Ruiz Matamoros', 'Kenneth Ruiz Matamoros')], validators=[DataRequired()], render_kw={"class": "form-select rounded-pill"})
-    sinpe = SelectField('SINPE', choices=[('Jenny Ceciliano Cordoba-86529837', 'Jenny Ceciliano Cordoba - 86529837'), ('Kenneth Ruiz Matamoros-86227500', 'Kenneth Ruiz Matamoros - 86227500'), ('Jenny Ceciliano Cordoba-87984232', 'Jenny Ceciliano Cordoba - 87984232')], validators=[DataRequired()], render_kw={"class": "form-select rounded-pill"})
-    tipo_actividad = SelectField('Tipo de actividad', choices=[('El Camino de Costa Rica', 'El Camino de Costa Rica'), ('Parques Nacionales', 'Parques Nacionales'), ('Paseo', 'Paseo'), ('Básico', 'Básico'), ('Intermedio', 'Intermedio'), ('Avanzado', 'Avanzado'), ('Productos', 'Productos'), ('Servicios', 'Servicios')], validators=[DataRequired()], render_kw={"class": "form-select rounded-pill"})
-    nombre_actividad_etapa = StringField('Nombre de la actividad o Etapa', validators=[Optional()], render_kw={"class": "rounded-pill"})
-    costo_actividad = StringField('Costo de la actividad', validators=[Optional()], render_kw={"class": "rounded-pill"})
-    otras_descripcion = TextAreaField('Otras descripción', validators=[Optional()], render_kw={"class": "rounded-pill"})
+    interes = SelectField('Interés', choices=[('Factura', 'Factura'), ('Cotizacion', 'Cotización')], validators=[DataRequired()], render_kw={"class": "form-select form-control"})
+    realizado_por = SelectField('Realizado por', choices=[('Jenny Ceciliano Cordoba', 'Jenny Ceciliano Cordoba'), ('Kenneth Ruiz Matamoros', 'Kenneth Ruiz Matamoros')], validators=[DataRequired()], render_kw={"class": "form-select form-control"})
+    sinpe = SelectField('SINPE', choices=[('Jenny Ceciliano Cordoba-86529837', 'Jenny Ceciliano Cordoba - 86529837'), ('Kenneth Ruiz Matamoros-86227500', 'Kenneth Ruiz Matamoros - 86227500'), ('Jenny Ceciliano Cordoba-87984232', 'Jenny Ceciliano Cordoba - 87984232')], validators=[DataRequired()], render_kw={"class": "form-select form-control"})
+    tipo_actividad = SelectField('Tipo de actividad', choices=[('El Camino de Costa Rica', 'El Camino de Costa Rica'), ('Parques Nacionales', 'Parques Nacionales'), ('Paseo', 'Paseo'), ('Básico', 'Básico'), ('Intermedio', 'Intermedio'), ('Avanzado', 'Avanzado'), ('Productos', 'Productos'), ('Servicios', 'Servicios')], validators=[DataRequired()], render_kw={"class": "form-select form-control"})
+    nombre_actividad_etapa = StringField('Nombre de la actividad o Etapa', validators=[Optional()], render_kw={"class": "form-control"})
+    costo_actividad = StringField('Costo de la actividad', validators=[Optional()], render_kw={"class": "form-control"})
+    otras_descripcion = TextAreaField('Otras descripción', validators=[Optional()], render_kw={"class": "form-control"})
 
     submit = SubmitField('Guardar Factura', render_kw={"class": "btn btn-success rounded-pill"})
 

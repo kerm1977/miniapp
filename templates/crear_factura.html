@@ -16,8 +16,29 @@
         {{ form.hidden_tag() }} {# Esto incluye el token CSRF #}
 
         <div class="mb-3">
+            {{ form.realizado_por.label(class="form-label") }}
+            {{ form.realizado_por(class="form-select") }}
+            {% if form.realizado_por.errors %}
+                <div class="text-danger">
+                    {% for error in form.realizado_por.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+
+        <div class="mb-3">
+            {{ form.interes.label(class="form-label") }}
+            {{ form.interes(class="form-select") }}
+            {% if form.interes.errors %}
+                <div class="text-danger">
+                    {% for error in form.interes.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
             {{ form.cliente_id.label(class="form-label") }}
-            {{ form.cliente_id(class="form-select rounded-pill") }}
+            {{ form.cliente_id(class="form-select") }}
             {% if form.cliente_id.errors %}
                 <div class="text-danger">
                     {% for error in form.cliente_id.errors %}{{ error }}{% endfor %}
@@ -26,8 +47,31 @@
         </div>
 
         <div class="mb-3">
+            {{ form.tipo_actividad.label(class="form-label") }}
+            {{ form.tipo_actividad(class="form-select") }}
+            {% if form.tipo_actividad.errors %}
+                <div class="text-danger">
+                    {% for error in form.tipo_actividad.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.nombre_actividad_etapa.label(class="form-label") }}
+            {{ form.nombre_actividad_etapa(class="form-control") }}
+            {% if form.nombre_actividad_etapa.errors %}
+                <div class="text-danger">
+                    {% for error in form.nombre_actividad_etapa.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+
+        <hr>
+
+        <div class="mb-3">
             {{ form.fecha_emision.label(class="form-label") }}
-            {{ form.fecha_emision(class="form-control rounded-pill", type="date") }} {# Usa type="date" para un selector de fecha #}
+            {{ form.fecha_emision(class="form-control", type="date") }} {# Usa type="date" para un selector de fecha #}
             {% if form.fecha_emision.errors %}
                 <div class="text-danger">
                     {% for error in form.fecha_emision.errors %}{{ error }}{% endfor %}
@@ -37,7 +81,7 @@
 
         <div class="mb-3">
             {{ form.descripcion.label(class="form-label") }}
-            {{ form.descripcion(class="form-control rounded-pill", rows=3) }}
+            {{ form.descripcion(class="form-control", rows=3) }}
             {% if form.descripcion.errors %}
                 <div class="text-danger">
                     {% for error in form.descripcion.errors %}{{ error }}{% endfor %}
@@ -47,7 +91,7 @@
 
         <div class="mb-3">
             {{ form.monto_total.label(class="form-label") }}
-            {{ form.monto_total(class="form-control rounded-pill", type="number", step="0.01") }} {# Asegura formato numérico #}
+            {{ form.monto_total(class="form-control", type="number", step="0.01") }} {# Asegura formato numérico #}
             {% if form.monto_total.errors %}
                 <div class="text-danger">
                     {% for error in form.monto_total.errors %}{{ error }}{% endfor %}
@@ -59,29 +103,13 @@
         <h5 class="mb-3">Detalles Adicionales</h5>
 
         {# --- NUEVOS CAMPOS DEL FORMULARIO AQUÍ --- #}
-        <div class="mb-3">
-            {{ form.interes.label(class="form-label") }}
-            {{ form.interes(class="form-select rounded-pill") }}
-            {% if form.interes.errors %}
-                <div class="text-danger">
-                    {% for error in form.interes.errors %}{{ error }}{% endfor %}
-                </div>
-            {% endif %}
-        </div>
+        
 
-        <div class="mb-3">
-            {{ form.realizado_por.label(class="form-label") }}
-            {{ form.realizado_por(class="form-select rounded-pill") }}
-            {% if form.realizado_por.errors %}
-                <div class="text-danger">
-                    {% for error in form.realizado_por.errors %}{{ error }}{% endfor %}
-                </div>
-            {% endif %}
-        </div>
+    
 
         <div class="mb-3">
             {{ form.sinpe.label(class="form-label") }}
-            {{ form.sinpe(class="form-select rounded-pill") }}
+            {{ form.sinpe(class="form-select") }}
             {% if form.sinpe.errors %}
                 <div class="text-danger">
                     {% for error in form.sinpe.errors %}{{ error }}{% endfor %}
@@ -89,29 +117,11 @@
             {% endif %}
         </div>
 
-        <div class="mb-3">
-            {{ form.tipo_actividad.label(class="form-label") }}
-            {{ form.tipo_actividad(class="form-select rounded-pill") }}
-            {% if form.tipo_actividad.errors %}
-                <div class="text-danger">
-                    {% for error in form.tipo_actividad.errors %}{{ error }}{% endfor %}
-                </div>
-            {% endif %}
-        </div>
-
-        <div class="mb-3">
-            {{ form.nombre_actividad_etapa.label(class="form-label") }}
-            {{ form.nombre_actividad_etapa(class="form-control rounded-pill") }}
-            {% if form.nombre_actividad_etapa.errors %}
-                <div class="text-danger">
-                    {% for error in form.nombre_actividad_etapa.errors %}{{ error }}{% endfor %}
-                </div>
-            {% endif %}
-        </div>
+        
 
         <div class="mb-3">
             {{ form.costo_actividad.label(class="form-label") }}
-            {{ form.costo_actividad(class="form-control rounded-pill", type="number", step="0.01") }}
+            {{ form.costo_actividad(class="form-control", type="number", step="0.01") }}
             {% if form.costo_actividad.errors %}
                 <div class="text-danger">
                     {% for error in form.costo_actividad.errors %}{{ error }}{% endfor %}
@@ -121,7 +131,7 @@
 
         <div class="mb-3">
             {{ form.otras_descripcion.label(class="form-label") }}
-            {{ form.otras_descripcion(class="form-control rounded-pill", rows=3) }}
+            {{ form.otras_descripcion(class="form-control", rows=3) }}
             {% if form.otras_descripcion.errors %}
                 <div class="text-danger">
                     {% for error in form.otras_descripcion.errors %}{{ error }}{% endfor %}
