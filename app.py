@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, SelectField, FileField, TextAreaField,PasswordField, BooleanField # Asegúrate de que SelectField y TextAreaField estén aquí
-from wtforms.validators import DataRequired, Email, EqualTo, Length, Regexp
+from wtforms.validators import DataRequired, Email, EqualTo, Length, Regexp, Optional
 from flask_wtf.csrf import generate_csrf # ¡Asegúrate de tener esta importación!
 from flask_wtf.file import FileField, FileAllowed
 from werkzeug.utils import secure_filename
@@ -348,36 +348,65 @@ class Factura(db.Model):
     usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     usuario = db.relationship('User', backref=db.backref('facturas', lazy=True))
 
+    # --- NUEVOS CAMPOS (ASEGÚRATE DE QUE SEAN nullable=True) ---
+    interes = db.Column(db.String(50), nullable=True) # CAMBIO CLAVE
+    realizado_por = db.Column(db.String(100), nullable=True) # CAMBIO CLAVE
+    sinpe = db.Column(db.String(100), nullable=True) # CAMBIO CLAVE
+    tipo_actividad = db.Column(db.String(100), nullable=True) # CAMBIO CLAVE
+    nombre_actividad_etapa = db.Column(db.String(255), nullable=True)
+    costo_actividad = db.Column(db.Numeric(10, 2), nullable=True)
+    otras_descripcion = db.Column(db.Text, nullable=True)
+
     def __repr__(self):
         return f'<Factura {self.numero_factura}>'
 
+# --- Formulario para Crear Facturas ---
 class CrearFacturaForm(FlaskForm):
-    # El campo numero_factura se ha ELIMINADO de este formulario ya que se generará automáticamente.
+    # Campos existentes
     cliente_id = SelectField('Cliente', coerce=int, validators=[DataRequired()], render_kw={"class": "form-select rounded-pill"})
     fecha_emision = StringField('Fecha de Emisión (YYYY-MM-DD)', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
     descripcion = TextAreaField('Descripción', render_kw={"class": "rounded-pill"})
     monto_total = StringField('Monto Total', validators=[DataRequired()], render_kw={"class": "rounded-pill"})
+
+    # --- NUEVOS CAMPOS ---
+    interes = SelectField('Interés', choices=[('Factura', 'Factura'), ('Cotizacion', 'Cotización')], validators=[DataRequired()], render_kw={"class": "form-select rounded-pill"})
+    realizado_por = SelectField('Realizado por', choices=[('Jenny Ceciliano Cordoba', 'Jenny Ceciliano Cordoba'), ('Kenneth Ruiz Matamoros', 'Kenneth Ruiz Matamoros')], validators=[DataRequired()], render_kw={"class": "form-select rounded-pill"})
+    sinpe = SelectField('SINPE', choices=[('Jenny Ceciliano Cordoba-86529837', 'Jenny Ceciliano Cordoba - 86529837'), ('Kenneth Ruiz Matamoros-86227500', 'Kenneth Ruiz Matamoros - 86227500'), ('Jenny Ceciliano Cordoba-87984232', 'Jenny Ceciliano Cordoba - 87984232')], validators=[DataRequired()], render_kw={"class": "form-select rounded-pill"})
+    tipo_actividad = SelectField('Tipo de actividad', choices=[('El Camino de Costa Rica', 'El Camino de Costa Rica'), ('Parques Nacionales', 'Parques Nacionales'), ('Paseo', 'Paseo'), ('Básico', 'Básico'), ('Intermedio', 'Intermedio'), ('Avanzado', 'Avanzado'), ('Productos', 'Productos'), ('Servicios', 'Servicios')], validators=[DataRequired()], render_kw={"class": "form-select rounded-pill"})
+    nombre_actividad_etapa = StringField('Nombre de la actividad o Etapa', validators=[Optional()], render_kw={"class": "rounded-pill"})
+    costo_actividad = StringField('Costo de la actividad', validators=[Optional()], render_kw={"class": "rounded-pill"})
+    otras_descripcion = TextAreaField('Otras descripción', validators=[Optional()], render_kw={"class": "rounded-pill"})
+
     submit = SubmitField('Guardar Factura', render_kw={"class": "btn btn-success rounded-pill"})
 
     def __init__(self, *args, **kwargs):
         super(CrearFacturaForm, self).__init__(*args, **kwargs)
-        # Asegúrate de que current_user está disponible en este contexto (es decir, la ruta está bajo @login_required)
-        # O pasa el usuario_id como argumento a la inicialización del formulario si se usa fuera de una ruta protegida.
         if current_user and hasattr(current_user, 'id'):
             self.cliente_id.choices = [(
                 contacto.id,
                 f"{contacto.nombre.title()} {contacto.primer_apellido.title() if contacto.primer_apellido else ''} {contacto.segundo_apellido.title() if contacto.segundo_apellido else ''} - {contacto.movil if contacto.movil else contacto.telefono}"
             ) for contacto in Contacto.query.filter_by(usuario_id=current_user.id).order_by(Contacto.nombre, Contacto.primer_apellido).all()]
         else:
-            self.cliente_id.choices = [] # O maneja el caso de usuario no logueado/sin ID
+            self.cliente_id.choices = []
 
+# --- Formulario para Editar Facturas ---
 class EditarFacturaForm(FlaskForm):
-    # El campo numero_factura ahora es de solo lectura.
+    # Campos existentes
     numero_factura = StringField('Número de Factura', render_kw={"class": "rounded-pill", "readonly": True})
     cliente_id = SelectField('Cliente', coerce=int, render_kw={"class": "rounded-pill form-select"})
     fecha_emision = StringField('Fecha de Emisión (YYYY-MM-DD)', render_kw={"class": "rounded-pill"})
     descripcion = TextAreaField('Descripción', render_kw={"class": "rounded-pill"})
     monto_total = StringField('Monto Total', render_kw={"class": "rounded-pill"})
+
+    # --- NUEVOS CAMPOS ---
+    interes = SelectField('Interés', choices=[('Factura', 'Factura'), ('Cotizacion', 'Cotización')], render_kw={"class": "form-select rounded-pill"})
+    realizado_por = SelectField('Realizado por', choices=[('Jenny Ceciliano Cordoba', 'Jenny Ceciliano Cordoba'), ('Kenneth Ruiz Matamoros', 'Kenneth Ruiz Matamoros')], render_kw={"class": "form-select rounded-pill"})
+    sinpe = SelectField('SINPE', choices=[('Jenny Ceciliano Cordoba-86529837', 'Jenny Ceciliano Cordoba - 86529837'), ('Kenneth Ruiz Matamoros-86227500', 'Kenneth Ruiz Matamoros - 86227500'), ('Jenny Ceciliano Cordoba-87984232', 'Jenny Ceciliano Cordoba - 87984232')], render_kw={"class": "form-select rounded-pill"})
+    tipo_actividad = SelectField('Tipo de actividad', choices=[('El Camino de Costa Rica', 'El Camino de Costa Rica'), ('Parques Nacionales', 'Parques Nacionales'), ('Paseo', 'Paseo'), ('Básico', 'Básico'), ('Intermedio', 'Intermedio'), ('Avanzado', 'Avanzado'), ('Productos', 'Productos'), ('Servicios', 'Servicios')], render_kw={"class": "form-select rounded-pill"})
+    nombre_actividad_etapa = StringField('Nombre de la actividad o Etapa', render_kw={"class": "rounded-pill"})
+    costo_actividad = StringField('Costo de la actividad', render_kw={"class": "rounded-pill"})
+    otras_descripcion = TextAreaField('Otras descripción', render_kw={"class": "rounded-pill"})
+
     submit = SubmitField('Guardar Cambios', render_kw={"class": "btn btn-primary"})
 
     def __init__(self, factura, *args, **kwargs):
@@ -389,13 +418,6 @@ class EditarFacturaForm(FlaskForm):
             ) for contacto in Contacto.query.filter_by(usuario_id=current_user.id).order_by(Contacto.nombre, Contacto.primer_apellido).all()]
         else:
             self.cliente_id.choices = []
-        self.cliente_id.data = factura.cliente_id
-        # La asignación de 'data' se hace en la ruta GET para mejor práctica
-        # self.numero_factura.data = factura.numero_factura # Esto se hará en la ruta
-        # self.fecha_emision.data = factura.fecha_emision.strftime('%Y-%m-%d') if factura.fecha_emision else '' # Esto se hará en la ruta
-        # self.descripcion.data = factura.descripcion # Esto se hará en la ruta
-        # self.monto_total.data = str(factura.monto_total) if factura.monto_total is not None else '' # Esto se hará en la ruta
-
 
 
 
@@ -1007,18 +1029,22 @@ def update_event(id):
 
 
 
-# FACTURAS
+# Ruta para Ver Facturas
 @app.route('/ver_facturas')
 @login_required
 def ver_facturas():
     facturas = Factura.query.filter_by(usuario_id=current_user.id).all()
-    # Pasa el token CSRF a la plantilla
-    return render_template('ver_facturas.html', facturas=facturas, csrf_token=generate_csrf())
+    # ESTA ES LA LÍNEA QUE DEBE CAMBIAR:
+    # Antes: return render_template('ver_facturas.html', facturas=facturas, csrf_token=generate_csrf())
+    # Ahora: Pasa la función 'generate_csrf' a la plantilla.
+    # La plantilla la llamará como 'generate_csrf()' en el JavaScript.
+    return render_template('ver_facturas.html', facturas=facturas, generate_csrf=generate_csrf)
 
+# --- Ruta para Crear Nueva Factura ---
 @app.route('/crear_factura', methods=['GET', 'POST'])
 @login_required
 def crear_factura():
-    form = CrearFacturaForm() # Usa tu formulario modificado sin el campo numero_factura
+    form = CrearFacturaForm()
 
     if form.validate_on_submit():
         cliente_id = form.cliente_id.data
@@ -1026,21 +1052,27 @@ def crear_factura():
         descripcion = form.descripcion.data
         monto_total = form.monto_total.data
 
+        # --- Obtener datos de los NUEVOS CAMPOS ---
+        interes = form.interes.data
+        realizado_por = form.realizado_por.data
+        sinpe = form.sinpe.data
+        tipo_actividad = form.tipo_actividad.data
+        nombre_actividad_etapa = form.nombre_actividad_etapa.data
+        costo_actividad = form.costo_actividad.data
+        otras_descripcion = form.otras_descripcion.data
+        # --- Fin de obtención de NUEVOS CAMPOS ---
+
         # --- Lógica para generar automáticamente el numero_factura ---
-        # 1. Obtener todos los números de factura numéricos existentes para el usuario actual
         existing_factura_numbers = db.session.query(Factura.numero_factura) \
                                          .filter_by(usuario_id=current_user.id) \
                                          .all()
-
         numeric_factura_numbers = []
         for row in existing_factura_numbers:
             num_str = row.numero_factura
-            if num_str and num_str.isdigit(): # Asegurarse de que no sea None y sea digito
+            if num_str and num_str.isdigit():
                 numeric_factura_numbers.append(int(num_str))
 
-        # 2. Determinar el siguiente número consecutivo
-        MAX_INITIAL_FACTURA_NUMBER = 158 # El consecutivo inicial "000158"
-
+        MAX_INITIAL_FACTURA_NUMBER = 158 # Asegúrate de que este número tenga sentido para ti
         max_num = 0
         if numeric_factura_numbers:
             max_num = max(numeric_factura_numbers)
@@ -1050,10 +1082,8 @@ def crear_factura():
         else:
             next_num = max_num + 1
 
-        # 3. Formatear el número con ceros iniciales a 6 dígitos
-        generated_numero_factura = f"{next_num:06d}"
+        generated_numero_factura = f"{next_num:06d}" # Formato a 6 dígitos con ceros iniciales
 
-        # Opcional: Una comprobación adicional para duplicados, aunque la generación secuencial debería evitarlo
         if Factura.query.filter_by(numero_factura=generated_numero_factura, usuario_id=current_user.id).first():
             flash(f'Error al generar número de factura automático: El número {generated_numero_factura} ya existe. Por favor, intente de nuevo.', 'danger')
             return render_template('crear_factura.html', form=form)
@@ -1062,57 +1092,76 @@ def crear_factura():
         try:
             fecha_emision = datetime.strptime(fecha_emision_str, '%Y-%m-%d').date()
             nueva_factura = Factura(
-                numero_factura=generated_numero_factura, # Asignar el número generado
+                numero_factura=generated_numero_factura,
                 cliente_id=cliente_id,
                 fecha_emision=fecha_emision,
                 descripcion=descripcion,
                 monto_total=monto_total,
-                usuario_id=current_user.id
+                usuario_id=current_user.id,
+                # --- ASIGNAR NUEVOS CAMPOS (con manejo de Optional si es necesario) ---
+                interes=interes,
+                realizado_por=realizado_por,
+                sinpe=sinpe,
+                tipo_actividad=tipo_actividad,
+                nombre_actividad_etapa=nombre_actividad_etapa if nombre_actividad_etapa else None,
+                costo_actividad=costo_actividad if costo_actividad else None, # Puede ser None si es Optional y vacío
+                otras_descripcion=otras_descripcion if otras_descripcion else None
+                # --- FIN ASIGNACIÓN NUEVOS CAMPOS ---
             )
             db.session.add(nueva_factura)
             db.session.commit()
             flash(f'¡Factura {generated_numero_factura} creada exitosamente!', 'success')
             return redirect(url_for('ver_facturas'))
         except ValueError:
-            flash('Formato de fecha de emisión inválido (YYYY-MM-DD).', 'danger')
+            flash('Formato de fecha de emisión o costo de actividad inválido. Asegúrese de usar YYYY-MM-DD y un número válido para el costo.', 'danger')
             return render_template('crear_factura.html', form=form)
         except Exception as e:
-            db.session.rollback() # En caso de cualquier otro error, hacer rollback
+            db.session.rollback()
             flash(f'Ocurrió un error al guardar la factura: {e}', 'danger')
             return render_template('crear_factura.html', form=form)
 
     return render_template('crear_factura.html', form=form)
 
+# --- Ruta para Editar Factura ---
 @app.route('/editar_factura/<int:id>', methods=['GET', 'POST'])
 @login_required
 def editar_factura(id):
     factura = Factura.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
     form = EditarFacturaForm(factura)
 
-    # Pre-llenar el formulario solo si es una solicitud GET
     if request.method == 'GET':
+        # --- Pre-llenar campos existentes ---
         form.numero_factura.data = factura.numero_factura
         form.cliente_id.data = factura.cliente_id
         form.fecha_emision.data = factura.fecha_emision.strftime('%Y-%m-%d') if factura.fecha_emision else ''
         form.descripcion.data = factura.descripcion
         form.monto_total.data = str(factura.monto_total) if factura.monto_total is not None else ''
 
+        # --- Pre-llenar NUEVOS CAMPOS ---
+        form.interes.data = factura.interes if factura.interes else 'Factura' # Asegura un valor por defecto si es None
+        form.realizado_por.data = factura.realizado_por if factura.realizado_por else 'Jenny Ceciliano Cordoba'
+        form.sinpe.data = factura.sinpe if factura.sinpe else 'Jenny Ceciliano Cordoba-86529837'
+        form.tipo_actividad.data = factura.tipo_actividad if factura.tipo_actividad else 'Servicios'
+        form.nombre_actividad_etapa.data = factura.nombre_actividad_etapa
+        form.costo_actividad.data = str(factura.costo_actividad) if factura.costo_actividad is not None else ''
+        form.otras_descripcion.data = factura.otras_descripcion
+        # --- Fin de pre-llenado de NUEVOS CAMPOS ---
+
     if form.validate_on_submit():
-        # No se permite editar numero_factura si es de solo lectura.
-        # Se verifica si el número de factura que se intenta establecer (aunque sea el mismo) ya existe para OTRA factura.
-        # Esto es importante si el campo `readonly` es manipulado o si se intenta cambiar la lógica.
-        # Sin embargo, como el campo es `readonly`, no se debería recibir un nuevo valor para `numero_factura`
-        # Si se quiere reforzar, se puede validar que `form.numero_factura.data` siga siendo igual a `factura.numero_factura`
-        # pero esto ya está implícito con `readonly=True`.
-        
-        # Si por alguna razón la lógica de edición necesitara cambiar el numero_factura,
-        # necesitarías la misma lógica de generación y validación de unicidad que en crear_factura,
-        # excluyendo la factura actual de la búsqueda de duplicados.
-        
         factura.cliente_id = form.cliente_id.data
         fecha_emision_str = form.fecha_emision.data
         factura.descripcion = form.descripcion.data
         factura.monto_total = form.monto_total.data
+
+        # --- Actualizar NUEVOS CAMPOS ---
+        factura.interes = form.interes.data
+        factura.realizado_por = form.realizado_por.data
+        factura.sinpe = form.sinpe.data
+        factura.tipo_actividad = form.tipo_actividad.data
+        factura.nombre_actividad_etapa = form.nombre_actividad_etapa.data if form.nombre_actividad_etapa.data else None
+        factura.costo_actividad = form.costo_actividad.data if form.costo_actividad.data else None
+        factura.otras_descripcion = form.otras_descripcion.data if form.otras_descripcion.data else None
+        # --- Fin de actualización de NUEVOS CAMPOS ---
 
         try:
             factura.fecha_emision = datetime.strptime(fecha_emision_str, '%Y-%m-%d').date()
@@ -1120,7 +1169,7 @@ def editar_factura(id):
             flash('¡Factura actualizada exitosamente!', 'success')
             return redirect(url_for('ver_facturas'))
         except ValueError:
-            flash('Formato de fecha de emisión inválido (YYYY-MM-DD).', 'danger')
+            flash('Formato de fecha de emisión o costo de actividad inválido. Asegúrese de usar YYYY-MM-DD y un número válido para el costo.', 'danger')
             return render_template('editar_factura.html', form=form, factura_id=id)
         except Exception as e:
             db.session.rollback()
@@ -1129,16 +1178,20 @@ def editar_factura(id):
 
     return render_template('editar_factura.html', form=form, factura_id=id)
 
+# --- Ruta para Borrar Factura ---
 @app.route('/borrar_factura/<int:id>', methods=['POST'])
 @login_required
 def borrar_factura(id):
+    # Nota: Es crucial usar un formulario POST y el token CSRF para esto
+    # para proteger contra ataques CSRF.
+    # El token se genera y se pasa en ver_facturas.html
     factura = Factura.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
     if factura:
         db.session.delete(factura)
         db.session.commit()
         flash('¡Factura borrada exitosamente!', 'success')
     else:
-        flash('Error al intentar borrar la factura.', 'danger') # Esto rara vez se activaría por first_or_404
+        flash('Error al intentar borrar la factura.', 'danger')
     return redirect(url_for('ver_facturas'))
 
 

@@ -1,61 +1,137 @@
-{# templates/crear_factura.html #}
 {% extends 'base.html' %}
 
-{% block title %}Crear Factura{% endblock %}
-
 {% block content %}
-<div class="container mt-5">
-    <h2>Crear Nueva Factura</h2>
-    <form method="POST">
-        {{ form.csrf_token }}
-        {# El campo numero_factura ha sido ELIMINADO de aquí ya que se genera automáticamente #}
+<div class="container mt-4">
+    <h1 class="mb-4">Crear Nueva Factura</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('crear_factura') }}">
+        {{ form.hidden_tag() }} {# Esto incluye el token CSRF #}
+
         <div class="mb-3">
             {{ form.cliente_id.label(class="form-label") }}
-            {{ form.cliente_id(class="form-select") }}
+            {{ form.cliente_id(class="form-select rounded-pill") }}
             {% if form.cliente_id.errors %}
-                <ul class="errors">
-                    {% for error in form.cliente_id.errors %}
-                        <li class="text-danger">{{ error }}</li>
-                    {% endfor %}
-                </ul>
+                <div class="text-danger">
+                    {% for error in form.cliente_id.errors %}{{ error }}{% endfor %}
+                </div>
             {% endif %}
         </div>
+
         <div class="mb-3">
             {{ form.fecha_emision.label(class="form-label") }}
-            {{ form.fecha_emision(class="form-control", type="date") }}
-            <small class="form-text text-muted">Formato: AAAA-MM-DD</small>
+            {{ form.fecha_emision(class="form-control rounded-pill", type="date") }} {# Usa type="date" para un selector de fecha #}
             {% if form.fecha_emision.errors %}
-                <ul class="errors">
-                    {% for error in form.fecha_emision.errors %}
-                        <li class="text-danger">{{ error }}</li>
-                    {% endfor %}
-                </ul>
+                <div class="text-danger">
+                    {% for error in form.fecha_emision.errors %}{{ error }}{% endfor %}
+                </div>
             {% endif %}
         </div>
+
         <div class="mb-3">
             {{ form.descripcion.label(class="form-label") }}
-            {{ form.descripcion(class="form-control", rows="3") }}
+            {{ form.descripcion(class="form-control rounded-pill", rows=3) }}
             {% if form.descripcion.errors %}
-                <ul class="errors">
-                    {% for error in form.descripcion.errors %}
-                        <li class="text-danger">{{ error }}</li>
-                    {% endfor %}
-                </ul>
+                <div class="text-danger">
+                    {% for error in form.descripcion.errors %}{{ error }}{% endfor %}
+                </div>
             {% endif %}
         </div>
+
         <div class="mb-3">
             {{ form.monto_total.label(class="form-label") }}
-            {{ form.monto_total(class="form-control", type="number", step="0.01") }}
+            {{ form.monto_total(class="form-control rounded-pill", type="number", step="0.01") }} {# Asegura formato numérico #}
             {% if form.monto_total.errors %}
-                <ul class="errors">
-                    {% for error in form.monto_total.errors %}
-                        <li class="text-danger">{{ error }}</li>
-                    {% endfor %}
-                </ul>
+                <div class="text-danger">
+                    {% for error in form.monto_total.errors %}{{ error }}{% endfor %}
+                </div>
             {% endif %}
         </div>
-        {{ form.submit(class="btn btn-success rounded-pill") }}
-        <a href="{{ url_for('ver_facturas') }}" class="btn btn-secondary rounded-pill">Cancelar</a>
+
+        <hr>
+        <h5 class="mb-3">Detalles Adicionales</h5>
+
+        {# --- NUEVOS CAMPOS DEL FORMULARIO AQUÍ --- #}
+        <div class="mb-3">
+            {{ form.interes.label(class="form-label") }}
+            {{ form.interes(class="form-select rounded-pill") }}
+            {% if form.interes.errors %}
+                <div class="text-danger">
+                    {% for error in form.interes.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.realizado_por.label(class="form-label") }}
+            {{ form.realizado_por(class="form-select rounded-pill") }}
+            {% if form.realizado_por.errors %}
+                <div class="text-danger">
+                    {% for error in form.realizado_por.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.sinpe.label(class="form-label") }}
+            {{ form.sinpe(class="form-select rounded-pill") }}
+            {% if form.sinpe.errors %}
+                <div class="text-danger">
+                    {% for error in form.sinpe.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.tipo_actividad.label(class="form-label") }}
+            {{ form.tipo_actividad(class="form-select rounded-pill") }}
+            {% if form.tipo_actividad.errors %}
+                <div class="text-danger">
+                    {% for error in form.tipo_actividad.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.nombre_actividad_etapa.label(class="form-label") }}
+            {{ form.nombre_actividad_etapa(class="form-control rounded-pill") }}
+            {% if form.nombre_actividad_etapa.errors %}
+                <div class="text-danger">
+                    {% for error in form.nombre_actividad_etapa.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.costo_actividad.label(class="form-label") }}
+            {{ form.costo_actividad(class="form-control rounded-pill", type="number", step="0.01") }}
+            {% if form.costo_actividad.errors %}
+                <div class="text-danger">
+                    {% for error in form.costo_actividad.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.otras_descripcion.label(class="form-label") }}
+            {{ form.otras_descripcion(class="form-control rounded-pill", rows=3) }}
+            {% if form.otras_descripcion.errors %}
+                <div class="text-danger">
+                    {% for error in form.otras_descripcion.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        {# --------------------------------------- #}
+
+        <button type="submit" class="btn btn-success rounded-pill mt-3">{{ form.submit.label }}</button>
+        <a href="{{ url_for('ver_facturas') }}" class="btn btn-secondary rounded-pill mt-3 ms-2">Cancelar</a>
     </form>
 </div>
 {% endblock %}
