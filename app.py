@@ -1029,7 +1029,7 @@ def update_event(id):
 
 
 
-# Ruta para Ver Facturas
+# --- Ruta para Ver Facturas --- 
 @app.route('/ver_facturas')
 @login_required
 def ver_facturas():
@@ -1039,6 +1039,14 @@ def ver_facturas():
     # Ahora: Pasa la función 'generate_csrf' a la plantilla.
     # La plantilla la llamará como 'generate_csrf()' en el JavaScript.
     return render_template('ver_facturas.html', facturas=facturas, generate_csrf=generate_csrf)
+
+# --- Nueva Ruta para Ver el Detalle Completo de una Factura ---
+@app.route('/ver_detalle_factura/<int:id>')
+@login_required
+def ver_detalle_factura(id):
+    # Busca la factura por su ID y asegúrate de que pertenezca al usuario actual
+    factura = Factura.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+    return render_template('ver_detalle_factura.html', factura=factura)
 
 # --- Ruta para Crear Nueva Factura ---
 @app.route('/crear_factura', methods=['GET', 'POST'])

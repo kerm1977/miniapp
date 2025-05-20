@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle de Factura{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Detalle de Factura #{{ factura.numero_factura }}</h1>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            Información General
+        </div>
+        <div class="card-body">
+            <p><strong>Número de Factura:</strong> {{ factura.numero_factura }}</p>
+            <p><strong>Cliente:</strong>
+                {% if factura.cliente %}
+                    {{ factura.cliente.nombre.title() }}
+                    {{ factura.cliente.primer_apellido.title() if factura.cliente.primer_apellido else '' }}
+                    {{ factura.cliente.segundo_apellido.title() if factura.cliente.segundo_apellido else '' }}
+                    {% if factura.cliente.movil %} - {{ factura.cliente.movil }}{% endif %}
+                    {% if factura.cliente.telefono %} - {{ factura.cliente.telefono }}{% endif %}
+                {% else %}
+                    N/A
+                {% endif %}
+            </p>
+            <p><strong>Fecha de Emisión:</strong> {{ factura.fecha_emision.strftime('%Y-%m-%d') }}</p>
+            <p><strong>Monto Total:</strong> ₡{{ "%.2f"|format(factura.monto_total) }}</p>
+            <p><strong>Fecha de Registro:</strong> {{ factura.fecha_registro.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+            <p><strong>Descripción:</strong> {{ factura.descripcion if factura.descripcion else 'N/A' }}</p>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-info text-white">
+            Detalles Adicionales
+        </div>
+        <div class="card-body">
+            <p><strong>Interés:</strong> {{ factura.interes if factura.interes else 'N/A' }}</p>
+            <p><strong>Realizado Por:</strong> {{ factura.realizado_por if factura.realizado_por else 'N/A' }}</p>
+            <p><strong>SINPE:</strong> {{ factura.sinpe if factura.sinpe else 'N/A' }}</p>
+            <p><strong>Tipo de Actividad:</strong> {{ factura.tipo_actividad if factura.tipo_actividad else 'N/A' }}</p>
+            <p><strong>Nombre de la Actividad o Etapa:</strong> {{ factura.nombre_actividad_etapa if factura.nombre_actividad_etapa else 'N/A' }}</p>
+            <p><strong>Costo de la Actividad:</strong> ₡{{ "%.2f"|format(factura.costo_actividad) if factura.costo_actividad is not none else 'N/A' }}</p>
+            <p><strong>Otras Descripción:</strong> {{ factura.otras_descripcion if factura.otras_descripcion else 'N/A' }}</p>
+        </div>
+    </div>
+
+    <a href="{{ url_for('ver_facturas') }}" class="btn btn-secondary rounded-pill mt-3">Volver a la Lista de Facturas</a>
+</div>
+{% endblock %}

@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 
-{% block title %}Ver Facturas{% endblock %} {# Mantén tu título si lo usas #}
+{% block title %}Ver Facturas{% endblock %}
 
 {% block content %}
-<div class="container mt-4"> {# Ajustado de mt-5 a mt-4 para consistencia con ejemplos anteriores #}
+<div class="container mt-4">
     <h1 class="mb-4">Lista de Facturas</h1>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -15,28 +15,18 @@
     {% endwith %}
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <a href="{{ url_for('crear_factura') }}" class="btn btn-success mb-3 rounded-pill">Crear Nueva Factura</a> {# Usando btn-success como en tu versión #}
-        {# Si tienes un botón para exportar o reportes, podría ir aquí #}
+        <a href="{{ url_for('crear_factura') }}" class="btn btn-success mb-3 rounded-pill">Crear Nueva Factura</a>
     </div>
 
     {% if facturas %}
     <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle"> {# Manteniendo table-hover y align-middle #}
-            <thead class="table-dark"> {# Manteniendo table-dark #}
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
                 <tr>
-                    <th>#</th> {# Mantén el loop.index si lo necesitas #}
-                    <th># Factura</th>
+                    <th>#</th>
+                    <th>Número de Factura</th>
                     <th>Cliente</th>
-                    <th>Fecha Emisión</th>
                     <th>Monto Total</th>
-                    {# --- NUEVAS COLUMNAS INTEGRADO AQUÍ --- #}
-                    <th>Interés</th>
-                    <th>Realizado Por</th>
-                    <th>Tipo Actividad</th>
-                    <th>Nombre Actividad/Etapa</th>
-                    <th>Costo Actividad</th>
-                    {# ------------------------------------ #}
-                    <th>Descripción</th> {# Mantenemos Descripción y Fecha de Registro #}
                     <th>Fecha de Registro</th>
                     <th>Acciones</th>
                 </tr>
@@ -44,7 +34,7 @@
             <tbody>
                 {% for factura in facturas %}
                 <tr>
-                    <td>{{ loop.index }}</td> {# Usando loop.index #}
+                    <td>{{ loop.index }}</td>
                     <td>{{ factura.numero_factura }}</td>
                     <td>
                         {% if factura.cliente %}
@@ -55,23 +45,17 @@
                             N/A
                         {% endif %}
                     </td>
-                    <td>{{ factura.fecha_emision.strftime('%Y-%m-%d') }}</td>
-                    <td>₡{{ "%.2f"|format(factura.monto_total) }}</td> {# Asegurando formato numérico #}
-                    {# --- MOSTRAR NUEVOS DATOS INTEGRADO AQUÍ --- #}
-                    <td>{{ factura.interes if factura.interes else 'N/A' }}</td>
-                    <td>{{ factura.realizado_por if factura.realizado_por else 'N/A' }}</td>
-                    <td>{{ factura.tipo_actividad if factura.tipo_actividad else 'N/A' }}</td>
-                    <td>{{ factura.nombre_actividad_etapa if factura.nombre_actividad_etapa else 'N/A' }}</td>
-                    <td>₡{{ "%.2f"|format(factura.costo_actividad) if factura.costo_actividad is not none else 'N/A' }}</td> {# Manejo de None #}
-                    {# ------------------------------------------ #}
-                    <td>{{ factura.descripcion | default('', True) | truncate(50) }}</td> {# Truncate y default #}
+                    <td>₡{{ "%.2f"|format(factura.monto_total) }}</td>
                     <td>{{ factura.fecha_registro.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                     <td>
-                        <a href="{{ url_for('editar_factura', id=factura.id) }}" class="btn btn-sm btn-primary rounded-pill">Editar</a> {# btn-primary como en tu versión #}
+                        {# --- NUEVO BOTÓN "VER" AQUÍ --- #}
+                        <a href="{{ url_for('ver_detalle_factura', id=factura.id) }}" class="btn btn-sm btn-info me-2 rounded-pill">Ver</a>
+                        {# ----------------------------- #}
+                        <a href="{{ url_for('editar_factura', id=factura.id) }}" class="btn btn-sm btn-primary me-2 rounded-pill">Editar</a> {# Añadí me-2 para espacio #}
                         <button type="button" class="btn btn-sm btn-danger rounded-pill borrar-factura-btn-swal"
                                 data-factura-id="{{ factura.id }}"
                                 data-factura-numero="{{ factura.numero_factura }}"
-                                data-factura-cliente="{{ factura.cliente.nombre | title }} {{ factura.cliente.primer_apellido | title or '' }} {{ factura.cliente.segundo_apellido | title or '' }}"> {# Agregado segundo apellido aquí #}
+                                data-factura-cliente="{{ factura.cliente.nombre | title }} {{ factura.cliente.primer_apellido | title or '' }} {{ factura.cliente.segundo_apellido | title or '' }}">
                             Borrar
                         </button>
                     </td>
@@ -81,11 +65,11 @@
         </table>
     </div>
     {% else %}
-    <p class="text-center">No hay facturas registradas.</p> {# Centrado para mejor visualización #}
+    <p class="text-center">No hay facturas registradas.</p>
     {% endif %}
 </div>
 
-{# --- SweetAlert2 Script --- #}
+{# --- SweetAlert2 Script (Mantén este script como está) --- #}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -115,8 +99,7 @@
                         const csrfTokenInput = document.createElement('input');
                         csrfTokenInput.type = 'hidden';
                         csrfTokenInput.name = 'csrf_token';
-                        // LA LÍNEA CRÍTICA: Cambiada de 'csrf_token()' a 'generate_csrf()'
-                        csrfTokenInput.value = "{{ generate_csrf() }}"; 
+                        csrfTokenInput.value = "{{ generate_csrf() }}";
 
                         form.appendChild(csrfTokenInput);
                         document.body.appendChild(form);
