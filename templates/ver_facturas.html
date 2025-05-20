@@ -1,3 +1,4 @@
+{# templates/ver_facturas.html #}
 {% extends 'base.html' %}
 
 {% block title %}Ver Facturas{% endblock %}
@@ -28,7 +29,7 @@
                     <td>{{ factura.fecha_emision.strftime('%Y-%m-%d') }}</td>
                     <td>{{ factura.cliente.nombre | title }} {{ factura.cliente.primer_apellido | title or '' }}</td>
                     <td>{{ factura.descripcion | default('', True) | truncate(50) }}</td>
-                    <td>₡{{ factura.monto_total }}</td>
+                    <td>₡{{ "%.2f" | format(factura.monto_total | float) }}</td>
                     <td>{{ factura.fecha_registro.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                     <td>
                         <a href="{{ url_for('editar_factura', id=factura.id) }}" class="btn btn-sm btn-primary rounded-pill">Editar</a>
@@ -48,6 +49,7 @@
     {% endif %}
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const botonesBorrar = document.querySelectorAll('.borrar-factura-btn-swal');
@@ -59,8 +61,8 @@
                 const clienteNombreCompleto = this.dataset.facturaCliente;
 
                 Swal.fire({
-                    title: `¿Estás seguro de borrar a ${clienteNombreCompleto}?`,
-                    text: `¿Deseas borrar la factura número ${facturaNumero}?`,
+                    title: `¿Estás seguro?`,
+                    text: `¿Deseas borrar la factura número ${facturaNumero} del cliente ${clienteNombreCompleto}?`,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#dc3545',
@@ -76,6 +78,7 @@
                         const csrfTokenInput = document.createElement('input');
                         csrfTokenInput.type = 'hidden';
                         csrfTokenInput.name = 'csrf_token';
+                        // AHORA USAMOS LA VARIABLE csrf_token que le pasamos desde la ruta
                         csrfTokenInput.value = "{{ csrf_token }}";
 
                         form.appendChild(csrfTokenInput);

@@ -1,3 +1,4 @@
+{# templates/editar_factura.html #}
 {% extends 'base.html' %}
 
 {% block title %}Editar Factura{% endblock %}
@@ -9,7 +10,8 @@
         {{ form.csrf_token }}
         <div class="mb-3">
             {{ form.numero_factura.label(class="form-label") }}
-            {{ form.numero_factura(class="form-control", value=form.numero_factura.data if form.numero_factura.data else '') }}
+            {# El campo numero_factura es de solo lectura y se muestra su valor actual #}
+            {{ form.numero_factura(class="form-control") }}
             {% if form.numero_factura.errors %}
                 <ul class="errors">
                     {% for error in form.numero_factura.errors %}
@@ -31,7 +33,7 @@
         </div>
         <div class="mb-3">
             {{ form.fecha_emision.label(class="form-label") }}
-            {{ form.fecha_emision(class="form-control", value=form.fecha_emision.data if form.fecha_emision.data else '') }}
+            {{ form.fecha_emision(class="form-control", type="date") }}
             <small class="form-text text-muted">Formato: AAAA-MM-DD</small>
             {% if form.fecha_emision.errors %}
                 <ul class="errors">
@@ -43,7 +45,7 @@
         </div>
         <div class="mb-3">
             {{ form.descripcion.label(class="form-label") }}
-            {{ form.descripcion(class="form-control", rows="3", value=form.descripcion.data if form.descripcion.data else '') }}
+            {{ form.descripcion(class="form-control", rows="3") }}
             {% if form.descripcion.errors %}
                 <ul class="errors">
                     {% for error in form.descripcion.errors %}
@@ -54,7 +56,7 @@
         </div>
         <div class="mb-3">
             {{ form.monto_total.label(class="form-label") }}
-            {{ form.monto_total(class="form-control", value=form.monto_total.data if form.monto_total.data else '') }}
+            {{ form.monto_total(class="form-control", type="number", step="0.01") }}
             {% if form.monto_total.errors %}
                 <ul class="errors">
                     {% for error in form.monto_total.errors %}

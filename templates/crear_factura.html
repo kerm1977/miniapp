@@ -1,3 +1,4 @@
+{# templates/crear_factura.html #}
 {% extends 'base.html' %}
 
 {% block title %}Crear Factura{% endblock %}
@@ -7,17 +8,7 @@
     <h2>Crear Nueva Factura</h2>
     <form method="POST">
         {{ form.csrf_token }}
-        <div class="mb-3">
-            {{ form.numero_factura.label(class="form-label") }}
-            {{ form.numero_factura(class="form-control") }}
-            {% if form.numero_factura.errors %}
-                <ul class="errors">
-                    {% for error in form.numero_factura.errors %}
-                        <li class="text-danger">{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
+        {# El campo numero_factura ha sido ELIMINADO de aquí ya que se genera automáticamente #}
         <div class="mb-3">
             {{ form.cliente_id.label(class="form-label") }}
             {{ form.cliente_id(class="form-select") }}
@@ -31,7 +22,7 @@
         </div>
         <div class="mb-3">
             {{ form.fecha_emision.label(class="form-label") }}
-            {{ form.fecha_emision(class="form-control") }}
+            {{ form.fecha_emision(class="form-control", type="date") }}
             <small class="form-text text-muted">Formato: AAAA-MM-DD</small>
             {% if form.fecha_emision.errors %}
                 <ul class="errors">
@@ -54,7 +45,7 @@
         </div>
         <div class="mb-3">
             {{ form.monto_total.label(class="form-label") }}
-            {{ form.monto_total(class="form-control") }}
+            {{ form.monto_total(class="form-control", type="number", step="0.01") }}
             {% if form.monto_total.errors %}
                 <ul class="errors">
                     {% for error in form.monto_total.errors %}
