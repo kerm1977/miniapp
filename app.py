@@ -24,6 +24,7 @@ import pandas as pd
 import numpy
 
 
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'tu_clave_secreta'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.db'

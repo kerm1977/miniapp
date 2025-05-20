@@ -4,8 +4,7 @@
 
 {% block content %}
 <div class="container my-5 invoice-container">
-    {# Asegúrate de que la clase 'shadow-lg' NO esté aquí. #}
-    <div class="card p-4 invoice-card" style="box-shadow: none !important;"> {# AÑADIDO ESTILO INLINE AQUÍ #}
+    <div class="card p-4 invoice-card" style="box-shadow: none !important;">
         <div class="card-body">
             {# --- ENCABEZADO DE FACTURA --- #}
             <div class="row mb-5 align-items-center">
@@ -14,17 +13,17 @@
                     <p class="lead mb-0">No. **{{ factura.numero_factura }}**</p>
                 </div>
                 <div class="col-sm-6 text-end">
-                    <h4 class="text-secondary mb-1">LA TRIBU</h4>
-                   <!--  <p class="mb-0">Tu Dirección Aquí</p>
+                    <h4 class="text-secondary mb-1">Tu Empresa (o logo)</h4>
+                    <p class="mb-0">Tu Dirección Aquí</p>
                     <p class="mb-0">Tu Teléfono Aquí</p>
-                    <p class="mb-0">Tu Correo Electrónico Aquí</p> -->
+                    <p class="mb-0">Tu Correo Electrónico Aquí</p>
                 </div>
             </div>
 
-            {# --- INFORMACIÓN DEL Caminante Y FECHAS --- #}
+            {# --- INFORMACIÓN DEL CLIENTE Y FECHAS --- #}
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <h5 class="text-muted mb-3">Caminante:</h5>
+                    <h5 class="text-muted mb-3">Cliente:</h5>
                     {% if factura.cliente %}
                         <p class="mb-1"><strong>{{ factura.cliente.nombre.title() }}
                             {{ factura.cliente.primer_apellido.title() if factura.cliente.primer_apellido else '' }}
@@ -118,10 +117,48 @@
     <div class="text-center mt-4">
         <a href="{{ url_for('ver_facturas') }}" class="btn btn-secondary rounded-pill">Volver a la Lista de Facturas</a>
         <a href="{{ url_for('editar_factura', id=factura.id) }}" class="btn btn-primary rounded-pill ms-2">Editar Factura</a>
+        {# --- NUEVO BOTÓN PARA IMPRIMIR (usando la función del navegador) --- #}
+        <button type="button" class="btn btn-info rounded-pill ms-2" onclick="window.print()">Imprimir / Guardar</button>
+        {# ----------------------------------------------------------------- #}
     </div>
 </div>
 
 <style>
+    /* Estilos para impresión (Opcional, pero recomendado) */
+    @media print {
+        /* Oculta los botones y otros elementos no deseados al imprimir */
+        .btn, .navbar, .container .text-center.mt-4, .top-right, .footer {
+            display: none !important;
+        }
+        /* Ajusta márgenes para impresión */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        .invoice-container {
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            width: 100% !important; /* Asegura que ocupe todo el ancho de la página */
+        }
+        .card {
+            box-shadow: none !important;
+            border: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        /* Asegura que el color de fondo no se imprima para ahorrar tinta */
+        .bg-success {
+            background-color: #28a745 !important; /* Fallback */
+            -webkit-print-color-adjust: exact; /* Para Chrome/Safari */
+            color-adjust: exact; /* Estándar */
+        }
+        .text-white {
+            color: white !important;
+        }
+    }
+
     .invoice-container {
         max-width: 900px;
         margin-left: auto;
@@ -129,8 +166,7 @@
     }
     .invoice-card {
         border: 1px solid #e0e0e0;
-        /* Estilo para asegurar que no haya sombra */
-        box-shadow: none !important; 
+        box-shadow: none !important;
     }
 </style>
 {% endblock %}
