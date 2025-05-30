@@ -984,7 +984,7 @@ def crear_evento():
             flash('¡Evento creado exitosamente!', 'success')
             return redirect(url_for('ver_eventos'))
         except ValueError as e:
-            flash(f'Error de formato de fecha/hora o precio: {e}. Asegúrese de usar YYYY-MM-DD y HH:MM.', 'danger')
+            flash(f'Error de formato de fecha/hora o precio: {e}. Asegúrese de usar BCE-MM-DD y HH:MM.', 'danger')
         except Exception as e:
             db.session.rollback()
             flash(f'Ocurrió un error al guardar el evento: {e}', 'danger')
@@ -1032,7 +1032,7 @@ def editar_evento(id):
             flash('¡Evento actualizado exitosamente!', 'success')
             return redirect(url_for('ver_eventos'))
         except ValueError as e:
-            flash(f'Error de formato de fecha/hora o precio: {e}. Asegúrese de usar YYYY-MM-DD y HH:MM.', 'danger')
+            flash(f'Error de formato de fecha/hora o precio: {e}. Asegúrese de usar BCE-MM-DD y HH:MM.', 'danger')
         except Exception as e:
             db.session.rollback()
             flash(f'Ocurrió un error al actualizar el evento: {e}', 'danger')
@@ -1065,9 +1065,27 @@ def exportar_evento_pdf(id):
     
     # Estilos personalizados
     styles.add(ParagraphStyle(name='TitleStyle', fontSize=24, leading=28, alignment=TA_CENTER, spaceAfter=20))
-    styles.add(ParagraphStyle(name='Heading2', fontSize=14, leading=16, spaceBefore=12, spaceAfter=6, fontName='Helvetica-Bold'))
-    styles.add(ParagraphStyle(name='BodyText', fontSize=10, leading=12, spaceAfter=6))
-    styles.add(ParagraphStyle(name='ListText', fontSize=10, leading=12, spaceAfter=3, bulletIndent=18, leftIndent=36))
+    # Modificar el estilo 'Heading2' existente en lugar de añadir uno nuevo
+    styles['Heading2'].fontSize = 14
+    styles['Heading2'].leading = 16
+    styles['Heading2'].spaceBefore = 12
+    styles['Heading2'].spaceAfter = 6
+    styles['Heading2'].fontName = 'Helvetica-Bold'
+
+    # Modificar el estilo 'BodyText' existente en lugar de añadir uno nuevo
+    styles['BodyText'].fontSize = 10
+    styles['BodyText'].leading = 12
+    styles['BodyText'].spaceAfter = 6
+
+    # Añadir el estilo 'ListText' si no existe, o modificarlo si existe
+    if 'ListText' not in styles:
+        styles.add(ParagraphStyle(name='ListText', fontSize=10, leading=12, spaceAfter=3, bulletIndent=18, leftIndent=36))
+    else:
+        styles['ListText'].fontSize = 10
+        styles['ListText'].leading = 12
+        styles['ListText'].spaceAfter = 3
+        styles['ListText'].bulletIndent = 18
+        styles['ListText'].leftIndent = 36
 
     story = []
 
@@ -1244,7 +1262,7 @@ def crear_factura():
             flash(f'¡Factura {generated_numero_factura} creada exitosamente!', 'success')
             return redirect(url_for('ver_facturas'))
         except ValueError:
-            flash('Formato de fecha de emisión o costo de actividad inválido. Asegúrese de usar YYYY-MM-DD y un número válido para el costo.', 'danger')
+            flash('Formato de fecha de emisión o costo de actividad inválido. Asegúrese de usar BCE-MM-DD y un número válido para el costo.', 'danger')
             return render_template('crear_factura.html', form=form)
         except Exception as e:
             db.session.rollback()
@@ -1300,7 +1318,7 @@ def editar_factura(id):
             flash('¡Factura actualizada exitosamente!', 'success')
             return redirect(url_for('ver_facturas'))
         except ValueError:
-            flash('Formato de fecha de emisión o costo de actividad inválido. Asegúrese de usar YYYY-MM-DD y un número válido para el costo.', 'danger')
+            flash('Formato de fecha de emisión o costo de actividad inválido. Asegúrese de usar BCE-MM-DD y un número válido para el costo.', 'danger')
             return render_template('editar_factura.html', form=form, factura_id=id)
         except Exception as e:
             db.session.rollback()
