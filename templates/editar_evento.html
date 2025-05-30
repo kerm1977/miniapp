@@ -12,11 +12,14 @@
         <div>
             <label for="flyer" class="block text-sm font-medium text-gray-700">Flyer del Evento</label>
             {% if evento.flyer_filename %}
-            <p class="text-sm text-gray-500 mb-2">Flyer actual: 
-                {% if evento.flyer_filename.endswith(('.png', '.jpg', '.jpeg', '.gif')) %}
+            <p class="text-sm text-gray-500 mb-2">Flyer actual:
+                {% set file_extension = evento.flyer_filename.split('.')[-1] %}
+                {% if file_extension in ['png', 'jpg', 'jpeg', 'gif'] %}
                     <img src="{{ url_for('static', filename='uploads/' + evento.flyer_filename) }}" alt="Flyer actual" class="mt-2 max-h-40 object-contain border rounded-md">
-                {% elif evento.flyer_filename.endswith('.pdf') %}
+                {% elif file_extension == 'pdf' %}
                     <a href="{{ url_for('static', filename='uploads/' + evento.flyer_filename) }}" target="_blank" class="text-blue-600 hover:underline">Ver PDF actual</a>
+                {% else %}
+                    <span class="text-red-500">Tipo de archivo no reconocido.</span>
                 {% endif %}
             </p>
             {% else %}
@@ -94,7 +97,7 @@
             <label for="lugar_salida" class="block text-sm font-medium text-gray-700">Lugar de Salida</label>
             {{ form.lugar_salida(class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md") }}
             {% if form.lugar_salida.errors %}
-                {% for error in form.lugar_evento.errors %}
+                {% for error in form.lugar_salida.errors %}
                 <p class="mt-1 text-red-500 text-xs italic">{{ error }}</p>
                 {% endfor %}
             {% endif %}

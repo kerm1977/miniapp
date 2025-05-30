@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from datetime import datetime
+from datetime import datetime, date, time
 import enum
 
 db = SQLAlchemy()
@@ -84,12 +84,12 @@ class Event(db.Model):
             'description': self.description
         }
 
-# Nuevo modelo para Eventos
+# Nuevo modelo para Eventos (CRUD de eventos)
 class Evento(db.Model):
     __tablename__ = 'eventos'
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    flyer_filename = db.Column(db.String(255), nullable=True)
+    flyer_filename = db.Column(db.String(255), nullable=True) # Para guardar la ruta del flyer (imagen o PDF)
     tipo_evento = db.Column(db.String(100), nullable=False) # Parque Nacional, El Camino de Costa Rica
     nombre_evento = db.Column(db.String(255), nullable=False)
     precio_evento = db.Column(db.Numeric(10, 2), nullable=False)
@@ -98,7 +98,7 @@ class Evento(db.Model):
     incluye = db.Column(db.Text, nullable=True)
     lugar_salida = db.Column(db.String(255), nullable=False) # Parque de Tres Ríos Escuela, etc.
     hora_salida = db.Column(db.Time, nullable=False)
-    distancia = db.Column(db.String(100), nullable=True)
+    distancia = db.Column(db.String(100), nullable=True) # Se cambia a String para permitir "N/A" o rangos
     capacidad = db.Column(db.Integer, nullable=False) # 14, 17, 28, 42
     descripcion = db.Column(db.Text, nullable=True)
     instrucciones = db.Column(db.Text, nullable=True)
@@ -109,6 +109,56 @@ class Evento(db.Model):
 
     def __repr__(self):
         return f'<Evento {self.nombre_evento}>'
+
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    imagen_post = db.Column(db.String(255))
+    tipo_caminata = db.Column(db.Enum('PARQUE NACIONAL', 'RESERVA', 'REFUGIO AMBIENTAL', 'ISLA', 'CERRO', 'RIO', 'PLAYA', 'VOLCAN', 'CATARATA', 'CENTRO RECREACION', 'SENDERO', 'EL CAMINO DE COSTA RICA'), nullable=False)
+    etapas = db.Column(db.Enum(
+        '1a & 1b PARISMINA-CIMARRONES',
+        '1a PARISMINA-BARRA PACUARE',
+        '1b MUELLE GOSHEN-CIMARRONES',
+        '2 CIMARRONES-LAS BRISAS(TSINIKISHA)',
+        '3 TSINIKISHA-TSIOBATA',
+        '4 TIOBATA-HACIENDA TRES EQUIS',
+        '5 HACIENDA TRES EQUIS-PACAYITAS',
+        '6 PACAYITAS-LA SUIZA',
+        '7 LA SUIZA-HUMO DE PEJIBAYE',
+        '8 HUMO DE PEJIBAYE A TAPANTI',
+        '9 TAPANTI-MUÑECO NAVARRO',
+        '10 MUÑECO NAVARRO-PALO VERDE',
+        '11 PALO VERDE-CERRO ALTO',
+        '12 CERRO ALTO-SAN PABLO LEON CORTES',
+        '13 SAN PABLO LEON CORTES-NAPOLES',
+        '14 NAPOLES-NARANJITO',
+        '15 NARANJITO-ESQUIPULAS',
+        '16 ESQUIPULAS-QUIPOS'
+    ))
+    nombre_lugar = db.Column(db.String(255), nullable=False)
+    provincia = db.Column(db.Enum('ALAJUELA', 'CARTAGO', 'HEREDIA', 'SAN JOSE', 'PUNTARENAS', 'LIMON', 'GUANACASTE'), nullable=False)
+    fecha = db.Column(db.Date, nullable=False)
+    hora = db.Column(db.Time, nullable=False)
+    precio = db.Column(db.Numeric(10, 2))
+    incluye = db.Column(db.Enum('Transporte', 'Tranporte + Entrada', 'Tranporte + Entrada + Guia'))
+    dificultad = db.Column(db.Enum('Iniciante', 'Básico', 'Básico-Intermedio', 'Intermedio', 'Intermedio-Dificil', 'Dificil', 'Muy Dificil'))
+    distancia = db.Column(db.String(50))
+    capacidad_buseta = db.Column(db.Enum('14', '15', '17'))
+    salimos_de = db.Column(db.Enum('PARQUE DE TRES RÍOS DIAGONAL A LA ESCUELA', 'PARQUE DE TRES RÍOS FRENTE A LA CRUZ ROJA', 'SAN DIEGO LA PLAZA', 'SAN DIEGO FRENTE A LA IGLESIA'))
+    se_recoge_en = db.Column(db.Enum('CARTAGO-TURRIALBA', 'CARTAGO-PZ', 'SAN JOSE'))
+    reserva_con = db.Column(db.Numeric(10, 2))
+    altitud_maxima = db.Column(db.String(50))
+    altitud_minima = db.Column(db.String(50))
+    banos = db.Column(db.Enum('NO APLICA', 'SI', 'NO'))
+    duchas = db.Column(db.Enum('NO APLICA', 'SI', 'NO'))
+    parqueo = db.Column(db.Enum('NO APLICA', 'SI', 'NO'))
+    sinpe = db.Column(db.Enum('Jenny Ceciliano Cordoba - 8652 9837', 'Kenneth Ruiz Matamoros - 86227500', 'Jenny Ceciliano Cordoba - 87984232'))
+
+    # Relación con el modelo de Usuario (asumiendo que se llama 'User')
+    user = db.relationship('User', backref=db.backref('posts', lazy=True))
+
+    def __repr__(self):
+        return f"<Post {self.nombre_lugar}>"
 
 class Factura(db.Model):
     __tablename__ = 'facturas'

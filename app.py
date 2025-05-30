@@ -27,7 +27,8 @@ from reportlab.lib.units import inch
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
 # Importar db y los modelos desde models.py
-from models import db, User, Contacto, Event, Evento, Factura # Añadir Evento
+# Asegúrate de que 'Evento' esté importado aquí junto con los demás.
+from models import db, User, Contacto, Event, Factura, Evento # Añadir Evento
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'tu_clave_secreta'
@@ -45,7 +46,8 @@ db.init_app(app)
 
 migrate = Migrate(app, db)
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'} # Añadido PDF para flyers
+# Extensiones permitidas para subidas (imágenes y PDF para flyers)
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'} 
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -273,7 +275,6 @@ class EditarFacturaForm(FlaskForm):
         else:
             self.cliente_id.choices = []
 
-
 # Nuevo formulario para Eventos
 class EventoForm(FlaskForm):
     flyer = FileField('Flyer del Evento', validators=[FileAllowed(ALLOWED_EXTENSIONS, 'Solo se permiten imágenes (png, jpg, jpeg, gif) o PDFs.')])
@@ -282,7 +283,7 @@ class EventoForm(FlaskForm):
         ('El Camino de Costa Rica', 'El Camino de Costa Rica')
     ], validators=[DataRequired()])
     nombre_evento = StringField('Nombre del Evento', validators=[DataRequired()])
-    precio_evento = StringField('Precio del Evento', validators=[DataRequired(), Regexp(r'^\d+(\.\d{1,2})?$', message="El precio debe ser un número válido con hasta 2 decimales.")])
+    precio_evento = StringField('Precio del Evento (₡)', validators=[DataRequired(), Regexp(r'^\d+(\.\d{1,2})?$', message="El precio debe ser un número válido con hasta 2 decimales.")])
     fecha_evento = StringField('Fecha del Evento (YYYY-MM-DD)', validators=[DataRequired()])
     dificultad_evento = SelectField('Dificultad del Evento', choices=[
         ('Iniciante', 'Iniciante'),
@@ -310,6 +311,43 @@ class EventoForm(FlaskForm):
     instrucciones = TextAreaField('Instrucciones', validators=[Optional()])
     recomendaciones = TextAreaField('Recomendaciones', validators=[Optional()])
     submit = SubmitField('Guardar Evento')
+
+# Formulario para Editar Eventos (similar al de crear, pero para pre-llenar)
+class EditarEventoForm(FlaskForm):
+    flyer = FileField('Flyer del Evento', validators=[FileAllowed(ALLOWED_EXTENSIONS, 'Solo se permiten imágenes (png, jpg, jpeg, gif) o PDFs.')])
+    tipo_evento = SelectField('Tipo de Evento', choices=[
+        ('Parque Nacional', 'Parque Nacional'),
+        ('El Camino de Costa Rica', 'El Camino de Costa Rica')
+    ], validators=[DataRequired()])
+    nombre_evento = StringField('Nombre del Evento', validators=[DataRequired()])
+    precio_evento = StringField('Precio del Evento (₡)', validators=[DataRequired(), Regexp(r'^\d+(\.\d{1,2})?$', message="El precio debe ser un número válido con hasta 2 decimales.")])
+    fecha_evento = StringField('Fecha del Evento (YYYY-MM-DD)', validators=[DataRequired()])
+    dificultad_evento = SelectField('Dificultad del Evento', choices=[
+        ('Iniciante', 'Iniciante'),
+        ('Básico', 'Básico'),
+        ('Intermedio', 'Intermedio'),
+        ('Avanzado', 'Avanzado'),
+        ('Técnico', 'Técnico')
+    ], validators=[DataRequired()])
+    incluye = TextAreaField('Incluye', validators=[Optional()])
+    lugar_salida = SelectField('Lugar de Salida', choices=[
+        ('Parque de Tres Ríos Escuela', 'Parque de Tres Ríos Escuela'),
+        ('Parque de Tres Ríos Cruz Roja', 'Parque de Tres Ríos Cruz Roja'),
+        ('Plaza de San Diego', 'Plaza de San Diego'),
+        ('Iglesia De San Diego', 'Iglesia De San Diego')
+    ], validators=[DataRequired()])
+    hora_salida = StringField('Hora de Salida (HH:MM)', validators=[DataRequired(), Regexp(r'^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$', message="Formato de hora inválido (HH:MM).")])
+    distancia = StringField('Distancia', validators=[Optional()])
+    capacidad = SelectField('Capacidad', choices=[
+        ('14', '14'),
+        ('17', '17'),
+        ('28', '28'),
+        ('42', '42')
+    ], coerce=int, validators=[DataRequired()])
+    descripcion = TextAreaField('Descripción', validators=[Optional()])
+    instrucciones = TextAreaField('Instrucciones', validators=[Optional()])
+    recomendaciones = TextAreaField('Recomendaciones', validators=[Optional()])
+    submit = SubmitField('Guardar Cambios')
 
 
 # FUNCIONES
@@ -904,13 +942,14 @@ def update_event(id):
 @app.route('/ver_eventos')
 @login_required
 def ver_eventos():
+    # Asegúrate de usar el modelo 'Evento' que creamos para el CRUD de eventos
     eventos = Evento.query.filter_by(usuario_id=current_user.id).order_by(Evento.fecha_evento.desc()).all()
     return render_template('ver_evento.html', eventos=eventos)
 
 @app.route('/crear_evento', methods=['GET', 'POST'])
 @login_required
 def crear_evento():
-    form = EventoForm()
+    form = EventoForm() # Usar EventoForm
     if form.validate_on_submit():
         try:
             # Manejo del flyer
@@ -923,7 +962,7 @@ def crear_evento():
             fecha_evento_obj = datetime.strptime(form.fecha_evento.data, '%Y-%m-%d').date()
             hora_salida_obj = datetime.strptime(form.hora_salida.data, '%H:%M').time()
 
-            nuevo_evento = Evento(
+            nuevo_evento = Evento( # Usar Evento
                 usuario_id=current_user.id,
                 flyer_filename=flyer_filename,
                 tipo_evento=form.tipo_evento.data,
@@ -955,7 +994,7 @@ def crear_evento():
 @login_required
 def editar_evento(id):
     evento = Evento.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
-    form = EventoForm(obj=evento)
+    form = EditarEventoForm(obj=evento) # Usar EditarEventoForm
 
     if request.method == 'GET':
         form.fecha_evento.data = evento.fecha_evento.strftime('%Y-%m-%d') if evento.fecha_evento else ''
@@ -1041,17 +1080,26 @@ def exportar_evento_pdf(id):
         flyer_path = os.path.join(app.config['UPLOAD_FOLDER'], evento.flyer_filename)
         if os.path.exists(flyer_path):
             try:
-                img = Image(flyer_path)
-                # Ajustar tamaño de la imagen para que quepa en la página
-                img_width = 4 * inch
-                img_height = img_width * (img.drawHeight / img.drawWidth)
-                img.drawWidth = img_width
-                img.drawHeight = img_height
-                story.append(img)
-                story.append(Spacer(1, 0.2 * inch))
+                # Determinar el tipo de archivo para mostrarlo correctamente
+                mime_type, _ = mimetypes.guess_type(flyer_path)
+                if mime_type and mime_type.startswith('image'):
+                    img = Image(flyer_path)
+                    # Ajustar tamaño de la imagen para que quepa en la página
+                    img_width = 4 * inch
+                    img_height = img_width * (img.drawHeight / img.drawWidth)
+                    img.drawWidth = img_width
+                    img.drawHeight = img_height
+                    story.append(img)
+                    story.append(Spacer(1, 0.2 * inch))
+                elif mime_type == 'application/pdf':
+                    story.append(Paragraph("<i>(El flyer es un PDF y no se puede incrustar directamente en este PDF. Por favor, ábralo por separado.)</i>", styles['BodyText']))
+                    story.append(Spacer(1, 0.2 * inch))
+                else:
+                    story.append(Paragraph("<i>(Tipo de archivo de flyer no soportado para incrustar en PDF.)</i>", styles['BodyText']))
+
             except Exception as e:
-                flash(f"No se pudo cargar la imagen del flyer: {e}", "warning")
-                story.append(Paragraph("<i>(No se pudo cargar la imagen del flyer)</i>", styles['BodyText']))
+                flash(f"No se pudo cargar la imagen/PDF del flyer: {e}", "warning")
+                story.append(Paragraph("<i>(No se pudo cargar el flyer del evento)</i>", styles['BodyText']))
         else:
             story.append(Paragraph("<i>(Flyer no encontrado en el servidor)</i>", styles['BodyText']))
     
