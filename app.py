@@ -1,40 +1,51 @@
-from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
+from flask import Flask, render_template, redirect, url_for, request, flash, jsonify, send_file
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, FileField, TextAreaField,PasswordField, BooleanField # Asegúrate de que SelectField y TextAreaField estén aquí
-from wtforms.validators import DataRequired, Email, EqualTo, Length, Regexp, Optional
-from flask_wtf.csrf import generate_csrf # ¡Asegúrate de tener esta importación!
+from wtforms import StringField, SubmitField, SelectField, FileField, TextAreaField, PasswordField, BooleanField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, Regexp, Optional, NumberRange
+from flask_wtf.csrf import generate_csrf
 from flask_wtf.file import FileField, FileAllowed
 from werkzeug.utils import secure_filename
 import os
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, LoginManager, login_user, logout_user, login_required, current_user
-from datetime import datetime
+from datetime import datetime, date, time
 from flask_migrate import Migrate
-from flask import send_file
 import io
 from io import BytesIO
 import vobject
 import base64
 import mimetypes
-import os
 import openpyxl
 from openpyxl.utils.dataframe import dataframe_to_rows
 import pandas as pd
 import numpy
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
-
+# Importar db y los modelos desde models.py
+from models import db, User, Contacto, Event, Evento, Factura # Añadir Evento
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'tu_clave_secreta'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-UPLOAD_FOLDER = os.path.join('static', 'images')
+UPLOAD_FOLDER = os.path.join('static', 'uploads') # Cambiado a 'uploads' para ser más genérico
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-db = SQLAlchemy(app)
+
+# Asegurarse de que la carpeta de subidas exista
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# Inicializar db con la aplicación
+db.init_app(app)
+
 migrate = Migrate(app, db)
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'} # Añadido PDF para flyers
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -44,136 +55,6 @@ login_manager.login_message = "Por favor, inicia sesión para acceder a esta pá
 
 def is_authenticated(self):
     return True
-
-
-# MODELOS
-class User(UserMixin, db.Model):
-    __tablename__ = 'users'
-
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    cedula = db.Column(db.String(20), unique=True, nullable=False)
-    telefono = db.Column(db.String(20), nullable=False)
-    password_hash = db.Column(db.String(128))
-    image_filename = db.Column(db.String(255), nullable=True)
-
-    def __repr__(self):
-        return f'<User {self.username}>'
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
-    def get_id(self):
-        return str(self.id)
-
-    @property
-    def is_active(self):
-        return True
-    @property
-    @property
-    def is_anonymous(self):
-        return False
-
-class Contacto(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String(100), nullable=False)
-    primer_apellido = db.Column(db.String(100))
-    segundo_apellido = db.Column(db.String(100))
-    telefono = db.Column(db.String(20), nullable=False)
-    movil = db.Column(db.String(20))
-    email = db.Column(db.String(120))
-    direccion = db.Column(db.String(200))
-    actividad = db.Column(db.String(100))  # Corrección: Usando 'actividad' para el modelo
-    tipo_actividad = db.Column(db.String(100)) # Manteniendo tipo_actividad si lo usas en el formulario
-    nota = db.Column(db.Text)
-    direccion_mapa = db.Column(db.String(255))
-    avatar_path = db.Column(db.String(255)) # Para guardar la ruta del avatar
-    fecha_ingreso = db.Column(db.DateTime, default=datetime.utcnow)
-    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    usuario = db.relationship('User', backref=db.backref('contactos', lazy=True))
-    empresa = db.Column(db.String(100))
-    sitio_web = db.Column(db.String(200))
-    # Nuevos campos select
-    capacidad_persona = db.Column(db.String(20))
-    participacion = db.Column(db.String(30))
-
-    def __repr__(self):
-        return f'<Contacto {self.nombre}>'
-
-class Event(db.Model):
-    __tablename__ = 'event'
-    __table_args__ = {'extend_existing': True}
-
-    id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Date, nullable=False)
-    time = db.Column(db.Time, nullable=True)  # Nuevo campo para la hora
-    title = db.Column(db.String(80), nullable=False)
-    description = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'date': self.date.isoformat(),
-            'time': self.time.strftime('%H:%M') if self.time else None, # Formatea la hora para la respuesta
-            'title': self.title,
-            'description': self.description
-        }
-
-class Post(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    imagen_post = db.Column(db.String(255))
-    tipo_caminata = db.Column(db.Enum('PARQUE NACIONAL', 'RESERVA', 'REFUGIO AMBIENTAL', 'ISLA', 'CERRO', 'RIO', 'PLAYA', 'VOLCAN', 'CATARATA', 'CENTRO RECREACION', 'SENDERO', 'EL CAMINO DE COSTA RICA'), nullable=False)
-    etapas = db.Column(db.Enum(
-        '1a & 1b PARISMINA-CIMARRONES',
-        '1a PARISMINA-BARRA PACUARE',
-        '1b MUELLE GOSHEN-CIMARRONES',
-        '2 CIMARRONES-LAS BRISAS(TSINIKISHA)',
-        '3 TSINIKISHA-TSIOBATA',
-        '4 TIOBATA-HACIENDA TRES EQUIS',
-        '5 HACIENDA TRES EQUIS-PACAYITAS',
-        '6 PACAYITAS-LA SUIZA',
-        '7 LA SUIZA-HUMO DE PEJIBAYE',
-        '8 HUMO DE PEJIBAYE A TAPANTI',
-        '9 TAPANTI-MUÑECO NAVARRO',
-        '10 MUÑECO NAVARRO-PALO VERDE',
-        '11 PALO VERDE-CERRO ALTO',
-        '12 CERRO ALTO-SAN PABLO LEON CORTES',
-        '13 SAN PABLO LEON CORTES-NAPOLES',
-        '14 NAPOLES-NARANJITO',
-        '15 NARANJITO-ESQUIPULAS',
-        '16 ESQUIPULAS-QUIPOS'
-    ))
-    nombre_lugar = db.Column(db.String(255), nullable=False)
-    provincia = db.Column(db.Enum('ALAJUELA', 'CARTAGO', 'HEREDIA', 'SAN JOSE', 'PUNTARENAS', 'LIMON', 'GUANACASTE'), nullable=False)
-    fecha = db.Column(db.Date, nullable=False)
-    hora = db.Column(db.Time, nullable=False)
-    precio = db.Column(db.Numeric(10, 2))
-    incluye = db.Column(db.Enum('Transporte', 'Tranporte + Entrada', 'Tranporte + Entrada + Guia'))
-    dificultad = db.Column(db.Enum('Iniciante', 'Básico', 'Básico-Intermedio', 'Intermedio', 'Intermedio-Dificil', 'Dificil', 'Muy Dificil'))
-    distancia = db.Column(db.String(50))
-    capacidad_buseta = db.Column(db.Enum('14', '15', '17'))
-    salimos_de = db.Column(db.Enum('PARQUE DE TRES RÍOS DIAGONAL A LA ESCUELA', 'PARQUE DE TRES RÍOS FRENTE A LA CRUZ ROJA', 'SAN DIEGO LA PLAZA', 'SAN DIEGO FRENTE A LA IGLESIA'))
-    se_recoge_en = db.Column(db.Enum('CARTAGO-TURRIALBA', 'CARTAGO-PZ', 'SAN JOSE'))
-    reserva_con = db.Column(db.Numeric(10, 2))
-    altitud_maxima = db.Column(db.String(50))
-    altitud_minima = db.Column(db.String(50))
-    banos = db.Column(db.Enum('NO APLICA', 'SI', 'NO'))
-    duchas = db.Column(db.Enum('NO APLICA', 'SI', 'NO'))
-    parqueo = db.Column(db.Enum('NO APLICA', 'SI', 'NO'))
-    sinpe = db.Column(db.Enum('Jenny Ceciliano Cordoba - 8652 9837', 'Kenneth Ruiz Matamoros - 86227500', 'Jenny Ceciliano Cordoba - 87984232'))
-
-    # Relación con el modelo de Usuario (asumiendo que se llama 'User')
-    user = db.relationship('User', backref=db.backref('posts', lazy=True))
-
-    def __repr__(self):
-        return f"<Post {self.nombre_lugar}>"
-
 
 
 # FORMS
@@ -255,7 +136,7 @@ class ContactoForm(FlaskForm):
     avatar = FileField('Avatar', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif'])], render_kw={"class": "rounded-pill"})
     empresa = StringField('Empresa', render_kw={"class": "rounded-pill"})
     sitio_web = StringField('Sitio Web', render_kw={"class": "rounded-pill"})
-    # Nuevos campos select en el formulario
+    # Nuevos campos select
     capacidad_persona_choices = [
         ('', 'Seleccionar Capacidad'),
         ('Rápido', 'Rápido'),
@@ -333,34 +214,6 @@ class BorrarContactoForm(FlaskForm):
     submit = SubmitField('Confirmar Borrar')
 
 
-
-# FACTURAS
-class Factura(db.Model):
-    __tablename__ = 'facturas'
-
-    id = db.Column(db.Integer, primary_key=True)
-    numero_factura = db.Column(db.String(100), unique=True, nullable=False)
-    fecha_emision = db.Column(db.Date, nullable=False, default=datetime.utcnow)
-    cliente_id = db.Column(db.Integer, db.ForeignKey('contacto.id'), nullable=False)
-    cliente = db.relationship('Contacto', backref=db.backref('facturas', lazy=True))
-    descripcion = db.Column(db.Text)
-    monto_total = db.Column(db.Numeric(10, 2), nullable=False)
-    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
-    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    usuario = db.relationship('User', backref=db.backref('facturas', lazy=True))
-
-    # --- NUEVOS CAMPOS (ASEGÚRATE DE QUE SEAN nullable=True) ---
-    interes = db.Column(db.String(50), nullable=True) # CAMBIO CLAVE
-    realizado_por = db.Column(db.String(100), nullable=True) # CAMBIO CLAVE
-    sinpe = db.Column(db.String(100), nullable=True) # CAMBIO CLAVE
-    tipo_actividad = db.Column(db.String(100), nullable=True) # CAMBIO CLAVE
-    nombre_actividad_etapa = db.Column(db.String(255), nullable=True)
-    costo_actividad = db.Column(db.Numeric(10, 2), nullable=True)
-    otras_descripcion = db.Column(db.Text, nullable=True)
-
-    def __repr__(self):
-        return f'<Factura {self.numero_factura}>'
-
 # --- Formulario para Crear Facturas ---
 class CrearFacturaForm(FlaskForm):
     # Campos existentes
@@ -421,6 +274,42 @@ class EditarFacturaForm(FlaskForm):
             self.cliente_id.choices = []
 
 
+# Nuevo formulario para Eventos
+class EventoForm(FlaskForm):
+    flyer = FileField('Flyer del Evento', validators=[FileAllowed(ALLOWED_EXTENSIONS, 'Solo se permiten imágenes (png, jpg, jpeg, gif) o PDFs.')])
+    tipo_evento = SelectField('Tipo de Evento', choices=[
+        ('Parque Nacional', 'Parque Nacional'),
+        ('El Camino de Costa Rica', 'El Camino de Costa Rica')
+    ], validators=[DataRequired()])
+    nombre_evento = StringField('Nombre del Evento', validators=[DataRequired()])
+    precio_evento = StringField('Precio del Evento', validators=[DataRequired(), Regexp(r'^\d+(\.\d{1,2})?$', message="El precio debe ser un número válido con hasta 2 decimales.")])
+    fecha_evento = StringField('Fecha del Evento (YYYY-MM-DD)', validators=[DataRequired()])
+    dificultad_evento = SelectField('Dificultad del Evento', choices=[
+        ('Iniciante', 'Iniciante'),
+        ('Básico', 'Básico'),
+        ('Intermedio', 'Intermedio'),
+        ('Avanzado', 'Avanzado'),
+        ('Técnico', 'Técnico')
+    ], validators=[DataRequired()])
+    incluye = TextAreaField('Incluye', validators=[Optional()])
+    lugar_salida = SelectField('Lugar de Salida', choices=[
+        ('Parque de Tres Ríos Escuela', 'Parque de Tres Ríos Escuela'),
+        ('Parque de Tres Ríos Cruz Roja', 'Parque de Tres Ríos Cruz Roja'),
+        ('Plaza de San Diego', 'Plaza de San Diego'),
+        ('Iglesia De San Diego', 'Iglesia De San Diego')
+    ], validators=[DataRequired()])
+    hora_salida = StringField('Hora de Salida (HH:MM)', validators=[DataRequired(), Regexp(r'^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$', message="Formato de hora inválido (HH:MM).")])
+    distancia = StringField('Distancia', validators=[Optional()])
+    capacidad = SelectField('Capacidad', choices=[
+        ('14', '14'),
+        ('17', '17'),
+        ('28', '28'),
+        ('42', '42')
+    ], coerce=int, validators=[DataRequired()])
+    descripcion = TextAreaField('Descripción', validators=[Optional()])
+    instrucciones = TextAreaField('Instrucciones', validators=[Optional()])
+    recomendaciones = TextAreaField('Recomendaciones', validators=[Optional()])
+    submit = SubmitField('Guardar Evento')
 
 
 # FUNCIONES
@@ -615,24 +504,6 @@ def perfil():
     search_form = SearchForm()
     form = UpdateProfileImageForm()
     return render_template('perfil.html', form=form, search_form=search_form)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1029,6 +900,209 @@ def update_event(id):
 
 
 
+# --- Rutas para Eventos ---
+@app.route('/ver_eventos')
+@login_required
+def ver_eventos():
+    eventos = Evento.query.filter_by(usuario_id=current_user.id).order_by(Evento.fecha_evento.desc()).all()
+    return render_template('ver_evento.html', eventos=eventos)
+
+@app.route('/crear_evento', methods=['GET', 'POST'])
+@login_required
+def crear_evento():
+    form = EventoForm()
+    if form.validate_on_submit():
+        try:
+            # Manejo del flyer
+            flyer_filename = None
+            if form.flyer.data:
+                flyer_filename = secure_filename(form.flyer.data.filename)
+                flyer_path = os.path.join(app.config['UPLOAD_FOLDER'], flyer_filename)
+                form.flyer.data.save(flyer_path)
+
+            fecha_evento_obj = datetime.strptime(form.fecha_evento.data, '%Y-%m-%d').date()
+            hora_salida_obj = datetime.strptime(form.hora_salida.data, '%H:%M').time()
+
+            nuevo_evento = Evento(
+                usuario_id=current_user.id,
+                flyer_filename=flyer_filename,
+                tipo_evento=form.tipo_evento.data,
+                nombre_evento=form.nombre_evento.data,
+                precio_evento=form.precio_evento.data,
+                fecha_evento=fecha_evento_obj,
+                dificultad_evento=form.dificultad_evento.data,
+                incluye=form.incluye.data,
+                lugar_salida=form.lugar_salida.data,
+                hora_salida=hora_salida_obj,
+                distancia=form.distancia.data,
+                capacidad=form.capacidad.data,
+                descripcion=form.descripcion.data,
+                instrucciones=form.instrucciones.data,
+                recomendaciones=form.recomendaciones.data
+            )
+            db.session.add(nuevo_evento)
+            db.session.commit()
+            flash('¡Evento creado exitosamente!', 'success')
+            return redirect(url_for('ver_eventos'))
+        except ValueError as e:
+            flash(f'Error de formato de fecha/hora o precio: {e}. Asegúrese de usar YYYY-MM-DD y HH:MM.', 'danger')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Ocurrió un error al guardar el evento: {e}', 'danger')
+    return render_template('crear_evento.html', form=form)
+
+@app.route('/editar_evento/<int:id>', methods=['GET', 'POST'])
+@login_required
+def editar_evento(id):
+    evento = Evento.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+    form = EventoForm(obj=evento)
+
+    if request.method == 'GET':
+        form.fecha_evento.data = evento.fecha_evento.strftime('%Y-%m-%d') if evento.fecha_evento else ''
+        form.hora_salida.data = evento.hora_salida.strftime('%H:%M') if evento.hora_salida else ''
+        form.precio_evento.data = str(evento.precio_evento) # Asegurarse de que sea string para el campo de texto
+
+    if form.validate_on_submit():
+        try:
+            # Manejo del flyer
+            if form.flyer.data:
+                # Eliminar el flyer anterior si existe
+                if evento.flyer_filename and os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], evento.flyer_filename)):
+                    os.remove(os.path.join(app.config['UPLOAD_FOLDER'], evento.flyer_filename))
+                
+                flyer_filename = secure_filename(form.flyer.data.filename)
+                flyer_path = os.path.join(app.config['UPLOAD_FOLDER'], flyer_filename)
+                form.flyer.data.save(flyer_path)
+                evento.flyer_filename = flyer_filename
+            
+            evento.tipo_evento = form.tipo_evento.data
+            evento.nombre_evento = form.nombre_evento.data
+            evento.precio_evento = form.precio_evento.data
+            evento.fecha_evento = datetime.strptime(form.fecha_evento.data, '%Y-%m-%d').date()
+            evento.dificultad_evento = form.dificultad_evento.data
+            evento.incluye = form.incluye.data
+            evento.lugar_salida = form.lugar_salida.data
+            evento.hora_salida = datetime.strptime(form.hora_salida.data, '%H:%M').time()
+            evento.distancia = form.distancia.data
+            evento.capacidad = form.capacidad.data
+            evento.descripcion = form.descripcion.data
+            evento.instrucciones = form.instrucciones.data
+            evento.recomendaciones = form.recomendaciones.data
+
+            db.session.commit()
+            flash('¡Evento actualizado exitosamente!', 'success')
+            return redirect(url_for('ver_eventos'))
+        except ValueError as e:
+            flash(f'Error de formato de fecha/hora o precio: {e}. Asegúrese de usar YYYY-MM-DD y HH:MM.', 'danger')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Ocurrió un error al actualizar el evento: {e}', 'danger')
+    return render_template('editar_evento.html', form=form, evento=evento)
+
+@app.route('/borrar_evento/<int:id>', methods=['POST'])
+@login_required
+def borrar_evento(id):
+    evento = Evento.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+    if evento:
+        # Eliminar el flyer asociado si existe
+        if evento.flyer_filename and os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], evento.flyer_filename)):
+            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], evento.flyer_filename))
+        
+        db.session.delete(evento)
+        db.session.commit()
+        flash('¡Evento borrado exitosamente!', 'success')
+    else:
+        flash('Error al intentar borrar el evento.', 'danger')
+    return redirect(url_for('ver_eventos'))
+
+@app.route('/exportar_evento_pdf/<int:id>')
+@login_required
+def exportar_evento_pdf(id):
+    evento = Evento.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    
+    # Estilos personalizados
+    styles.add(ParagraphStyle(name='TitleStyle', fontSize=24, leading=28, alignment=TA_CENTER, spaceAfter=20))
+    styles.add(ParagraphStyle(name='Heading2', fontSize=14, leading=16, spaceBefore=12, spaceAfter=6, fontName='Helvetica-Bold'))
+    styles.add(ParagraphStyle(name='BodyText', fontSize=10, leading=12, spaceAfter=6))
+    styles.add(ParagraphStyle(name='ListText', fontSize=10, leading=12, spaceAfter=3, bulletIndent=18, leftIndent=36))
+
+    story = []
+
+    # Título del evento
+    story.append(Paragraph(evento.nombre_evento, styles['TitleStyle']))
+    story.append(Spacer(1, 0.2 * inch))
+
+    # Flyer del evento (si existe)
+    if evento.flyer_filename:
+        flyer_path = os.path.join(app.config['UPLOAD_FOLDER'], evento.flyer_filename)
+        if os.path.exists(flyer_path):
+            try:
+                img = Image(flyer_path)
+                # Ajustar tamaño de la imagen para que quepa en la página
+                img_width = 4 * inch
+                img_height = img_width * (img.drawHeight / img.drawWidth)
+                img.drawWidth = img_width
+                img.drawHeight = img_height
+                story.append(img)
+                story.append(Spacer(1, 0.2 * inch))
+            except Exception as e:
+                flash(f"No se pudo cargar la imagen del flyer: {e}", "warning")
+                story.append(Paragraph("<i>(No se pudo cargar la imagen del flyer)</i>", styles['BodyText']))
+        else:
+            story.append(Paragraph("<i>(Flyer no encontrado en el servidor)</i>", styles['BodyText']))
+    
+    # Información general
+    story.append(Paragraph(f"<b>Tipo de Evento:</b> {evento.tipo_evento}", styles['BodyText']))
+    story.append(Paragraph(f"<b>Fecha:</b> {evento.fecha_evento.strftime('%d-%m-%Y')}", styles['BodyText']))
+    story.append(Paragraph(f"<b>Hora de Salida:</b> {evento.hora_salida.strftime('%H:%M')}", styles['BodyText']))
+    story.append(Paragraph(f"<b>Precio:</b> ₡{evento.precio_evento:,.2f}", styles['BodyText']))
+    story.append(Paragraph(f"<b>Dificultad:</b> {evento.dificultad_evento}", styles['BodyText']))
+    story.append(Paragraph(f"<b>Lugar de Salida:</b> {evento.lugar_salida}", styles['BodyText']))
+    story.append(Paragraph(f"<b>Distancia:</b> {evento.distancia or 'N/A'}", styles['BodyText']))
+    story.append(Paragraph(f"<b>Capacidad:</b> {evento.capacidad} personas", styles['BodyText']))
+    story.append(Spacer(1, 0.2 * inch))
+
+    # Descripción
+    if evento.descripcion:
+        story.append(Paragraph("<b>Descripción:</b>", styles['Heading2']))
+        story.append(Paragraph(evento.descripcion, styles['BodyText']))
+        story.append(Spacer(1, 0.2 * inch))
+
+    # Incluye
+    if evento.incluye:
+        story.append(Paragraph("<b>Incluye:</b>", styles['Heading2']))
+        # Dividir por líneas si es una lista
+        for item in evento.incluye.split('\n'):
+            if item.strip():
+                story.append(Paragraph(f"• {item.strip()}", styles['ListText']))
+        story.append(Spacer(1, 0.2 * inch))
+
+    # Instrucciones
+    if evento.instrucciones:
+        story.append(Paragraph("<b>Instrucciones:</b>", styles['Heading2']))
+        for item in evento.instrucciones.split('\n'):
+            if item.strip():
+                story.append(Paragraph(f"• {item.strip()}", styles['ListText']))
+        story.append(Spacer(1, 0.2 * inch))
+
+    # Recomendaciones
+    if evento.recomendaciones:
+        story.append(Paragraph("<b>Recomendaciones:</b>", styles['Heading2']))
+        for item in evento.recomendaciones.split('\n'):
+            if item.strip():
+                story.append(Paragraph(f"• {item.strip()}", styles['ListText']))
+        story.append(Spacer(1, 0.2 * inch))
+
+    doc.build(story)
+    buffer.seek(0)
+    
+    filename = f"evento_{evento.nombre_evento.replace(' ', '_')}.pdf"
+    return send_file(buffer, as_attachment=True, download_name=filename, mimetype='application/pdf')
+
 
 # --- Ruta para Ver Facturas --- 
 @app.route('/ver_facturas')
@@ -1207,11 +1281,6 @@ def borrar_factura(id):
 
 
 
-
-
-
-
-
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
@@ -1224,7 +1293,6 @@ if __name__ == '__main__':
         # $ flask db migrate
         # $ flask db migrate -m "mensaje x"
         # $ flask db upgrade
-
         # ERROR [flask_migrate] Error: Target database is not up to date.
         # $ flask db stamp head
         # $ flask db migrate
