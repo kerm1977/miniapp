@@ -1344,7 +1344,12 @@ def borrar_factura(id):
     return redirect(url_for('ver_facturas'))
 
 
-
+# --- Nueva ruta para ver el detalle de un evento ---
+@app.route('/detalle_evento/<int:id>')
+@login_required
+def detalle_evento(id):
+    evento = Evento.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+    return render_template('detalle_evento.html', evento=evento, generate_csrf=generate_csrf)
 
 
 if __name__ == '__main__':

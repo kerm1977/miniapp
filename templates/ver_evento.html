@@ -18,7 +18,7 @@
         justify-content: center;
         align-items: center;
         font-size: 24px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        /*box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);*/
         z-index: 1000;
         text-decoration: none;
     }
@@ -32,7 +32,7 @@
     .event-card {
         background-color: #ffffff;
         border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        /*box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);*/
         padding: 20px;
         margin-bottom: 20px;
         transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
@@ -42,7 +42,7 @@
 
     .event-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        border: 2px solid #eee;
     }
 
     .event-card h2 {
@@ -163,7 +163,7 @@
 
 <div class="container mt-4">
     <h1 class="mb-4 text-center">Tus Eventos</h1>
-<!-- 
+
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="flash-messages mb-4">
@@ -175,7 +175,7 @@
             </div>
         {% endif %}
     {% endwith %}
- -->
+
     {% if eventos %}
     <div class="container-grid">
         {% for evento in eventos %}
@@ -198,26 +198,10 @@
             <h2>{{ evento.nombre_evento }}</h2>
             <p><strong>Tipo:</strong> {{ evento.tipo_evento }}</p>
             <p><strong>Fecha:</strong> {{ evento.fecha_evento.strftime('%d-%m-%Y') }}</p>
-            <p><strong>Hora de Salida:</strong> {{ evento.hora_salida.strftime('%H:%M') }}</p>
-            <p><strong>Lugar de Salida:</strong> {{ evento.lugar_salida }}</p>
             <p><strong>Precio:</strong> ₡{{ "%.2f"|format(evento.precio_evento) }}</p>
-            <p><strong>Dificultad:</strong> {{ evento.dificultad_evento }}</p>
-            <p><strong>Capacidad:</strong> {{ evento.capacidad }} personas</p>
-            {% if evento.distancia %}<p><strong>Distancia:</strong> {{ evento.distancia }}</p>{% endif %}
-            {% if evento.incluye %}<p><strong>Incluye:</strong> {{ evento.incluye }}</p>{% endif %}
-            {% if evento.descripcion %}<p><strong>Descripción:</strong> {{ evento.descripcion }}</p>{% endif %}
-            {% if evento.instrucciones %}<p><strong>Instrucciones:</strong> {{ evento.instrucciones }}</p>{% endif %}
-            {% if evento.recomendaciones %}<p><strong>Recomendaciones:</strong> {{ evento.recomendaciones }}</p>{% endif %}
-            <p class="text-xs text-gray-400 mt-2">Registrado por: {{ evento.usuario.username }} el {{ evento.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</p>
-
+            
             <div class="event-actions">
-                <a href="{{ url_for('editar_evento', id=evento.id) }}" class="edit-btn">Editar</a>
-                <button type="button" class="delete-btn borrar-evento-btn-swal"
-                        data-evento-id="{{ evento.id }}"
-                        data-evento-nombre="{{ evento.nombre_evento }}">
-                    Borrar
-                </button>
-                <a href="{{ url_for('exportar_evento_pdf', id=evento.id) }}" class="pdf-btn" target="_blank">Exportar PDF</a>
+                <a href="{{ url_for('detalle_evento', id=evento.id) }}" class="edit-btn">Ver más</a>
             </div>
         </div>
         {% endfor %}
@@ -234,42 +218,4 @@
     <i class="fas fa-plus"></i>
 </a>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const botonesBorrar = document.querySelectorAll('.borrar-evento-btn-swal');
-
-        botonesBorrar.forEach(boton => {
-            boton.addEventListener('click', function() {
-                const eventoId = this.dataset.eventoId;
-                const eventoNombre = this.dataset.eventoNombre;
-
-                Swal.fire({
-                    title: '¿Estás seguro?',
-                    text: `¿Deseas borrar el evento "${eventoNombre}"? Esta acción es irreversible.`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#dc3545',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Sí, borrar',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        const form = document.createElement('form');
-                        form.method = 'POST';
-                        form.action = `/borrar_evento/${eventoId}`;
-
-                        const csrfTokenInput = document.createElement('input');
-                        csrfTokenInput.type = 'hidden';
-                        csrfTokenInput.name = 'csrf_token';
-                        csrfTokenInput.value = "{{ generate_csrf() }}"; // Usa la función pasada desde Flask
-
-                        form.appendChild(csrfTokenInput);
-                        document.body.appendChild(form);
-                        form.submit();
-                    }
-                });
-            });
-        });
-    });
-</script>
 {% endblock %}

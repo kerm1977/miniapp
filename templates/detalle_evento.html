@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle del Evento{% endblock %}
+
+{% block content %}
+<style>
+    /* Estilos para la tarjeta de detalle del evento */
+    .detail-card {
+        background-color: #ffffff;
+        border-radius: 10px;
+        border: 2px solid #eee;
+        padding: 30px;
+        margin: 20px auto; /* Centrar la tarjeta */
+        max-width: 800px; /* Ancho máximo para el detalle */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .detail-card h1 {
+        font-size: 2.2em;
+        color: #333;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        text-align: center;
+    }
+
+    .detail-card p {
+        font-size: 1em;
+        color: #555;
+        margin-bottom: 8px;
+        line-height: 1.6;
+    }
+
+    .detail-card p strong {
+        color: #000;
+    }
+
+    .detail-card .section-title {
+        font-size: 1.4em;
+        color: #444;
+        margin-top: 25px;
+        margin-bottom: 10px;
+        /*border-bottom: 1px dashed #ddd;*/
+        padding-bottom: 5px;
+    }
+
+    .detail-card ul {
+        list-style: disc;
+        margin-left: 20px;
+        margin-bottom: 15px;
+    }
+
+    .detail-card ul li {
+        font-size: 1em;
+        color: #555;
+        margin-bottom: 5px;
+    }
+
+    .detail-actions {
+        display: flex;
+        justify-content: center; /* Centrar los botones */
+        gap: 15px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .detail-actions a,
+    .detail-actions button {
+        padding: 10px 20px;
+        border-radius: 25px; /* Botones más redondeados */
+        text-decoration: none;
+        font-weight: bold;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        font-size: 0.95em;
+        cursor: pointer;
+        border: none;
+    }
+
+    .detail-actions a:hover,
+    .detail-actions button:hover {
+        transform: translateY(-3px);
+    }
+
+    .edit-btn {
+        background-color: #007bff; /* Azul para editar */
+        color: white;
+    }
+
+    .edit-btn:hover {
+        background-color: #0056b3;
+    }
+
+    .delete-btn {
+        background-color: #dc3545; /* Rojo para borrar */
+        color: white;
+    }
+
+    .delete-btn:hover {
+        background-color: #c82333;
+    }
+
+    .pdf-btn {
+        background-color: #6f42c1; /* Morado para PDF */
+        color: white;
+    }
+
+    .pdf-btn:hover {
+        background-color: #5a37a8;
+    }
+
+    .flyer-container-detail {
+        width: 100%;
+        max-height: 400px; /* Altura máxima para el flyer en detalle */
+        background-color: #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 8px;
+        margin-bottom: 25px;
+    }
+
+    .flyer-container-detail img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    .flyer-container-detail .pdf-icon {
+        font-size: 6em;
+        color: #dc3545;
+    }
+
+    .flyer-container-detail .no-flyer-icon {
+        font-size: 6em;
+        color: #ccc;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="detail-card">
+        <h1>{{ evento.nombre_evento }}</h1>
+
+        <div class="flyer-container-detail">
+            {% if evento.flyer_filename %}
+                {% set file_extension = evento.flyer_filename.split('.')[-1] %}
+                {% if file_extension in ['png', 'jpg', 'jpeg', 'gif'] %}
+                    <img src="{{ url_for('static', filename='uploads/' + evento.flyer_filename) }}" alt="Flyer del Evento">
+                {% elif file_extension == 'pdf' %}
+                    <i class="fas fa-file-pdf pdf-icon"></i>
+                    <p class="text-gray-600 ml-4">Haz clic en "Exportar PDF" para ver el flyer completo.</p>
+                {% else %}
+                    <i class="fas fa-image no-flyer-icon"></i>
+                {% endif %}
+            {% else %}
+                <i class="fas fa-image no-flyer-icon"></i>
+            {% endif %}
+        </div>
+        
+        <p><strong>Tipo de Evento:</strong> {{ evento.tipo_evento }}</p>
+        <p><strong>Fecha:</strong> {{ evento.fecha_evento.strftime('%d-%m-%Y') }}</p>
+        <p><strong>Hora de Salida:</strong> {{ evento.hora_salida.strftime('%H:%M') }}</p>
+        <p><strong>Lugar de Salida:</strong> {{ evento.lugar_salida }}</p>
+        <p><strong>Precio:</strong> ₡{{ "%.2f"|format(evento.precio_evento) }}</p>
+        <p><strong>Dificultad:</strong> {{ evento.dificultad_evento }}</p>
+        <p><strong>Capacidad:</strong> {{ evento.capacidad }} personas</p>
+        {% if evento.distancia %}<p><strong>Distancia:</strong> {{ evento.distancia }}</p>{% endif %}
+
+        {% if evento.descripcion %}
+        <p class="section-title">Descripción:</p>
+        <p>{{ evento.descripcion }}</p>
+        {% endif %}
+
+        {% if evento.incluye %}
+        <p class="section-title">Incluye:</p>
+        <ul>
+            {% for item in evento.incluye.split('\n') %}
+                {% if item.strip() %}
+                <li>{{ item.strip() }}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if evento.instrucciones %}
+        <p class="section-title">Instrucciones:</p>
+        <ul>
+            {% for item in evento.instrucciones.split('\n') %}
+                {% if item.strip() %}
+                <li>{{ item.strip() }}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if evento.recomendaciones %}
+        <p class="section-title">Recomendaciones:</p>
+        <ul>
+            {% for item in evento.recomendaciones.split('\n') %}
+                {% if item.strip() %}
+                <li>{{ item.strip() }}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <p class="text-xs text-gray-400 mt-4 text-center">Registrado por: {{ evento.usuario.username }} el {{ evento.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</p>
+
+        <div class="detail-actions">
+            <a href="{{ url_for('editar_evento', id=evento.id) }}" class="edit-btn">Editar</a>
+            <button type="button" class="delete-btn borrar-evento-btn-swal"
+                    data-evento-id="{{ evento.id }}"
+                    data-evento-nombre="{{ evento.nombre_evento }}">
+                Borrar
+            </button>
+            <a href="{{ url_for('exportar_evento_pdf', id=evento.id) }}" class="pdf-btn" target="_blank">Exportar PDF</a>
+            <a href="{{ url_for('ver_eventos') }}" class="btn btn-secondary">Volver a Eventos</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const botonesBorrar = document.querySelectorAll('.borrar-evento-btn-swal');
+
+        botonesBorrar.forEach(boton => {
+            boton.addEventListener('click', function() {
+                const eventoId = this.dataset.eventoId;
+                const eventoNombre = this.dataset.eventoNombre;
+
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: `¿Deseas borrar el evento "${eventoNombre}"? Esta acción es irreversible.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, borrar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = `/borrar_evento/${eventoId}`;
+
+                        const csrfTokenInput = document.createElement('input');
+                        csrfTokenInput.type = 'hidden';
+                        csrfTokenInput.name = 'csrf_token';
+                        csrfTokenInput.value = "{{ generate_csrf() }}"; // Usa la función pasada desde Flask
+
+                        form.appendChild(csrfTokenInput);
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
