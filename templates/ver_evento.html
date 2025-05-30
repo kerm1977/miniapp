@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block title %}Ver Eventos{% endblock %}
 
@@ -163,7 +163,7 @@
 
 <div class="container mt-4">
     <h1 class="mb-4 text-center">Tus Eventos</h1>
-
+<!-- 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="flash-messages mb-4">
@@ -175,7 +175,7 @@
             </div>
         {% endif %}
     {% endwith %}
-
+ -->
     {% if eventos %}
     <div class="container-grid">
         {% for evento in eventos %}
@@ -212,9 +212,11 @@
 
             <div class="event-actions">
                 <a href="{{ url_for('editar_evento', id=evento.id) }}" class="edit-btn">Editar</a>
-                <form action="{{ url_for('borrar_evento', id=evento.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres borrar este evento? Esta acción es irreversible.');">
-                    <button type="submit" class="delete-btn">Borrar</button>
-                </form>
+                <button type="button" class="delete-btn borrar-evento-btn-swal"
+                        data-evento-id="{{ evento.id }}"
+                        data-evento-nombre="{{ evento.nombre_evento }}">
+                    Borrar
+                </button>
                 <a href="{{ url_for('exportar_evento_pdf', id=evento.id) }}" class="pdf-btn" target="_blank">Exportar PDF</a>
             </div>
         </div>
@@ -232,4 +234,42 @@
     <i class="fas fa-plus"></i>
 </a>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const botonesBorrar = document.querySelectorAll('.borrar-evento-btn-swal');
+
+        botonesBorrar.forEach(boton => {
+            boton.addEventListener('click', function() {
+                const eventoId = this.dataset.eventoId;
+                const eventoNombre = this.dataset.eventoNombre;
+
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: `¿Deseas borrar el evento "${eventoNombre}"? Esta acción es irreversible.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, borrar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = `/borrar_evento/${eventoId}`;
+
+                        const csrfTokenInput = document.createElement('input');
+                        csrfTokenInput.type = 'hidden';
+                        csrfTokenInput.name = 'csrf_token';
+                        csrfTokenInput.value = "{{ generate_csrf() }}"; // Usa la función pasada desde Flask
+
+                        form.appendChild(csrfTokenInput);
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
 {% endblock %}

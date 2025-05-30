@@ -944,7 +944,7 @@ def update_event(id):
 def ver_eventos():
     # Asegúrate de usar el modelo 'Evento' que creamos para el CRUD de eventos
     eventos = Evento.query.filter_by(usuario_id=current_user.id).order_by(Evento.fecha_evento.desc()).all()
-    return render_template('ver_evento.html', eventos=eventos)
+    return render_template('ver_evento.html', eventos=eventos, generate_csrf=generate_csrf) # Pasa generate_csrf
 
 @app.route('/crear_evento', methods=['GET', 'POST'])
 @login_required
