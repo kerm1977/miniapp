@@ -27,14 +27,13 @@ from reportlab.lib.units import inch
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
 # Importar db y los modelos desde models.py
-# Asegúrate de que 'Evento' esté importado aquí junto con los demás.
-from models import db, User, Contacto, Event, Factura, Evento # Añadir Evento
+from models import db, User, Contacto, Event, Factura, Evento
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'tu_clave_secreta'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-UPLOAD_FOLDER = os.path.join('static', 'uploads') # Cambiado a 'uploads' para ser más genérico
+UPLOAD_FOLDER = os.path.join('static', 'uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Asegurarse de que la carpeta de subidas exista
@@ -390,7 +389,7 @@ def registro():
         if image:
             filename = secure_filename(image.filename)
             image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            new_user = User(username=username, email=email, cedula=cedula, telefono=telefono, image_filename=filename) # Guarda solo el nombre del archivo
+            new_user = User(username=username, email=email, cedula=cedula, telefono=telefono, image_filename=filename)
         else:
             new_user = User(username=username, email=email, cedula=cedula, telefono=telefono)
 
@@ -422,8 +421,6 @@ def logout():
     logout_user()
     flash('Has cerrado sesión.', 'success')
     return redirect(url_for('index'))
-
-
 
 @app.route('/editar_perfil', methods=['GET', 'POST'])
 @login_required
@@ -544,10 +541,6 @@ def perfil():
     return render_template('perfil.html', form=form, search_form=search_form)
 
 
-
-
-
-
 # CONTACTOS
 @app.route('/listar_contacto')
 @login_required
@@ -640,7 +633,7 @@ def editar_contacto(id):
         db.session.commit()
         flash('¡Contacto actualizado exitosamente!', 'success')
         return redirect(url_for('listar_contacto'))
-    return render_template('editar_contacto.html', form=form, contacto=contacto, contacto_id=id) # ¡Pasa 'contacto' aquí!
+    return render_template('editar_contacto.html', form=form, contacto=contacto, contacto_id=id)
 
 @app.route('/borrar_contacto/<int:id>', methods=['POST', 'DELETE'])
 @login_required
@@ -679,9 +672,7 @@ def buscar_contacto():
         resultados = contactos.order_by(Contacto.nombre, Contacto.primer_apellido, Contacto.segundo_apellido).all()
         return render_template('listar_contacto.html', contactos=resultados, form_busqueda=form_busqueda)
 
-    # Si la solicitud es GET o el formulario no es válido, mostrar todos los contactos ordenados
     return render_template('listar_contacto.html', contactos=Contacto.query.filter_by(usuario_id=current_user.id).order_by(Contacto.nombre, Contacto.primer_apellido, Contacto.segundo_apellido).all(), form_busqueda=form_busqueda)
-
 
 
 # VCARD Individual
@@ -711,14 +702,14 @@ def exportar_vcard(contacto_id):
         adr_param.value = vobject.vcard.Address(street=contacto.direccion)
     if contacto.empresa:
         org_param = v.add('ORG')
-        org_param.value = [contacto.empresa]  # ORG es una lista
+        org_param.value = [contacto.empresa]
     if contacto.sitio_web:
         url_param = v.add('URL')
         url_param.value = contacto.sitio_web
     if contacto.capacidad_persona:
-        v.add('X-CAPACIDAD-PERSONA').value = contacto.capacidad_persona # Campo personalizado
+        v.add('X-CAPACIDAD-PERSONA').value = contacto.capacidad_persona
     if contacto.participacion:
-        v.add('X-PARTICIPACION').value = contacto.participacion # Campo personalizado
+        v.add('X-PARTICIPACION').value = contacto.participacion
 
     vcard_content = v.serialize()
     filename = f"{contacto.nombre.lower()}_{contacto.primer_apellido.lower() if contacto.primer_apellido else ''}.vcf"
@@ -829,7 +820,6 @@ def exportar_todos_excel():
     return send_file(buffer, as_attachment=True, download_name=filename, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 
-
 # CALENDARIO
 @app.route('/api/events', methods=['POST', 'GET'])
 def handle_events():
@@ -839,7 +829,7 @@ def handle_events():
     elif request.method == 'POST':
         data = request.get_json()
         date_str = data.get('date')
-        time_str = data.get('time')  # Obtener la hora del request
+        time_str = data.get('time')
         title = data.get('title')
         description = data.get('description')
 
@@ -848,9 +838,9 @@ def handle_events():
 
         try:
             date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
-            time_obj = None # Inicializar time_obj
+            time_obj = None
             if time_str:
-                time_obj = datetime.strptime(time_str, '%H:%M').time()  # Convertir la hora a objeto time
+                time_obj = datetime.strptime(time_str, '%H:%M').time()
             new_event = Event(date=date_obj, time=time_obj, title=title, description=description)
             db.session.add(new_event)
             db.session.commit()
@@ -871,7 +861,7 @@ def handle_single_event(id):
         return jsonify({'error': f'Evento con ID {id} no encontrado'}), 404
 
     if request.method == 'GET':
-        return jsonify({'event': event.to_dict()}), 200  # Devuelve el evento como JSON
+        return jsonify({'event': event.to_dict()}), 200
     elif request.method == 'DELETE':
         db.session.delete(event)
         db.session.commit()
@@ -879,37 +869,7 @@ def handle_single_event(id):
     elif request.method == 'PUT':
         data = request.get_json()
         date_str = data.get('date')
-        time_str = data.get('time') # Obtener la hora del request
-        title = data.get('title')
-        description = data.get('description')
-
-        if date_str:
-            try:
-                event.date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            except ValueError:
-                return jsonify({'error': 'Formato de fecha inválido (YYYY-MM-DD)'}), 400
-        if time_str:
-            try:
-                event.time = datetime.strptime(time_str, '%H:%M').time()  # Convertir la hora a objeto time
-            except ValueError:
-                return jsonify({'error': 'Formato de hora inválido (HH:MM)'}), 400
-        elif 'time' in data and data['time'] is None:
-            event.time = None
-        if title:
-            event.title = title
-        if description is not None:  # Permitir borrar la descripción si se envía null
-            event.description = description
-
-        db.session.commit()
-        return jsonify({'message': f'Evento con ID {id} actualizado exitosamente', 'event': event.to_dict()}), 200
-
-@app.route('/api/events/<int:id>', methods=['PUT'])
-def update_event(id):
-    event = db.session.get(Event, id)
-    if event:
-        data = request.get_json()
-        date_str = data.get('date')
-        time_str = data.get('time')  # Obtener la hora del request
+        time_str = data.get('time')
         title = data.get('title')
         description = data.get('description')
 
@@ -927,7 +887,37 @@ def update_event(id):
             event.time = None
         if title:
             event.title = title
-        if description is not None:  # Permitir borrar la descripción si se envía null
+        if description is not None:
+            event.description = description
+
+        db.session.commit()
+        return jsonify({'message': f'Evento con ID {id} actualizado exitosamente', 'event': event.to_dict()}), 200
+
+@app.route('/api/events/<int:id>', methods=['PUT'])
+def update_event(id):
+    event = db.session.get(Event, id)
+    if event:
+        data = request.get_json()
+        date_str = data.get('date')
+        time_str = data.get('time')
+        title = data.get('title')
+        description = data.get('description')
+
+        if date_str:
+            try:
+                event.date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            except ValueError:
+                return jsonify({'error': 'Formato de fecha inválido (YYYY-MM-DD)'}), 400
+        if time_str:
+            try:
+                event.time = datetime.strptime(time_str, '%H:%M').time()
+            except ValueError:
+                return jsonify({'error': 'Formato de hora inválido (HH:MM)'}), 400
+        elif 'time' in data and data['time'] is None:
+            event.time = None
+        if title:
+            event.title = title
+        if description is not None:
             event.description = description
 
         db.session.commit()
@@ -938,21 +928,28 @@ def update_event(id):
 
 
 
+
+
+
+
+
+
+
+
+
 # --- Rutas para Eventos ---
 @app.route('/ver_eventos')
 @login_required
 def ver_eventos():
-    # Asegúrate de usar el modelo 'Evento' que creamos para el CRUD de eventos
     eventos = Evento.query.filter_by(usuario_id=current_user.id).order_by(Evento.fecha_evento.desc()).all()
-    return render_template('ver_evento.html', eventos=eventos, generate_csrf=generate_csrf) # Pasa generate_csrf
+    return render_template('ver_evento.html', eventos=eventos, generate_csrf=generate_csrf)
 
 @app.route('/crear_evento', methods=['GET', 'POST'])
 @login_required
 def crear_evento():
-    form = EventoForm() # Usar EventoForm
+    form = EventoForm()
     if form.validate_on_submit():
         try:
-            # Manejo del flyer
             flyer_filename = None
             if form.flyer.data:
                 flyer_filename = secure_filename(form.flyer.data.filename)
@@ -962,7 +959,7 @@ def crear_evento():
             fecha_evento_obj = datetime.strptime(form.fecha_evento.data, '%Y-%m-%d').date()
             hora_salida_obj = datetime.strptime(form.hora_salida.data, '%H:%M').time()
 
-            nuevo_evento = Evento( # Usar Evento
+            nuevo_evento = Evento(
                 usuario_id=current_user.id,
                 flyer_filename=flyer_filename,
                 tipo_evento=form.tipo_evento.data,
@@ -994,18 +991,16 @@ def crear_evento():
 @login_required
 def editar_evento(id):
     evento = Evento.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
-    form = EditarEventoForm(obj=evento) # Usar EditarEventoForm
+    form = EditarEventoForm(obj=evento)
 
     if request.method == 'GET':
         form.fecha_evento.data = evento.fecha_evento.strftime('%Y-%m-%d') if evento.fecha_evento else ''
         form.hora_salida.data = evento.hora_salida.strftime('%H:%M') if evento.hora_salida else ''
-        form.precio_evento.data = str(evento.precio_evento) # Asegurarse de que sea string para el campo de texto
+        form.precio_evento.data = str(evento.precio_evento)
 
     if form.validate_on_submit():
         try:
-            # Manejo del flyer
             if form.flyer.data:
-                # Eliminar el flyer anterior si existe
                 if evento.flyer_filename and os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], evento.flyer_filename)):
                     os.remove(os.path.join(app.config['UPLOAD_FOLDER'], evento.flyer_filename))
                 
@@ -1043,7 +1038,6 @@ def editar_evento(id):
 def borrar_evento(id):
     evento = Evento.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
     if evento:
-        # Eliminar el flyer asociado si existe
         if evento.flyer_filename and os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], evento.flyer_filename)):
             os.remove(os.path.join(app.config['UPLOAD_FOLDER'], evento.flyer_filename))
         
@@ -1063,21 +1057,17 @@ def exportar_evento_pdf(id):
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
     
-    # Estilos personalizados
     styles.add(ParagraphStyle(name='TitleStyle', fontSize=24, leading=28, alignment=TA_CENTER, spaceAfter=20))
-    # Modificar el estilo 'Heading2' existente en lugar de añadir uno nuevo
     styles['Heading2'].fontSize = 14
     styles['Heading2'].leading = 16
     styles['Heading2'].spaceBefore = 12
     styles['Heading2'].spaceAfter = 6
     styles['Heading2'].fontName = 'Helvetica-Bold'
 
-    # Modificar el estilo 'BodyText' existente en lugar de añadir uno nuevo
     styles['BodyText'].fontSize = 10
     styles['BodyText'].leading = 12
     styles['BodyText'].spaceAfter = 6
 
-    # Añadir el estilo 'ListText' si no existe, o modificarlo si existe
     if 'ListText' not in styles:
         styles.add(ParagraphStyle(name='ListText', fontSize=10, leading=12, spaceAfter=3, bulletIndent=18, leftIndent=36))
     else:
@@ -1089,20 +1079,16 @@ def exportar_evento_pdf(id):
 
     story = []
 
-    # Título del evento
     story.append(Paragraph(evento.nombre_evento, styles['TitleStyle']))
     story.append(Spacer(1, 0.2 * inch))
 
-    # Flyer del evento (si existe)
     if evento.flyer_filename:
         flyer_path = os.path.join(app.config['UPLOAD_FOLDER'], evento.flyer_filename)
         if os.path.exists(flyer_path):
             try:
-                # Determinar el tipo de archivo para mostrarlo correctamente
                 mime_type, _ = mimetypes.guess_type(flyer_path)
                 if mime_type and mime_type.startswith('image'):
                     img = Image(flyer_path)
-                    # Ajustar tamaño de la imagen para que quepa en la página
                     img_width = 4 * inch
                     img_height = img_width * (img.drawHeight / img.drawWidth)
                     img.drawWidth = img_width
@@ -1121,7 +1107,6 @@ def exportar_evento_pdf(id):
         else:
             story.append(Paragraph("<i>(Flyer no encontrado en el servidor)</i>", styles['BodyText']))
     
-    # Información general
     story.append(Paragraph(f"<b>Tipo de Evento:</b> {evento.tipo_evento}", styles['BodyText']))
     story.append(Paragraph(f"<b>Fecha:</b> {evento.fecha_evento.strftime('%d-%m-%Y')}", styles['BodyText']))
     story.append(Paragraph(f"<b>Hora de Salida:</b> {evento.hora_salida.strftime('%H:%M')}", styles['BodyText']))
@@ -1132,22 +1117,18 @@ def exportar_evento_pdf(id):
     story.append(Paragraph(f"<b>Capacidad:</b> {evento.capacidad} personas", styles['BodyText']))
     story.append(Spacer(1, 0.2 * inch))
 
-    # Descripción
     if evento.descripcion:
         story.append(Paragraph("<b>Descripción:</b>", styles['Heading2']))
         story.append(Paragraph(evento.descripcion, styles['BodyText']))
         story.append(Spacer(1, 0.2 * inch))
 
-    # Incluye
     if evento.incluye:
         story.append(Paragraph("<b>Incluye:</b>", styles['Heading2']))
-        # Dividir por líneas si es una lista
         for item in evento.incluye.split('\n'):
             if item.strip():
                 story.append(Paragraph(f"• {item.strip()}", styles['ListText']))
         story.append(Spacer(1, 0.2 * inch))
 
-    # Instrucciones
     if evento.instrucciones:
         story.append(Paragraph("<b>Instrucciones:</b>", styles['Heading2']))
         for item in evento.instrucciones.split('\n'):
@@ -1155,7 +1136,6 @@ def exportar_evento_pdf(id):
                 story.append(Paragraph(f"• {item.strip()}", styles['ListText']))
         story.append(Spacer(1, 0.2 * inch))
 
-    # Recomendaciones
     if evento.recomendaciones:
         story.append(Paragraph("<b>Recomendaciones:</b>", styles['Heading2']))
         for item in evento.recomendaciones.split('\n'):
@@ -1175,17 +1155,12 @@ def exportar_evento_pdf(id):
 @login_required
 def ver_facturas():
     facturas = Factura.query.filter_by(usuario_id=current_user.id).all()
-    # ESTA ES LA LÍNEA QUE DEBE CAMBIAR:
-    # Antes: return render_template('ver_facturas.html', facturas=facturas, csrf_token=generate_csrf())
-    # Ahora: Pasa la función 'generate_csrf' a la plantilla.
-    # La plantilla la llamará como 'generate_csrf()' en el JavaScript.
     return render_template('ver_facturas.html', facturas=facturas, generate_csrf=generate_csrf)
 
 # --- Nueva Ruta para Ver el Detalle Completo de una Factura ---
 @app.route('/ver_detalle_factura/<int:id>')
 @login_required
 def ver_detalle_factura(id):
-    # Busca la factura por su ID y asegúrate de que pertenezca al usuario actual
     factura = Factura.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
     return render_template('ver_detalle_factura.html', factura=factura)
 
@@ -1201,7 +1176,6 @@ def crear_factura():
         descripcion = form.descripcion.data
         monto_total = form.monto_total.data
 
-        # --- Obtener datos de los NUEVOS CAMPOS ---
         interes = form.interes.data
         realizado_por = form.realizado_por.data
         sinpe = form.sinpe.data
@@ -1209,9 +1183,7 @@ def crear_factura():
         nombre_actividad_etapa = form.nombre_actividad_etapa.data
         costo_actividad = form.costo_actividad.data
         otras_descripcion = form.otras_descripcion.data
-        # --- Fin de obtención de NUEVOS CAMPOS ---
 
-        # --- Lógica para generar automáticamente el numero_factura ---
         existing_factura_numbers = db.session.query(Factura.numero_factura) \
                                          .filter_by(usuario_id=current_user.id) \
                                          .all()
@@ -1221,7 +1193,7 @@ def crear_factura():
             if num_str and num_str.isdigit():
                 numeric_factura_numbers.append(int(num_str))
 
-        MAX_INITIAL_FACTURA_NUMBER = 158 # Asegúrate de que este número tenga sentido para ti
+        MAX_INITIAL_FACTURA_NUMBER = 158
         max_num = 0
         if numeric_factura_numbers:
             max_num = max(numeric_factura_numbers)
@@ -1231,12 +1203,11 @@ def crear_factura():
         else:
             next_num = max_num + 1
 
-        generated_numero_factura = f"{next_num:06d}" # Formato a 6 dígitos con ceros iniciales
+        generated_numero_factura = f"{next_num:06d}"
 
         if Factura.query.filter_by(numero_factura=generated_numero_factura, usuario_id=current_user.id).first():
             flash(f'Error al generar número de factura automático: El número {generated_numero_factura} ya existe. Por favor, intente de nuevo.', 'danger')
             return render_template('crear_factura.html', form=form)
-        # --- Fin de la lógica de generación ---
 
         try:
             fecha_emision = datetime.strptime(fecha_emision_str, '%Y-%m-%d').date()
@@ -1247,15 +1218,13 @@ def crear_factura():
                 descripcion=descripcion,
                 monto_total=monto_total,
                 usuario_id=current_user.id,
-                # --- ASIGNAR NUEVOS CAMPOS (con manejo de Optional si es necesario) ---
                 interes=interes,
                 realizado_por=realizado_por,
                 sinpe=sinpe,
                 tipo_actividad=tipo_actividad,
                 nombre_actividad_etapa=nombre_actividad_etapa if nombre_actividad_etapa else None,
-                costo_actividad=costo_actividad if costo_actividad else None, # Puede ser None si es Optional y vacío
+                costo_actividad=costo_actividad if costo_actividad else None,
                 otras_descripcion=otras_descripcion if otras_descripcion else None
-                # --- FIN ASIGNACIÓN NUEVOS CAMPOS ---
             )
             db.session.add(nueva_factura)
             db.session.commit()
@@ -1279,22 +1248,19 @@ def editar_factura(id):
     form = EditarFacturaForm(factura)
 
     if request.method == 'GET':
-        # --- Pre-llenar campos existentes ---
         form.numero_factura.data = factura.numero_factura
         form.cliente_id.data = factura.cliente_id
         form.fecha_emision.data = factura.fecha_emision.strftime('%Y-%m-%d') if factura.fecha_emision else ''
         form.descripcion.data = factura.descripcion
         form.monto_total.data = str(factura.monto_total) if factura.monto_total is not None else ''
 
-        # --- Pre-llenar NUEVOS CAMPOS ---
-        form.interes.data = factura.interes if factura.interes else 'Factura' # Asegura un valor por defecto si es None
+        form.interes.data = factura.interes if factura.interes else 'Factura'
         form.realizado_por.data = factura.realizado_por if factura.realizado_por else 'Jenny Ceciliano Cordoba'
         form.sinpe.data = factura.sinpe if factura.sinpe else 'Jenny Ceciliano Cordoba-86529837'
         form.tipo_actividad.data = factura.tipo_actividad if factura.tipo_actividad else 'Servicios'
         form.nombre_actividad_etapa.data = factura.nombre_actividad_etapa
         form.costo_actividad.data = str(factura.costo_actividad) if factura.costo_actividad is not None else ''
         form.otras_descripcion.data = factura.otras_descripcion
-        # --- Fin de pre-llenado de NUEVOS CAMPOS ---
 
     if form.validate_on_submit():
         factura.cliente_id = form.cliente_id.data
@@ -1302,7 +1268,6 @@ def editar_factura(id):
         factura.descripcion = form.descripcion.data
         factura.monto_total = form.monto_total.data
 
-        # --- Actualizar NUEVOS CAMPOS ---
         factura.interes = form.interes.data
         factura.realizado_por = form.realizado_por.data
         factura.sinpe = form.sinpe.data
@@ -1310,7 +1275,6 @@ def editar_factura(id):
         factura.nombre_actividad_etapa = form.nombre_actividad_etapa.data if form.nombre_actividad_etapa.data else None
         factura.costo_actividad = form.costo_actividad.data if form.costo_actividad.data else None
         factura.otras_descripcion = form.otras_descripcion.data if form.otras_descripcion.data else None
-        # --- Fin de actualización de NUEVOS CAMPOS ---
 
         try:
             factura.fecha_emision = datetime.strptime(fecha_emision_str, '%Y-%m-%d').date()
@@ -1331,9 +1295,6 @@ def editar_factura(id):
 @app.route('/borrar_factura/<int:id>', methods=['POST'])
 @login_required
 def borrar_factura(id):
-    # Nota: Es crucial usar un formulario POST y el token CSRF para esto
-    # para proteger contra ataques CSRF.
-    # El token se genera y se pasa en ver_facturas.html
     factura = Factura.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
     if factura:
         db.session.delete(factura)
@@ -1350,8 +1311,6 @@ def borrar_factura(id):
 def detalle_evento(id):
     evento = Evento.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
     return render_template('detalle_evento.html', evento=evento, generate_csrf=generate_csrf)
-
-
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

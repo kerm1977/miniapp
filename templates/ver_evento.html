@@ -18,7 +18,7 @@
         justify-content: center;
         align-items: center;
         font-size: 24px;
-        /*box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);*/
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         z-index: 1000;
         text-decoration: none;
     }
@@ -32,7 +32,7 @@
     .event-card {
         background-color: #ffffff;
         border-radius: 10px;
-        /*box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);*/
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         padding: 20px;
         margin-bottom: 20px;
         transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
@@ -42,7 +42,7 @@
 
     .event-card:hover {
         transform: translateY(-5px);
-        border: 2px solid #eee;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     }
 
     .event-card h2 {
@@ -198,7 +198,7 @@
             <h2>{{ evento.nombre_evento }}</h2>
             <p><strong>Tipo:</strong> {{ evento.tipo_evento }}</p>
             <p><strong>Fecha:</strong> {{ evento.fecha_evento.strftime('%d-%m-%Y') }}</p>
-            <p><strong>Precio:</strong> ₡{{ "%.2f"|format(evento.precio_evento) }}</p>
+            <p><strong>Precio:</strong> ₡{{ "%.0f"|format(evento.precio_evento) }}</p>
             
             <div class="event-actions">
                 <a href="{{ url_for('detalle_evento', id=evento.id) }}" class="edit-btn">Ver más</a>

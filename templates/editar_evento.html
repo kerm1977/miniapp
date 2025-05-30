@@ -3,201 +3,206 @@
 {% block title %}Editar Evento{% endblock %}
 
 {% block content %}
-<div class="container mx-auto p-4 max-w-2xl bg-white rounded-lg shadow-xl my-8">
-    <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Editar Evento</h1>
+<div class="container my-5">
+    <div class="card rounded-lg p-4"> {# Eliminado shadow-lg #}
+        <div class="card-body">
+            <h1 class="text-4xl font-extrabold text-center mb-8 text-gray-900">Editar Evento</h1>
 
-    <form method="POST" enctype="multipart/form-data" class="space-y-6">
-        {{ form.csrf_token }}
+            <form method="POST" enctype="multipart/form-data" class="space-y-8 p-8 bg-white rounded-lg"> {# Eliminado shadow-md #}
+                {{ form.csrf_token }}
 
-        <div>
-            <label for="flyer" class="block text-sm font-medium text-gray-700">Flyer del Evento</label>
-            {% if evento.flyer_filename %}
-            <p class="text-sm text-gray-500 mb-2">Flyer actual:
-                {% set file_extension = evento.flyer_filename.split('.')[-1] %}
-                {% if file_extension in ['png', 'jpg', 'jpeg', 'gif'] %}
-                    <img src="{{ url_for('static', filename='uploads/' + evento.flyer_filename) }}" alt="Flyer actual" class="mt-2 max-h-40 object-contain border rounded-md">
-                {% elif file_extension == 'pdf' %}
-                    <a href="{{ url_for('static', filename='uploads/' + evento.flyer_filename) }}" target="_blank" class="text-blue-600 hover:underline">Ver PDF actual</a>
-                {% else %}
-                    <span class="text-red-500">Tipo de archivo no reconocido.</span>
-                {% endif %}
-            </p>
-            {% else %}
-            <p class="text-sm text-gray-500 mb-2">No hay flyer cargado actualmente.</p>
-            {% endif %}
-            {{ form.flyer(class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none") }}
-            {% if form.flyer.errors %}
-                {% for error in form.flyer.errors %}
-                <p class="mt-1 text-red-500 text-xs italic">{{ error }}</p>
-                {% endfor %}
-            {% endif %}
+                <div class="card mb-4"> {# Eliminado shadow-sm #}
+                    <div class="card-body bg-light rounded">
+                        <h2 class="card-title text-primary mb-4 border-bottom pb-2">Información General</h2>
+                        
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="flyer" class="form-label">Flyer del Evento</label>
+                                {% if evento.flyer_filename %}
+                                <div class="mb-3 p-3 bg-info bg-opacity-10 rounded border border-info">
+                                    <p class="text-sm text-info mb-2">Flyer actual:</p>
+                                    <div class="w-100 d-flex align-items-center justify-content-center overflow-hidden border border-secondary rounded" style="max-height: 300px;">
+                                        {% set file_extension = evento.flyer_filename.split('.')[-1] %}
+                                        {% if file_extension in ['png', 'jpg', 'jpeg', 'gif'] %}
+                                            <img src="{{ url_for('static', filename='uploads/' + evento.flyer_filename) }}" alt="Flyer actual" class="img-fluid object-fit-contain">
+                                        {% elif file_extension == 'pdf' %}
+                                            <div class="d-flex flex-column align-items-center justify-content-center text-primary">
+                                                <i class="fas fa-file-pdf text-5xl mb-2"></i>
+                                                <a href="{{ url_for('static', filename='uploads/' + evento.flyer_filename) }}" target="_blank" class="text-decoration-none text-sm">Ver PDF actual</a>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-danger text-center">Tipo de archivo no reconocido.</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% else %}
+                                <p class="text-sm text-muted mb-3 p-3 bg-light rounded border border-secondary">No hay flyer cargado actualmente.</p>
+                                {% endif %}
+                                {{ form.flyer(class="form-control form-control-sm") }}
+                                {% if form.flyer.errors %}
+                                    {% for error in form.flyer.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="tipo_evento" class="form-label">Tipo de Evento</label>
+                                {{ form.tipo_evento(class="form-select") }} {# Eliminado shadow-sm #}
+                                {% if form.tipo_evento.errors %}
+                                    {% for error in form.tipo_evento.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="nombre_evento" class="form-label">Nombre del Evento</label>
+                                {{ form.nombre_evento(class="form-control", placeholder="Nombre del Evento") }} {# Eliminado shadow-sm #}
+                                {% if form.nombre_evento.errors %}
+                                    {% for error in form.nombre_evento.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="precio_evento" class="form-label">Precio del Evento (₡)</label>
+                                {{ form.precio_evento(class="form-control", placeholder="Ej: 25000") }} {# Eliminado shadow-sm #}
+                                {% if form.precio_evento.errors %}
+                                    {% for error in form.precio_evento.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="fecha_evento" class="form-label">Fecha del Evento</label>
+                                {{ form.fecha_evento(class="form-control", type="date") }} {# Eliminado shadow-sm #}
+                                {% if form.fecha_evento.errors %}
+                                    {% for error in form.fecha_evento.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="dificultad_evento" class="form-label">Dificultad del Evento</label>
+                                {{ form.dificultad_evento(class="form-select") }} {# Eliminado shadow-sm #}
+                                {% if form.dificultad_evento.errors %}
+                                    {% for error in form.dificultad_evento.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="lugar_salida" class="form-label">Lugar de Salida</label>
+                                {{ form.lugar_salida(class="form-select") }} {# Eliminado shadow-sm #}
+                                {% if form.lugar_salida.errors %}
+                                    {% for error in form.lugar_salida.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="hora_salida" class="form-label">Hora de Salida (HH:MM)</label>
+                                {{ form.hora_salida(class="form-control", type="time") }} {# Eliminado shadow-sm #}
+                                {% if form.hora_salida.errors %}
+                                    {% for error in form.hora_salida.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="distancia" class="form-label">Distancia</label>
+                                {{ form.distancia(class="form-control", placeholder="Ej: 10 km") }} {# Eliminado shadow-sm #}
+                                {% if form.distancia.errors %}
+                                    {% for error in form.distancia.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="capacidad" class="form-label">Capacidad</label>
+                                {{ form.capacidad(class="form-select") }} {# Eliminado shadow-sm #}
+                                {% if form.capacidad.errors %}
+                                    {% for error in form.capacidad.errors %}
+                                    <p class="text-danger small mt-1">{{ error }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4"> {# Eliminado shadow-sm #}
+                    <div class="card-body bg-light rounded">
+                        <h2 class="card-title text-primary mb-4 border-bottom pb-2">Descripción del Evento</h2>
+                        <div>
+                            <label for="descripcion" class="visually-hidden">Descripción</label>
+                            {{ form.descripcion(class="form-control", rows="5", placeholder="Descripción detallada del evento") }} {# Eliminado shadow-sm #}
+                            {% if form.descripcion.errors %}
+                                {% for error in form.descripcion.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card"> {# Eliminado shadow-sm #}
+                    <div class="card-body bg-light rounded">
+                        <h2 class="card-title text-primary mb-4 border-bottom pb-2">Detalles Adicionales</h2>
+                        <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="instrucciones-tab" data-bs-toggle="tab" data-bs-target="#tab-content-instrucciones" type="button" role="tab" aria-controls="instrucciones" aria-selected="true">Instrucciones</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="recomendaciones-tab" data-bs-toggle="tab" data-bs-target="#tab-content-recomendaciones" type="button" role="tab" aria-controls="recomendaciones" aria-selected="false">Recomendaciones</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="myTabContent">
+                            <div class="tab-pane fade show active" id="tab-content-instrucciones" role="tabpanel" aria-labelledby="instrucciones-tab">
+                                <label for="instrucciones" class="visually-hidden">Instrucciones</label>
+                                {{ form.instrucciones(class="form-control", rows="5", placeholder="Instrucciones para los participantes (uno por línea)") }} {# Eliminado shadow-sm #}
+                                {% if form.instrucciones.errors %}
+                                    {% for error in form.instrucciones.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <div class="tab-pane fade" id="tab-content-recomendaciones" role="tabpanel" aria-labelledby="recomendaciones-tab">
+                                <label for="recomendaciones" class="visually-hidden">Recomendaciones</label>
+                                {{ form.recomendaciones(class="form-control", rows="5", placeholder="Recomendaciones para el evento (uno por línea)") }} {# Eliminado shadow-sm #}
+                                {% if form.recomendaciones.errors %}
+                                    {% for error in form.recomendaciones.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-center space-x-4 mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg rounded-pill me-2">Guardar Cambios</button> {# Eliminado shadow-sm #}
+                    <a href="{{ url_for('ver_eventos') }}" class="btn btn-secondary btn-lg rounded-pill">Cancelar</a> {# Eliminado shadow-sm #}
+                </div>
+            </form>
         </div>
-
-        <div>
-            <label for="tipo_evento" class="block text-sm font-medium text-gray-700">Tipo de Evento</label>
-            {{ form.tipo_evento(class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md") }}
-            {% if form.tipo_evento.errors %}
-                {% for error in form.tipo_evento.errors %}
-                <p class="mt-1 text-red-500 text-xs italic">{{ error }}</p>
-                {% endfor %}
-            {% endif %}
-        </div>
-
-        <div>
-            <label for="nombre_evento" class="block text-sm font-medium text-gray-700">Nombre del Evento</label>
-            {{ form.nombre_evento(class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm", placeholder="Nombre del Evento") }}
-            {% if form.nombre_evento.errors %}
-                {% for error in form.nombre_evento.errors %}
-                <p class="mt-1 text-red-500 text-xs italic">{{ error }}</p>
-                {% endfor %}
-            {% endif %}
-        </div>
-
-        <div>
-            <label for="precio_evento" class="block text-sm font-medium text-gray-700">Precio del Evento (₡)</label>
-            {{ form.precio_evento(class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm", placeholder="Ej: 25000.00") }}
-            {% if form.precio_evento.errors %}
-                {% for error in form.precio_evento.errors %}
-                <p class="mt-1 text-red-500 text-xs italic">{{ error }}</p>
-                {% endfor %}
-            {% endif %}
-        </div>
-
-        <div>
-            <label for="fecha_evento" class="block text-sm font-medium text-gray-700">Fecha del Evento</label>
-            {{ form.fecha_evento(class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm", type="date") }}
-            {% if form.fecha_evento.errors %}
-                {% for error in form.fecha_evento.errors %}
-                <p class="mt-1 text-red-500 text-xs italic">{{ error }}</p>
-                {% endfor %}
-            {% endif %}
-        </div>
-
-        <div>
-            <label for="dificultad_evento" class="block text-sm font-medium text-gray-700">Dificultad del Evento</label>
-            {{ form.dificultad_evento(class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md") }}
-            {% if form.dificultad_evento.errors %}
-                {% for error in form.dificultad_evento.errors %}
-                <p class="mt-1 text-red-500 text-xs italic">{{ error }}</p>
-                {% endfor %}
-            {% endif %}
-        </div>
-
-        <div>
-            <label for="incluye" class="block text-sm font-medium text-gray-700">Incluye</label>
-            {{ form.incluye(class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm", rows="3", placeholder="Qué incluye el evento (uno por línea)") }}
-            {% if form.incluye.errors %}
-                {% for error in form.incluye.errors %}
-                <p class="mt-1 text-red-500 text-xs italic">{{ error }}</p>
-                {% endfor %}
-            {% endif %}
-        </div>
-
-        <div>
-            <label for="lugar_salida" class="block text-sm font-medium text-gray-700">Lugar de Salida</label>
-            {{ form.lugar_salida(class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md") }}
-            {% if form.lugar_salida.errors %}
-                {% for error in form.lugar_salida.errors %}
-                <p class="mt-1 text-red-500 text-xs italic">{{ error }}</p>
-                {% endfor %}
-            {% endif %}
-        </div>
-
-        <div>
-            <label for="hora_salida" class="block text-sm font-medium text-gray-700">Hora de Salida (HH:MM)</label>
-            {{ form.hora_salida(class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm", type="time") }}
-            {% if form.hora_salida.errors %}
-                {% for error in form.hora_salida.errors %}
-                <p class="mt-1 text-red-500 text-xs italic">{{ error }}</p>
-                {% endfor %}
-            {% endif %}
-        </div>
-
-        <div>
-            <label for="distancia" class="block text-sm font-medium text-gray-700">Distancia</label>
-            {{ form.distancia(class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm", placeholder="Ej: 10 km") }}
-            {% if form.distancia.errors %}
-                {% for error in form.distancia.errors %}
-                <p class="mt-1 text-red-500 text-xs italic">{{ error }}</p>
-                {% endfor %}
-            {% endif %}
-        </div>
-
-        <div>
-            <label for="capacidad" class="block text-sm font-medium text-gray-700">Capacidad</label>
-            {{ form.capacidad(class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md") }}
-            {% if form.capacidad.errors %}
-                {% for error in form.capacidad.errors %}
-                <p class="mt-1 text-red-500 text-xs italic">{{ error }}</p>
-                {% endfor %}
-            {% endif %}
-        </div>
-
-        <div>
-            <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
-            {{ form.descripcion(class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm", rows="5", placeholder="Descripción detallada del evento") }}
-            {% if form.descripcion.errors %}
-                {% for error in form.descripcion.errors %}
-                <p class="mt-1 text-red-500 text-xs italic">{{ error }}</p>
-                {% endfor %}
-            {% endif %}
-        </div>
-
-        <div class="mt-6">
-            <div class="border-b border-gray-200">
-                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                    <button type="button" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm active-tab" data-tab="instrucciones">Instrucciones</button>
-                    <button type="button" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="recomendaciones">Recomendaciones</button>
-                </nav>
-            </div>
-            <div id="tab-content-instrucciones" class="tab-content mt-4">
-                <label for="instrucciones" class="sr-only">Instrucciones</label>
-                {{ form.instrucciones(class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm", rows="5", placeholder="Instrucciones para los participantes") }}
-                {% if form.instrucciones.errors %}
-                    {% for error in form.instrucciones.errors %}
-                    <p class="mt-1 text-red-500 text-xs italic">{{ error }}</p>
-                    {% endfor %}
-                {% endif %}
-            </div>
-            <div id="tab-content-recomendaciones" class="tab-content mt-4 hidden">
-                <label for="recomendaciones" class="sr-only">Recomendaciones</label>
-                {{ form.recomendaciones(class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm", rows="5", placeholder="Recomendaciones para el evento") }}
-                {% if form.recomendaciones.errors %}
-                    {% for error in form.recomendaciones.errors %}
-                    <p class="mt-1 text-red-500 text-xs italic">{{ error }}</p>
-                    {% endfor %}
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="flex justify-end mt-6">
-            {{ form.submit(class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 ease-in-out transform hover:scale-105") }}
-        </div>
-    </form>
+    </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabContents = document.querySelectorAll('.tab-content');
-
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                // Remove active class from all buttons and hide all content
-                tabButtons.forEach(btn => btn.classList.remove('active-tab', 'border-indigo-500', 'text-indigo-600'));
-                tabButtons.forEach(btn => btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300'));
-                tabContents.forEach(content => content.classList.add('hidden'));
-
-                // Add active class to clicked button and show corresponding content
-                button.classList.add('active-tab', 'border-indigo-500', 'text-indigo-600');
-                button.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-                const targetTab = button.dataset.tab;
-                document.getElementById(`tab-content-${targetTab}`).classList.remove('hidden');
-            });
-        });
-
-        // Set initial active tab
-        document.querySelector('.tab-button.active-tab').click();
-    });
+    // Bootstrap 5 maneja las pestañas automáticamente con data-bs-toggle="tab"
+    // El JavaScript personalizado anterior ya no es estrictamente necesario para la funcionalidad básica de las pestañas
+    // Sin embargo, si necesitas lógica adicional al cambiar de pestaña, puedes usar los eventos de Bootstrap:
+    // var myTabEl = document.querySelector('#myTab button[data-bs-target="#tab-content-instrucciones"]')
+    // var tab = new bootstrap.Tab(myTabEl)
+    // tab.show()
 </script>
 {% endblock %}

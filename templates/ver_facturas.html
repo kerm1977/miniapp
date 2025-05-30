@@ -63,7 +63,7 @@
                             N/A
                         {% endif %}
                     </h6>
-                    <p class="card-text mb-1"><strong>Monto Total:</strong> ₡{{ "%.2f"|format(factura.monto_total) }}</p>
+                    <p class="card-text mb-1"><strong>Monto Total:</strong> ₡{{ factura.monto_total | int }}</p>
                     <p class="card-text mb-3 text-sm"><strong>Registro:</strong> {{ factura.fecha_registro.strftime('%Y-%m-%d %H:%M:%S') }}</p>
 
                     <div class="mt-auto d-grid gap-2 d-md-block">

@@ -3,126 +3,6 @@
 {% block title %}Factura #{{ factura.numero_factura }}{% endblock %}
 
 {% block content %}
-<div class="container my-5 invoice-container">
-    <div class="card p-4 invoice-card" style="box-shadow: none !important;">
-        <div class="card-body">
-            {# --- ENCABEZADO DE FACTURA --- #}
-            <div class="row mb-5 align-items-center">
-                <div class="col-sm-6 text-start">
-                    <h2 class="text-primary mb-1">FACTURA</h2>
-                    <p class="lead mb-0">No. **{{ factura.numero_factura }}**</p>
-                </div>
-                <div class="col-sm-6 text-end">
-                    <h4 class="text-secondary mb-1">Tu Empresa (o logo)</h4>
-                    <p class="mb-0">Tu Dirección Aquí</p>
-                    <p class="mb-0">Tu Teléfono Aquí</p>
-                    <p class="mb-0">Tu Correo Electrónico Aquí</p>
-                </div>
-            </div>
-
-            {# --- INFORMACIÓN DEL CLIENTE Y FECHAS --- #}
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <h5 class="text-muted mb-3">Cliente:</h5>
-                    {% if factura.cliente %}
-                        <p class="mb-1"><strong>{{ factura.cliente.nombre.title() }}
-                            {{ factura.cliente.primer_apellido.title() if factura.cliente.primer_apellido else '' }}
-                            {{ factura.cliente.segundo_apellido.title() if factura.cliente.segundo_apellido else '' }}</strong></p>
-                        <p class="mb-1">Móvil: {{ factura.cliente.movil if factura.cliente.movil else 'N/A' }}</p>
-                        <p class="mb-1">Teléfono: {{ factura.cliente.telefono if factura.cliente.telefono else 'N/A' }}</p>
-                    {% else %}
-                        <p class="mb-1">Cliente no disponible</p>
-                    {% endif %}
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <h5 class="text-muted mb-3">Detalles de Factura:</h5>
-                    <p class="mb-1"><strong>Fecha de Emisión:</strong> {{ factura.fecha_emision.strftime('%d de %B, %Y') }}</p>
-                    <p class="mb-1"><strong>Fecha de Registro:</strong> {{ factura.fecha_registro.strftime('%d de %B, %Y') }}</p>
-                    <p class="mb-1"><strong>Interés:</strong> {{ factura.interes if factura.interes else 'N/A' }}</p>
-                    <p class="mb-1"><strong>Realizado Por:</strong> {{ factura.realizado_por if factura.realizado_por else 'N/A' }}</p>
-                    <p class="mb-1"><strong>SINPE:</strong> {{ factura.sinpe if factura.sinpe else 'N/A' }}</p>
-                </div>
-            </div>
-
-            <hr class="my-4">
-
-            {# --- DESCRIPCIÓN GENERAL / ÍTEMS DE FACTURA (Si tuviera ítems) --- #}
-            <div class="row mb-4">
-                <div class="col-12">
-                    <h5 class="text-muted mb-3">Descripción / Servicios:</h5>
-                    <div class="border p-3 rounded bg-light">
-                        <p class="mb-0">{{ factura.descripcion if factura.descripcion else 'No hay descripción general.' }}</p>
-                    </div>
-                </div>
-            </div>
-
-            {# --- DETALLES DE LA ACTIVIDAD --- #}
-            <div class="row mb-4">
-                <div class="col-12">
-                    <h5 class="text-muted mb-3">Detalles de la Actividad:</h5>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
-                            <span>Tipo de Actividad:</span>
-                            <strong>{{ factura.tipo_actividad if factura.tipo_actividad else 'N/A' }}</strong>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
-                            <span>Nombre de Actividad/Etapa:</span>
-                            <strong>{{ factura.nombre_actividad_etapa if factura.nombre_actividad_etapa else 'N/A' }}</strong>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
-                            <span>Costo de Actividad:</span>
-                            <strong>₡{{ "%.2f"|format(factura.costo_actividad) if factura.costo_actividad is not none else 'N/A' }}</strong>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            {# --- OTRAS DESCRIPCIONES (Si existe) --- #}
-            {% if factura.otras_descripcion %}
-            <div class="row mb-4">
-                <div class="col-12">
-                    <h5 class="text-muted mb-3">Otras Observaciones:</h5>
-                    <div class="border p-3 rounded bg-light">
-                        <p class="mb-0">{{ factura.otras_descripcion }}</p>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <hr class="my-4">
-
-            {# --- MONTO TOTAL --- #}
-            <div class="row justify-content-end mb-4">
-                <div class="col-md-4">
-                    <div class="card bg-success text-white">
-                        <div class="card-body text-center">
-                            <h4 class="card-title mb-1">MONTO TOTAL</h4>
-                            <p class="card-text fs-2 mb-0">₡{{ "%.2f"|format(factura.monto_total) }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {# --- PIE DE PÁGINA DE FACTURA (Ejemplo) --- #}
-            <div class="row mt-5 text-center text-muted border-top pt-3">
-                <div class="col-12">
-                    <p class="mb-0">¡Gracias por tu negocio!</p>
-                    <p class="mb-0">Para cualquier consulta, contáctanos.</p>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <div class="text-center mt-4">
-        <a href="{{ url_for('ver_facturas') }}" class="btn btn-secondary rounded-pill">Volver a la Lista de Facturas</a>
-        <a href="{{ url_for('editar_factura', id=factura.id) }}" class="btn btn-primary rounded-pill ms-2">Editar Factura</a>
-        {# --- NUEVO BOTÓN PARA IMPRIMIR (usando la función del navegador) --- #}
-        <button type="button" class="btn btn-info rounded-pill ms-2" onclick="window.print()">Imprimir / Guardar</button>
-        {# ----------------------------------------------------------------- #}
-    </div>
-</div>
-
 <style>
     /* Estilos para impresión (Opcional, pero recomendado) */
     @media print {
@@ -161,12 +41,242 @@
 
     .invoice-container {
         max-width: 900px;
-        margin-left: auto;
-        margin-right: auto;
+        margin: 40px auto;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        font-family: 'Arial', sans-serif;
+        color: #333;
     }
+
     .invoice-card {
-        border: 1px solid #e0e0e0;
-        box-shadow: none !important;
+        border: none;
     }
+
+    .invoice-header, .invoice-details, .invoice-summary, .invoice-footer {
+        padding: 20px 0;
+    }
+
+    .invoice-header {
+        border-bottom: 2px solid #eee;
+    }
+
+    .invoice-details {
+        border-bottom: 1px dashed #eee;
+    }
+
+    .invoice-summary {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 30px;
+        border: 1px solid #dee2e6;
+    }
+
+    .invoice-summary h5 {
+        color: #007bff;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    .invoice-summary p {
+        font-size: 1.1em;
+        margin-bottom: 8px;
+    }
+
+    .invoice-summary .total-amount {
+        font-size: 1.6em;
+        font-weight: bold;
+        color: #28a745; /* Verde para el total */
+    }
+
+    .section-title {
+        color: #007bff;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    .info-item strong {
+        color: #555;
+    }
+
+    .info-item span {
+        color: #777;
+    }
+
+    .invoice-footer {
+        margin-top: 50px;
+        text-align: center;
+        font-size: 0.9em;
+        color: #888;
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+    }
+
+    .action-buttons {
+        margin-top: 30px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap; /* Para responsive */
+    }
+
+    .action-buttons .btn {
+        padding: 10px 25px;
+        border-radius: 25px;
+        font-weight: bold;
+        font-size: 0.95em;
+        transition: all 0.3s ease;
+    }
+
+    .action-buttons .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+    }
+
+    .action-buttons .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    }
+
+    .action-buttons .btn-secondary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+    }
+
+    .card-body h6 {
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+
 </style>
+
+<div class="container my-5 invoice-container">
+    <div class="card p-4 invoice-card" style="box-shadow: none !important;">
+        <div class="card-body">
+            {# --- ENCABEZADO DE FACTURA --- #}
+            <div class="row mb-5 align-items-center">
+                <div class="col-sm-6 text-start">
+                    <h2 class="text-primary mb-1">FACTURA</h2>
+                    <p class="lead mb-0">No. **{{ factura.numero_factura }}**</p>
+                </div>
+                <div class="col-sm-6 text-end">
+                    <h4 class="text-secondary mb-1">Tu Empresa (o logo)</h4>
+                    <p class="mb-0">Tu Dirección Aquí</p>
+                    <p class="mb-0">Tu Teléfono Aquí</p>
+                    <p class="mb-0">Tu Correo Electrónico Aquí</p>
+                </div>
+            </div>
+
+            {# --- INFORMACIÓN DEL CLIENTE Y FECHAS --- #}
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5 class="text-muted mb-3">Cliente:</h5>
+                    {% if factura.cliente %}
+                        <p class="mb-1"><strong>{{ factura.cliente.nombre.title() }}
+                            {% if factura.cliente.primer_apellido %}{{ factura.cliente.primer_apellido.title() }}{% endif %}
+                            {% if factura.cliente.segundo_apellido %}{{ factura.cliente.segundo_apellido.title() }}{% endif %}
+                        </strong></p>
+                        <p class="mb-1">Cédula: {{ factura.cliente.cedula }}</p>
+                        <p class="mb-1">Teléfono: {{ factura.cliente.telefono }}</p>
+                        <p class="mb-1">Correo: {{ factura.cliente.email }}</p>
+                    {% else %}
+                        <p>Cliente no disponible</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <h5 class="text-muted mb-3">Detalles de Factura:</h5>
+                    <p class="mb-1"><strong>Fecha de Emisión:</strong> {{ factura.fecha_emision.strftime('%d-%m-%Y') }}</p>
+                    <p class="mb-1"><strong>Fecha de Registro:</strong> {{ factura.fecha_registro.strftime('%d-%m-%Y %H:%M:%S') }}</p>
+                    <p class="mb-1"><strong>Realizado por:</strong> {{ factura.realizado_por if factura.realizado_por else 'N/A' }}</p>
+                    <p class="mb-1"><strong>Interés:</strong> {{ factura.interes if factura.interes else 'N/A' }}</p>
+                    <p class="mb-1"><strong>Sinpe Móvil:</strong> {{ factura.sinpe if factura.sinpe else 'N/A' }}</p>
+                </div>
+            </div>
+
+            {# --- DESCRIPCIÓN DE LA FACTURA --- #}
+            <div class="mb-4">
+                <h5 class="text-muted mb-3">Descripción General:</h5>
+                <p>{{ factura.descripcion if factura.descripcion else 'Sin descripción.' }}</p>
+            </div>
+
+            {# --- DETALLES DE LA ACTIVIDAD (SI EXISTEN) --- #}
+            <div class="mb-4">
+                <h5 class="text-muted mb-3">Detalles de Actividad/Etapa:</h5>
+                <p><strong>Nombre de Actividad/Etapa:</strong> {{ factura.nombre_actividad_etapa if factura.nombre_actividad_etapa else 'N/A' }}</p>
+                <p><strong>Costo de Actividad:</strong> ₡{{ factura.costo_actividad | int }}</p>
+                <p><strong>Otras Descripciones:</strong> {{ factura.otras_descripcion if factura.otras_descripcion else 'N/A' }}</p>
+            </div>
+
+
+            {# --- RESUMEN DE LA FACTURA --- #}
+            <div class="invoice-summary text-end">
+                <p>Subtotal: ₡{{ (factura.monto_total - factura.impuesto_monto) | int }}</p>
+                <p>Impuesto ({{ factura.impuesto_porcentaje | float | int }}%): ₡{{ factura.impuesto_monto | int }}</p>
+                <p class="total-amount">Monto Total: ₡{{ factura.monto_total | int }}</p>
+            </div>
+
+            {# --- PIE DE PÁGINA --- #}
+            <div class="invoice-footer">
+                <p>¡Gracias por tu negocio!</p>
+                <p>Este es un documento generado automáticamente y es válido sin firma.</p>
+            </div>
+        </div>
+    </div>
+
+    {# --- BOTONES DE ACCIÓN --- #}
+    <div class="action-buttons">
+        <a href="{{ url_for('editar_factura', id=factura.id) }}" class="btn btn-primary"><i class="fas fa-edit"></i> Editar Factura</a>
+        <button type="button" class="btn btn-success" onclick="window.print()"><i class="fas fa-print"></i> Imprimir Factura</button>
+        <a href="{{ url_for('ver_facturas') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver a Facturas</a>
+        <button type="button" class="btn btn-danger borrar-factura-btn-swal"
+                data-factura-id="{{ factura.id }}"
+                data-factura-numero="{{ factura.numero_factura }}"
+                data-factura-cliente="{{ factura.cliente.nombre | title }} {{ factura.cliente.primer_apellido | title or '' }} {{ factura.cliente.segundo_apellido | title or '' }}">
+            <i class="fas fa-trash-alt"></i> Borrar Factura
+        </button>
+    </div>
+</div>
+
+{# --- SweetAlert2 Script (Mantén este script como está) --- #}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const botonesBorrar = document.querySelectorAll('.borrar-factura-btn-swal');
+
+        botonesBorrar.forEach(boton => {
+            boton.addEventListener('click', function() {
+                const facturaId = this.dataset.facturaId;
+                const facturaNumero = this.dataset.facturaNumero;
+                const clienteNombreCompleto = this.dataset.facturaCliente;
+
+                Swal.fire({
+                    title: `¿Estás seguro?`,
+                    text: `¿Deseas borrar la factura número ${facturaNumero} del cliente ${clienteNombreCompleto}? Esta acción es irreversible.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, borrar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = `/borrar_factura/${facturaId}`;
+
+                        const csrfTokenInput = document.createElement('input');
+                        csrfTokenInput.type = 'hidden';
+                        csrfTokenInput.name = 'csrf_token';
+                        csrfTokenInput.value = "{{ generate_csrf() }}"; // Asegúrate de que generate_csrf() esté disponible
+
+                        form.appendChild(csrfTokenInput);
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
 {% endblock %}
