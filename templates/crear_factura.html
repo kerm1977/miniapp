@@ -1,166 +1,126 @@
 {% extends 'base.html' %}
 
-{% block title %}Crear Evento{% endblock %}
+{% block title %}Crear Factura{% endblock %}
 
 {% block content %}
 <div class="container my-5">
     <div class="card rounded-lg p-4 border-0">
         <div class="card-body">
-            <h1 class="text-4xl fw-bold text-center mb-8 text-dark">Crear Nuevo Evento</h1>
+            <h1 class="text-4xl fw-bold text-center mb-8 text-dark">Crear Nueva Factura</h1>
 
-            <form method="POST" enctype="multipart/form-data" class="p-8 bg-white rounded-lg">
+            <form method="POST" class="p-8 bg-white rounded-lg">
                 {{ form.csrf_token }}
 
                 <div class="card mb-4 border-0">
                     <div class="card-body bg-light rounded">
-                        <h2 class="card-title text-primary mb-4 border-bottom pb-2">Información General</h2>
+                        <h2 class="card-title text-primary mb-4 border-bottom pb-2">Información de la Factura</h2>
                         
                         <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="cliente_id" class="form-label">Caminante</label>
+                                {{ form.cliente_id(class="form-select") }}
+                                {% if form.cliente_id.errors %}
+                                    {% for error in form.cliente_id.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="fecha_emision" class="form-label">Fecha de Emisión</label>
+                                {{ form.fecha_emision(class="form-control", type="date") }}
+                                {% if form.fecha_emision.errors %}
+                                    {% for error in form.fecha_emision.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="monto_total" class="form-label">Monto Total (₡)</label>
+                                {{ form.monto_total(class="form-control", placeholder="Ej: 50000.00") }}
+                                {% if form.monto_total.errors %}
+                                    {% for error in form.monto_total.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="interes" class="form-label">Interés</label>
+                                {{ form.interes(class="form-select") }}
+                                {% if form.interes.errors %}
+                                    {% for error in form.interes.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="realizado_por" class="form-label">Realizado por</label>
+                                {{ form.realizado_por(class="form-select") }}
+                                {% if form.realizado_por.errors %}
+                                    {% for error in form.realizado_por.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="sinpe" class="form-label">SINPE</label>
+                                {{ form.sinpe(class="form-select") }}
+                                {% if form.sinpe.errors %}
+                                    {% for error in form.sinpe.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="tipo_actividad" class="form-label">Tipo de actividad</label>
+                                {{ form.tipo_actividad(class="form-select") }}
+                                {% if form.tipo_actividad.errors %}
+                                    {% for error in form.tipo_actividad.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="nombre_actividad_etapa" class="form-label">Nombre de la actividad o Etapa</label>
+                                {{ form.nombre_actividad_etapa(class="form-control", placeholder="Nombre de la actividad o etapa") }}
+                                {% if form.nombre_actividad_etapa.errors %}
+                                    {% for error in form.nombre_actividad_etapa.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="costo_actividad" class="form-label">Costo de la actividad (₡)</label>
+                                {{ form.costo_actividad(class="form-control", placeholder="Ej: 25000.00") }}
+                                {% if form.costo_actividad.errors %}
+                                    {% for error in form.costo_actividad.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
                             <div class="col-12">
-                                <label for="flyer" class="form-label">Flyer del Evento</label>
-                                <p class="text-sm text-muted mb-3 p-3 bg-light rounded border border-secondary">No hay flyer cargado actualmente. Sube uno si lo deseas.</p>
-                                {{ form.flyer(class="form-control form-control-sm") }}
-                                {% if form.flyer.errors %}
-                                    {% for error in form.flyer.errors %}
+                                <label for="descripcion" class="form-label">Descripción General</label>
+                                {{ form.descripcion(class="form-control", rows="3", placeholder="Descripción detallada de la factura") }}
+                                {% if form.descripcion.errors %}
+                                    {% for error in form.descripcion.errors %}
                                     <div class="text-danger small mt-1">{{ error }}</div>
                                     {% endfor %}
                                 {% endif %}
                             </div>
 
-                            <div class="col-md-6">
-                                <label for="tipo_evento" class="form-label">Tipo de Evento</label>
-                                {{ form.tipo_evento(class="form-select") }}
-                                {% if form.tipo_evento.errors %}
-                                    {% for error in form.tipo_evento.errors %}
-                                    <div class="text-danger small mt-1">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="nombre_evento" class="form-label">Nombre del Evento</label>
-                                {{ form.nombre_evento(class="form-control", placeholder="Nombre del Evento") }}
-                                {% if form.nombre_evento.errors %}
-                                    {% for error in form.nombre_evento.errors %}
-                                    <div class="text-danger small mt-1">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="precio_evento" class="form-label">Precio del Evento (₡)</label>
-                                {{ form.precio_evento(class="form-control", placeholder="Ej: 25000") }}
-                                {% if form.precio_evento.errors %}
-                                    {% for error in form.precio_evento.errors %}
-                                    <div class="text-danger small mt-1">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="fecha_evento" class="form-label">Fecha del Evento</label>
-                                {{ form.fecha_evento(class="form-control", type="date") }}
-                                {% if form.fecha_evento.errors %}
-                                    {% for error in form.fecha_evento.errors %}
-                                    <div class="text-danger small mt-1">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="dificultad_evento" class="form-label">Dificultad del Evento</label>
-                                {{ form.dificultad_evento(class="form-select") }}
-                                {% if form.dificultad_evento.errors %}
-                                    {% for error in form.dificultad_evento.errors %}
-                                    <div class="text-danger small mt-1">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="lugar_salida" class="form-label">Lugar de Salida</label>
-                                {{ form.lugar_salida(class="form-select") }}
-                                {% if form.lugar_salida.errors %}
-                                    {% for error in form.lugar_salida.errors %}
-                                    <div class="text-danger small mt-1">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="hora_salida" class="form-label">Hora de Salida (HH:MM)</label>
-                                {{ form.hora_salida(class="form-control", type="time") }}
-                                {% if form.hora_salida.errors %}
-                                    {% for error in form.hora_salida.errors %}
-                                    <div class="text-danger small mt-1">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="distancia" class="form-label">Distancia</label>
-                                {{ form.distancia(class="form-control", placeholder="Ej: 10 km") }}
-                                {% if form.distancia.errors %}
-                                    {% for error in form.distancia.errors %}
-                                    <div class="text-danger small mt-1">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="capacidad" class="form-label">Capacidad</label>
-                                {{ form.capacidad(class="form-select") }}
-                                {% if form.capacidad.errors %}
-                                    {% for error in form.capacidad.errors %}
-                                    <p class="text-danger small mt-1">{{ error }}</p>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card mb-4 border-0">
-                    <div class="card-body bg-light rounded">
-                        <h2 class="card-title text-primary mb-4 border-bottom pb-2">Descripción del Evento</h2>
-                        <div>
-                            <label for="descripcion" class="visually-hidden">Descripción</label>
-                            {{ form.descripcion(class="form-control", rows="5", placeholder="Descripción detallada del evento") }}
-                            {% if form.descripcion.errors %}
-                                {% for error in form.descripcion.errors %}
-                                <div class="text-danger small mt-1">{{ error }}</div>
-                                {% endfor %}
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card border-0">
-                    <div class="card-body bg-light rounded">
-                        <h2 class="card-title text-primary mb-4 border-bottom pb-2">Detalles Adicionales</h2>
-                        <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="instrucciones-tab" data-bs-toggle="tab" data-bs-target="#tab-content-instrucciones" type="button" role="tab" aria-controls="instrucciones" aria-selected="true">Instrucciones</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="recomendaciones-tab" data-bs-toggle="tab" data-bs-target="#tab-content-recomendaciones" type="button" role="tab" aria-controls="recomendaciones" aria-selected="false">Recomendaciones</button>
-                            </li>
-                        </ul>
-                        <div class="tab-content" id="myTabContent">
-                            <div class="tab-pane fade show active" id="tab-content-instrucciones" role="tabpanel" aria-labelledby="instrucciones-tab">
-                                <label for="instrucciones" class="visually-hidden">Instrucciones</label>
-                                {{ form.instrucciones(class="form-control", rows="5", placeholder="Instrucciones para los participantes (uno por línea)") }}
-                                {% if form.instrucciones.errors %}
-                                    {% for error in form.instrucciones.errors %}
-                                    <div class="text-danger small mt-1">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                            <div class="tab-pane fade" id="tab-content-recomendaciones" role="tabpanel" aria-labelledby="recomendaciones-tab">
-                                <label for="recomendaciones" class="visually-hidden">Recomendaciones</label>
-                                {{ form.recomendaciones(class="form-control", rows="5", placeholder="Recomendaciones para el evento (uno por línea)") }}
-                                {% if form.recomendaciones.errors %}
-                                    {% for error in form.recomendaciones.errors %}
+                            <div class="col-12">
+                                <label for="otras_descripcion" class="form-label">Otras descripción</label>
+                                {{ form.otras_descripcion(class="form-control", rows="3", placeholder="Cualquier otra descripción adicional") }}
+                                {% if form.otras_descripcion.errors %}
+                                    {% for error in form.otras_descripcion.errors %}
                                     <div class="text-danger small mt-1">{{ error }}</div>
                                     {% endfor %}
                                 {% endif %}
@@ -170,20 +130,11 @@
                 </div>
 
                 <div class="d-flex justify-content-center mt-4">
-                    <button type="submit" class="btn btn-primary btn-lg rounded-pill me-2">Crear Evento</button>
-                    <a href="{{ url_for('ver_eventos') }}" class="btn btn-secondary btn-lg rounded-pill">Cancelar</a>
+                    <button type="submit" class="btn btn-primary btn-lg rounded-pill me-2">Crear Factura</button>
+                    <a href="{{ url_for('ver_facturas') }}" class="btn btn-secondary btn-lg rounded-pill">Cancelar</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<script>
-    // Bootstrap 5 maneja las pestañas automáticamente con data-bs-toggle="tab"
-    // El JavaScript personalizado anterior ya no es estrictamente necesario para la funcionalidad básica de las pestañas
-    // Sin embargo, si necesitas lógica adicional al cambiar de pestaña, puedes usar los eventos de Bootstrap:
-    // var myTabEl = document.querySelector('#myTab button[data-bs-target="#tab-content-instrucciones"]')
-    // var tab = new bootstrap.Tab(myTabEl)
-    // tab.show()
-</script>
 {% endblock %}

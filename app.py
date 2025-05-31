@@ -937,7 +937,7 @@ def ver_eventos():
 @app.route('/crear_evento', methods=['GET', 'POST'])
 @login_required
 def crear_evento():
-    form = EventoForm()
+    form = EventoForm() # Usa EventoForm aquí
     if form.validate_on_submit():
         try:
             flyer_filename = None
@@ -975,7 +975,7 @@ def crear_evento():
         except Exception as e:
             db.session.rollback()
             flash(f'Ocurrió un error al guardar el evento: {e}', 'danger')
-    return render_template('crear_evento.html', form=form)
+    return render_template('crear_evento.html', form=form) # Renderiza la plantilla de evento
 
 @app.route('/editar_evento/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -1190,7 +1190,7 @@ def ver_detalle_factura(id):
 @app.route('/crear_factura', methods=['GET', 'POST'])
 @login_required
 def crear_factura():
-    form = CrearFacturaForm()
+    form = CrearFacturaForm() # Usa CrearFacturaForm aquí
 
     if form.validate_on_submit():
         cliente_id = form.cliente_id.data
