@@ -182,7 +182,7 @@
             </div>
         </div>
         <div class="text-right text-lg font-bold text-gray-800">
-            Total de Costos Transporte: ₡<span id="total_costos_transporte">0.00</span>
+            Total de Costos Transporte: ₡<span id="total_costos_transporte">0</span>
         </div>
 
         <h3 class="section-title">COSTOS GRUPALES</h3>
@@ -243,7 +243,7 @@
             </div>
         </div>
         <div class="text-right text-lg font-bold text-gray-800">
-            Total de Costos Grupales: ₡<span id="total_costos_grupales">0.00</span>
+            Total de Costos Grupales: ₡<span id="total_costos_grupales">0</span>
         </div>
 
         <h3 class="section-title">COSTOS INDIVIDUALES</h3>
@@ -331,16 +331,16 @@
             </div>
         </div>
         <div class="text-right text-lg font-bold text-gray-800">
-            Total Costos Individuales: ₡<span id="total_costos_individuales">0.00</span>
+            Total Costos Individuales: ₡<span id="total_costos_individuales">0</span>
         </div>
 
         <h3 class="section-title">RESUMEN DE CÁLCULOS</h3>
         <div class="space-y-3 text-gray-800">
-            <p class="text-lg font-bold">TOTAL BRUTO INDIVIDUAL: ₡<span id="total_bruto_individual">0.00</span></p>
-            <p class="text-lg font-bold">TOTAL BRUTO GENERAL COLONES: ₡<span id="total_bruto_general_colones">0.00</span></p>
-            <p class="text-lg font-bold">TOTAL BRUTO GENERAL DÓLAR: $<span id="total_bruto_general_dolar">0.00</span></p>
-            <p class="text-lg font-bold">TOTAL GANANCIA P.P: ₡<span id="total_ganancia_pp">0.00</span></p>
-            <p class="text-lg font-bold">TOTAL GANANCIA GENERAL: ₡<span id="total_ganancia_general">0.00</span></p>
+            <p class="text-lg font-bold">TOTAL BRUTO INDIVIDUAL: ₡<span id="total_bruto_individual">0</span></p>
+            <p class="text-lg font-bold">TOTAL BRUTO GENERAL COLONES: ₡<span id="total_bruto_general_colones">0</span></p>
+            <p class="text-lg font-bold">TOTAL BRUTO GENERAL DÓLAR: $<span id="total_bruto_general_dolar">0</span></p>
+            <p class="text-lg font-bold">TOTAL GANANCIA P.P: ₡<span id="total_ganancia_pp">0</span></p>
+            <p class="text-lg font-bold">TOTAL GANANCIA GENERAL: ₡<span id="total_ganancia_general">0</span></p>
         </div>
 
         <div class="form-group">
@@ -411,26 +411,42 @@
             const totalGananciaPP = costoPaquete - totalBrutoIndividual;
             const totalGananciaGeneral = totalGananciaPP * cantidadPersonas;
 
-            // Actualizar elementos en la página con los valores calculados, formateados a 2 decimales.
-            document.getElementById('total_costos_transporte').innerText = totalCostosTransporte.toFixed(2);
-            document.getElementById('total_costos_grupales').innerText = totalCostosGrupales.toFixed(2);
-            document.getElementById('total_costos_individuales').innerText = totalCostosIndividuales.toFixed(2);
-            document.getElementById('total_bruto_individual').innerText = totalBrutoIndividual.toFixed(2);
-            document.getElementById('total_bruto_general_colones').innerText = totalBrutoGeneralColones.toFixed(2);
-            document.getElementById('total_bruto_general_dolar').innerText = totalBrutoGeneralDolar.toFixed(2);
-            document.getElementById('total_ganancia_pp').innerText = totalGananciaPP.toFixed(2);
-            document.getElementById('total_ganancia_general').innerText = totalGananciaGeneral.toFixed(2);
+            // Actualizar elementos en la página con los valores calculados, formateados a 0 decimales.
+            document.getElementById('total_costos_transporte').innerText = totalCostosTransporte.toFixed(0);
+            document.getElementById('total_costos_grupales').innerText = totalCostosGrupales.toFixed(0);
+            document.getElementById('total_costos_individuales').innerText = totalCostosIndividuales.toFixed(0);
+            document.getElementById('total_bruto_individual').innerText = totalBrutoIndividual.toFixed(0);
+            document.getElementById('total_bruto_general_colones').innerText = totalBrutoGeneralColones.toFixed(0);
+            document.getElementById('total_bruto_general_dolar').innerText = totalBrutoGeneralDolar.toFixed(0);
+            document.getElementById('total_ganancia_pp').innerText = totalGananciaPP.toFixed(0);
+            document.getElementById('total_ganancia_general').innerText = totalGananciaGeneral.toFixed(0);
+        };
+
+        // Función para redondear los valores de los inputs a enteros
+        const roundInputValues = () => {
+            const numberInputs = document.querySelectorAll('input[type="number"]');
+            numberInputs.forEach(input => {
+                // Solo si el input tiene un valor y no es el campo de tipo de cambio
+                if (input.value !== '' && input.id !== 'tipo_cambio') {
+                    input.value = Math.round(parseFloat(input.value));
+                }
+            });
         };
 
         // Escuchar el evento 'input' en todos los campos relevantes para recalcular los totales en tiempo real.
         // Esto incluye campos de texto, números, select y textarea.
         const inputs = document.querySelectorAll('input[type="text"], input[type="number"], select, textarea');
         inputs.forEach(input => {
-            input.addEventListener('input', calculateTotals);
+            input.addEventListener('input', () => {
+                roundInputValues(); // Redondear el valor del input al escribir
+                calculateTotals();
+            });
         });
 
-        // Ejecutar el cálculo inicial al cargar la página. Esto es útil si el formulario se carga con datos existentes
-        // (por ejemplo, en el modo de edición) para que los totales se muestren correctamente desde el principio.
+        // Ejecutar el cálculo inicial y redondear los valores de los inputs al cargar la página.
+        // Esto es útil si el formulario se carga con datos existentes (por ejemplo, en el modo de edición)
+        // para que los totales se muestren correctamente desde el principio.
+        roundInputValues(); // Redondear valores de inputs al cargar
         calculateTotals();
     });
 </script>
