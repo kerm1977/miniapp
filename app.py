@@ -30,6 +30,9 @@ from reportlab.lib import colors
 # Importar db y los modelos desde models.py
 from models import db, User, Contacto, Event, Factura, Evento
 
+# Importar el Blueprint de pagos desde el nuevo módulo pagos.py
+from pagos import pagos_bp # Importa el Blueprint de pagos
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'tu_clave_secreta'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.db'
@@ -47,7 +50,7 @@ db.init_app(app)
 migrate = Migrate(app, db)
 
 # Extensiones permitidas para subidas (imágenes y PDF para flyers)
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'} 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -57,6 +60,10 @@ login_manager.login_message = "Por favor, inicia sesión para acceder a esta pá
 
 def is_authenticated(self):
     return True
+
+
+# --- Registro del Blueprint de Pagos ---
+app.register_blueprint(pagos_bp)
 
 
 # FORMS

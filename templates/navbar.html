@@ -26,6 +26,11 @@
             </a>
         </div>
         <div class="magic-nav-button">
+            <a href="{{ url_for('pagos.ver_pagos') }}"> {# Nuevo enlace para Pagos #}
+                <i class="fa-solid fa-money-bill"></i> {# Icono de dinero para pagos, puedes cambiarlo #}
+            </a>
+        </div>
+        <div class="magic-nav-button">
             {% if current_user.is_authenticated %}
                 <a href="#" style="pointer-events: none; opacity: 0.2;">
                     <i class="fas fa-user"></i>
