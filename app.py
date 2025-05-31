@@ -21,10 +21,11 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 import pandas as pd
 import numpy
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from reportlab.lib import colors
 
 # Importar db y los modelos desde models.py
 from models import db, User, Contacto, Event, Factura, Evento
@@ -282,7 +283,7 @@ class EventoForm(FlaskForm):
         ('El Camino de Costa Rica', 'El Camino de Costa Rica')
     ], validators=[DataRequired()])
     nombre_evento = StringField('Nombre del Evento', validators=[DataRequired()])
-    precio_evento = StringField('Precio del Evento (₡)', validators=[DataRequired(), Regexp(r'^\d+(\.\d{1,2})?$', message="El precio debe ser un número válido con hasta 2 decimales.")])
+    precio_evento = StringField('Precio del Evento (¢)', validators=[DataRequired(), Regexp(r'^\d+(\.\d{1,2})?$', message="El precio debe ser un número válido con hasta 2 decimales.")])
     fecha_evento = StringField('Fecha del Evento (YYYY-MM-DD)', validators=[DataRequired()])
     dificultad_evento = SelectField('Dificultad del Evento', choices=[
         ('Iniciante', 'Iniciante'),
@@ -319,7 +320,7 @@ class EditarEventoForm(FlaskForm):
         ('El Camino de Costa Rica', 'El Camino de Costa Rica')
     ], validators=[DataRequired()])
     nombre_evento = StringField('Nombre del Evento', validators=[DataRequired()])
-    precio_evento = StringField('Precio del Evento (₡)', validators=[DataRequired(), Regexp(r'^\d+(\.\d{1,2})?$', message="El precio debe ser un número válido con hasta 2 decimales.")])
+    precio_evento = StringField('Precio del Evento (¢)', validators=[DataRequired(), Regexp(r'^\d+(\.\d{1,2})?$', message="El precio debe ser un número válido con hasta 2 decimales.")])
     fecha_evento = StringField('Fecha del Evento (YYYY-MM-DD)', validators=[DataRequired()])
     dificultad_evento = SelectField('Dificultad del Evento', choices=[
         ('Iniciante', 'Iniciante'),
@@ -926,17 +927,6 @@ def update_event(id):
         return jsonify({'error': f'Evento con ID {id} no encontrado'}), 404
 
 
-
-
-
-
-
-
-
-
-
-
-
 # --- Rutas para Eventos ---
 @app.route('/ver_eventos')
 @login_required
@@ -1057,96 +1047,128 @@ def exportar_evento_pdf(id):
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
     
-    styles.add(ParagraphStyle(name='TitleStyle', fontSize=24, leading=28, alignment=TA_CENTER, spaceAfter=20))
-    styles['Heading2'].fontSize = 14
-    styles['Heading2'].leading = 16
-    styles['Heading2'].spaceBefore = 12
-    styles['Heading2'].spaceAfter = 6
-    styles['Heading2'].fontName = 'Helvetica-Bold'
-
-    styles['BodyText'].fontSize = 10
-    styles['BodyText'].leading = 12
-    styles['BodyText'].spaceAfter = 6
-
-    if 'ListText' not in styles:
-        styles.add(ParagraphStyle(name='ListText', fontSize=10, leading=12, spaceAfter=3, bulletIndent=18, leftIndent=36))
-    else:
-        styles['ListText'].fontSize = 10
-        styles['ListText'].leading = 12
-        styles['ListText'].spaceAfter = 3
-        styles['ListText'].bulletIndent = 18
-        styles['ListText'].leftIndent = 36
+    # --- Estilos personalizados para la factura ---
+    styles.add(ParagraphStyle(name='CompanyHeader', fontSize=12, leading=14, alignment=TA_CENTER, spaceAfter=6))
+    styles.add(ParagraphStyle(name='InvoiceTitle', fontSize=28, leading=32, alignment=TA_CENTER, spaceAfter=20, fontName='Helvetica-Bold'))
+    styles.add(ParagraphStyle(name='SectionHeader', fontSize=14, leading=16, spaceBefore=12, spaceAfter=6, fontName='Helvetica-Bold'))
+    styles.add(ParagraphStyle(name='DetailText', fontSize=10, leading=12, spaceAfter=3))
+    styles.add(ParagraphStyle(name='TableBodyText', fontSize=10, leading=12, alignment=TA_LEFT))
+    styles.add(ParagraphStyle(name='TableTotalText', fontSize=12, leading=14, alignment=TA_RIGHT, fontName='Helvetica-Bold'))
+    styles.add(ParagraphStyle(name='FooterText', fontSize=9, leading=10, alignment=TA_CENTER, spaceBefore=20))
 
     story = []
 
-    story.append(Paragraph(evento.nombre_evento, styles['TitleStyle']))
-    story.append(Spacer(1, 0.2 * inch))
+    # --- Encabezado de la Empresa (Placeholder) ---
+    story.append(Paragraph("<b>La Tribu Hiking</b>", styles['CompanyHeader']))
+    story.append(Paragraph("Dirección: San Diego, La Unión, Cartago, Costa Rica", styles['CompanyHeader']))
+    story.append(Paragraph("Teléfono: +506-86227500 | Email: lthikingcr@gmail.com", styles['CompanyHeader']))
+    story.append(Spacer(1, 0.4 * inch))
 
-    if evento.flyer_filename:
-        flyer_path = os.path.join(app.config['UPLOAD_FOLDER'], evento.flyer_filename)
-        if os.path.exists(flyer_path):
-            try:
-                mime_type, _ = mimetypes.guess_type(flyer_path)
-                if mime_type and mime_type.startswith('image'):
-                    img = Image(flyer_path)
-                    img_width = 4 * inch
-                    img_height = img_width * (img.drawHeight / img.drawWidth)
-                    img.drawWidth = img_width
-                    img.drawHeight = img_height
-                    story.append(img)
-                    story.append(Spacer(1, 0.2 * inch))
-                elif mime_type == 'application/pdf':
-                    story.append(Paragraph("<i>(El flyer es un PDF y no se puede incrustar directamente en este PDF. Por favor, ábralo por separado.)</i>", styles['BodyText']))
-                    story.append(Spacer(1, 0.2 * inch))
-                else:
-                    story.append(Paragraph("<i>(Tipo de archivo de flyer no soportado para incrustar en PDF.)</i>", styles['BodyText']))
+    # --- Título de la Factura ---
+    story.append(Paragraph("FACTURA DE EVENTO", styles['InvoiceTitle']))
+    story.append(Spacer(1, 0.3 * inch))
 
-            except Exception as e:
-                flash(f"No se pudo cargar la imagen/PDF del flyer: {e}", "warning")
-                story.append(Paragraph("<i>(No se pudo cargar el flyer del evento)</i>", styles['BodyText']))
-        else:
-            story.append(Paragraph("<i>(Flyer no encontrado en el servidor)</i>", styles['BodyText']))
-    
-    story.append(Paragraph(f"<b>Tipo de Evento:</b> {evento.tipo_evento}", styles['BodyText']))
-    story.append(Paragraph(f"<b>Fecha:</b> {evento.fecha_evento.strftime('%d-%m-%Y')}", styles['BodyText']))
-    story.append(Paragraph(f"<b>Hora de Salida:</b> {evento.hora_salida.strftime('%H:%M')}", styles['BodyText']))
-    story.append(Paragraph(f"<b>Precio:</b> ₡{evento.precio_evento:,.2f}", styles['BodyText']))
-    story.append(Paragraph(f"<b>Dificultad:</b> {evento.dificultad_evento}", styles['BodyText']))
-    story.append(Paragraph(f"<b>Lugar de Salida:</b> {evento.lugar_salida}", styles['BodyText']))
-    story.append(Paragraph(f"<b>Distancia:</b> {evento.distancia or 'N/A'}", styles['BodyText']))
-    story.append(Paragraph(f"<b>Capacidad:</b> {evento.capacidad} personas", styles['BodyText']))
-    story.append(Spacer(1, 0.2 * inch))
+    # --- Detalles de la Factura y del Cliente ---
+    invoice_details_data = [
+        [Paragraph(f"<b>Número de Factura:</b> EVENTO-{evento.id}", styles['DetailText']),
+         Paragraph(f"<b>Fecha de Emisión:</b> {evento.fecha_evento.strftime('%d-%m-%Y')}", styles['DetailText'])],
+        [Paragraph(f"<b>Cliente:</b> Participante del Evento", styles['DetailText']),
+         Paragraph(f"<b>Realizado por:</b> {evento.usuario.username}", styles['DetailText'])],
+        [Paragraph(f"<b>Tipo de Evento:</b> {evento.tipo_evento}", styles['DetailText']),
+         Paragraph(f"<b>Lugar de Salida:</b> {evento.lugar_salida}", styles['DetailText'])],
+        [Paragraph(f"<b>Hora de Salida:</b> {evento.hora_salida.strftime('%H:%M')}", styles['DetailText']),
+         Paragraph(f"<b>Dificultad:</b> {evento.dificultad_evento}", styles['DetailText'])]
+    ]
+    invoice_details_table = Table(invoice_details_data, colWidths=[4 * inch, 3 * inch])
+    invoice_details_table.setStyle(TableStyle([
+        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+    ]))
+    story.append(invoice_details_table)
+    story.append(Spacer(1, 0.3 * inch))
 
+    # --- Tabla de Conceptos ---
+    table_data = []
+    table_data.append([
+        Paragraph("<b>Concepto</b>", styles['SectionHeader']),
+        Paragraph("<b>Cantidad</b>", styles['SectionHeader']),
+        Paragraph("<b>Precio Unitario</b>", styles['SectionHeader']),
+        Paragraph("<b>Total</b>", styles['SectionHeader'])
+    ])
+
+    # Fila del evento
+    precio_unitario = float(evento.precio_evento)
+    total_linea = precio_unitario * 1 # Cantidad es 1 para el evento
+    table_data.append([
+        Paragraph(evento.nombre_evento, styles['TableBodyText']),
+        Paragraph("1", styles['TableBodyText']),
+        Paragraph(f"¢{precio_unitario:,.0f}", styles['TableBodyText']),
+        Paragraph(f"¢{total_linea:,.0f}", styles['TableBodyText'])
+    ])
+
+    # Si hay descripción, se puede añadir como una línea adicional o en el concepto
     if evento.descripcion:
-        story.append(Paragraph("<b>Descripción:</b>", styles['Heading2']))
-        story.append(Paragraph(evento.descripcion, styles['BodyText']))
-        story.append(Spacer(1, 0.2 * inch))
+        table_data.append([
+            Paragraph(f"<i>Descripción:</i> {evento.descripcion}", styles['TableBodyText']),
+            '', '', ''
+        ])
 
-    if evento.incluye:
-        story.append(Paragraph("<b>Incluye:</b>", styles['Heading2']))
-        for item in evento.incluye.split('\n'):
-            if item.strip():
-                story.append(Paragraph(f"• {item.strip()}", styles['ListText']))
-        story.append(Spacer(1, 0.2 * inch))
+    # Crear la tabla
+    col_widths = [3.5 * inch, 0.8 * inch, 1.2 * inch, 1.5 * inch]
+    invoice_table = Table(table_data, colWidths=col_widths)
+    invoice_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#E0E0E0')), # Color de fondo para el encabezado
+        ('TEXTCOLOR', (0,0), (-1,0), colors.black),
+        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0,0), (-1,0), 12),
+        ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#D3D3D3')), # Bordes de la tabla
+        ('LEFTPADDING', (0,0), (-1,-1), 6),
+        ('RIGHTPADDING', (0,0), (-1,-1), 6),
+        ('TOPPADDING', (0,0), (-1,-1), 6),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+    ]))
+    story.append(invoice_table)
+    story.append(Spacer(1, 0.2 * inch))
 
-    if evento.instrucciones:
-        story.append(Paragraph("<b>Instrucciones:</b>", styles['Heading2']))
-        for item in evento.instrucciones.split('\n'):
-            if item.strip():
-                story.append(Paragraph(f"• {item.strip()}", styles['ListText']))
-        story.append(Spacer(1, 0.2 * inch))
+    # --- Totales ---
+    subtotal = float(evento.precio_evento)
+    impuestos = 0.00 # Asumiendo 0% de impuestos por ahora, puedes ajustar esto
+    total_final = subtotal + impuestos
 
-    if evento.recomendaciones:
-        story.append(Paragraph("<b>Recomendaciones:</b>", styles['Heading2']))
-        for item in evento.recomendaciones.split('\n'):
-            if item.strip():
-                story.append(Paragraph(f"• {item.strip()}", styles['ListText']))
-        story.append(Spacer(1, 0.2 * inch))
+    totals_data = [
+        [Paragraph("Subtotal:", styles['TableTotalText']), Paragraph(f"¢{subtotal:,.0f}", styles['TableTotalText'])],
+        [Paragraph("Impuestos (0%):", styles['TableTotalText']), Paragraph(f"¢{impuestos:,.0f}", styles['TableTotalText'])],
+        [Paragraph("TOTAL:", styles['TableTotalText']), Paragraph(f"¢{total_final:,.0f}", styles['TableTotalText'])]
+    ]
+    totals_table = Table(totals_data, colWidths=[5.5 * inch, 2 * inch])
+    totals_table.setStyle(TableStyle([
+        ('ALIGN', (0,0), (-1,-1), 'RIGHT'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#D3D3D3')),
+        ('BACKGROUND', (0,2), (-1,2), colors.HexColor('#F0F0F0')), # Fondo para la fila total
+    ]))
+    story.append(totals_table)
+    story.append(Spacer(1, 0.5 * inch))
+
+    # --- Información de Pago (Ejemplo) ---
+    story.append(Paragraph("<b>Información de Pago:</b>", styles['SectionHeader']))
+    story.append(Paragraph("Método de Pago: Transferencia Bancaria / SINPE Móvil", styles['DetailText']))
+    story.append(Paragraph("SINPE Móvil: Jenny Ceciliano Cordoba - 86529837", styles['DetailText']))
+    story.append(Paragraph("SINPE Móvil: Kenneth Ruiz Matamoros - 86227500", styles['DetailText']))
+    story.append(Spacer(1, 0.5 * inch))
+
+    # --- Pie de Página ---
+    story.append(Paragraph("<i>La Tribu de los Libres.</i>", styles['FooterText']))
+    story.append(Paragraph(f"Factura generada el: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['FooterText']))
 
     doc.build(story)
     buffer.seek(0)
     
-    filename = f"evento_{evento.nombre_evento.replace(' ', '_')}.pdf"
+    filename = f"factura_evento_{evento.nombre_evento.replace(' ', '_')}.pdf"
     return send_file(buffer, as_attachment=True, download_name=filename, mimetype='application/pdf')
 
 
