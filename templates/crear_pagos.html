@@ -66,32 +66,33 @@
             margin-top: 1.5rem;
             margin-bottom: 0.75rem;
         }
+
+        /* Ocultar las flechas de spinner en campos de tipo number */
+        /* Para Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Para Firefox */
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
     </style>
 {% endblock %}
 
 {% block content %}
 <div class="container mx-auto p-4 max-w-4xl bg-white shadow-lg rounded-lg my-8">
     <h2 class="text-3xl font-bold text-center text-gray-900 mb-6">{{ title or 'Crear Nuevo Pago' }}</h2>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="mb-4">
-                {% for category, message in messages %}
-                    <div class="p-3 rounded-md {% if category == 'success' %}bg-green-100 text-green-800{% elif category == 'danger' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
-
     <form method="POST" action="" class="space-y-6">
         {{ form.csrf_token }}
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="form-group">
                 {{ form.tipo_cambio.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.tipo_cambio(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.tipo_cambio(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", step="1", value=(form.tipo_cambio.data | int) if form.tipo_cambio.data else '') }}
                 {% if form.tipo_cambio.errors %}
                     {% for error in form.tipo_cambio.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -123,7 +124,8 @@
 
             <div class="form-group">
                 {{ form.costo_paquete.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_paquete(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_paquete(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", step="1", value=(form.costo_paquete.data | int) if form.costo_paquete.data else '') }}
                 {% if form.costo_paquete.errors %}
                     {% for error in form.costo_paquete.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -134,7 +136,8 @@
 
         <div class="form-group">
             {{ form.cantidad_personas.label(class="block text-sm font-medium text-gray-700") }}
-            {{ form.cantidad_personas(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="cantidad_personas_input") }}
+            {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+            {{ form.cantidad_personas(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="cantidad_personas_input", step="1", value=(form.cantidad_personas.data | int) if form.cantidad_personas.data else '') }}
             {% if form.cantidad_personas.errors %}
                 {% for error in form.cantidad_personas.errors %}
                     <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -146,7 +149,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="form-group">
                 {{ form.costo_busetas.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_busetas(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_busetas_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_busetas(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_busetas_input", step="1", value=(form.costo_busetas.data | int) if form.costo_busetas.data else '') }}
                 {% if form.costo_busetas.errors %}
                     {% for error in form.costo_busetas.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -155,7 +159,8 @@
             </div>
             <div class="form-group">
                 {{ form.costo_lanchas_transporte.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_lanchas_transporte(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_lanchas_transporte_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_lanchas_transporte(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_lanchas_transporte_input", step="1", value=(form.costo_lanchas_transporte.data | int) if form.costo_lanchas_transporte.data else '') }}
                 {% if form.costo_lanchas_transporte.errors %}
                     {% for error in form.costo_lanchas_transporte.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -164,7 +169,8 @@
             </div>
             <div class="form-group">
                 {{ form.costo_otro_transporte.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_otro_transporte(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_otro_transporte_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_otro_transporte(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_otro_transporte_input", step="1", value=(form.costo_otro_transporte.data | int) if form.costo_otro_transporte.data else '') }}
                 {% if form.costo_otro_transporte.errors %}
                     {% for error in form.costo_otro_transporte.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -173,7 +179,8 @@
             </div>
             <div class="form-group">
                 {{ form.costo_aerolinea.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_aerolinea(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_aerolinea_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_aerolinea(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_aerolinea_input", step="1", value=(form.costo_aerolinea.data | int) if form.costo_aerolinea.data else '') }}
                 {% if form.costo_aerolinea.errors %}
                     {% for error in form.costo_aerolinea.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -189,7 +196,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="form-group">
                 {{ form.costo_guia.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_guia(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_guia_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_guia(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_guia_input", step="1", value=(form.costo_guia.data | int) if form.costo_guia.data else '') }}
                 {% if form.costo_guia.errors %}
                     {% for error in form.costo_guia.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -198,7 +206,8 @@
             </div>
             <div class="form-group">
                 {{ form.costo_entrada.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_entrada(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_entrada_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_entrada(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_entrada_input", step="1", value=(form.costo_entrada.data | int) if form.costo_entrada.data else '') }}
                 {% if form.costo_entrada.errors %}
                     {% for error in form.costo_entrada.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -207,7 +216,8 @@
             </div>
             <div class="form-group">
                 {{ form.costo_parqueo.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_parqueo(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_parqueo_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_parqueo(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_parqueo_input", step="1", value=(form.costo_parqueo.data | int) if form.costo_parqueo.data else '') }}
                 {% if form.costo_parqueo.errors %}
                     {% for error in form.costo_parqueo.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -216,7 +226,8 @@
             </div>
             <div class="form-group">
                 {{ form.costo_lancha_grupal.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_lancha_grupal(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_lancha_grupal_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_lancha_grupal(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_lancha_grupal_input", step="1", value=(form.costo_lancha_grupal.data | int) if form.costo_lancha_grupal.data else '') }}
                 {% if form.costo_lancha_grupal.errors %}
                     {% for error in form.costo_lancha_grupal.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -225,7 +236,8 @@
             </div>
             <div class="form-group">
                 {{ form.costo_alquiler_local.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_alquiler_local(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_alquiler_local_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_alquiler_local(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_alquiler_local_input", step="1", value=(form.costo_alquiler_local.data | int) if form.costo_alquiler_local.data else '') }}
                 {% if form.costo_alquiler_local.errors %}
                     {% for error in form.costo_alquiler_local.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -234,7 +246,8 @@
             </div>
             <div class="form-group">
                 {{ form.costo_estadia.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_estadia(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_estadia_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_estadia(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_estadia_input", step="1", value=(form.costo_estadia.data | int) if form.costo_estadia.data else '') }}
                 {% if form.costo_estadia.errors %}
                     {% for error in form.costo_estadia.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -250,7 +263,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="form-group">
                 {{ form.costo_bano_duchas.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_bano_duchas(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_bano_duchas_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_bano_duchas(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_bano_duchas_input", step="1", value=(form.costo_bano_duchas.data | int) if form.costo_bano_duchas.data else '') }}
                 {% if form.costo_bano_duchas.errors %}
                     {% for error in form.costo_bano_duchas.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -259,7 +273,8 @@
             </div>
             <div class="form-group">
                 {{ form.costo_impuestos.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_impuestos(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_impuestos_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_impuestos(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_impuestos_input", step="1", value=(form.costo_impuestos.data | int) if form.costo_impuestos.data else '') }}
                 {% if form.costo_impuestos.errors %}
                     {% for error in form.costo_impuestos.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -268,7 +283,8 @@
             </div>
             <div class="form-group">
                 {{ form.costo_desayuno.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_desayuno(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_desayuno_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_desayuno(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_desayuno_input", step="1", value=(form.costo_desayuno.data | int) if form.costo_desayuno.data else '') }}
                 {% if form.costo_desayuno.errors %}
                     {% for error in form.costo_desayuno.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -277,7 +293,8 @@
             </div>
             <div class="form-group">
                 {{ form.costo_almuerzo.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_almuerzo(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_almuerzo_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_almuerzo(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_almuerzo_input", step="1", value=(form.costo_almuerzo.data | int) if form.costo_almuerzo.data else '') }}
                 {% if form.costo_almuerzo.errors %}
                     {% for error in form.costo_almuerzo.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -286,7 +303,8 @@
             </div>
             <div class="form-group">
                 {{ form.costo_cafe.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_cafe(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_cafe_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_cafe(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_cafe_input", step="1", value=(form.costo_cafe.data | int) if form.costo_cafe.data else '') }}
                 {% if form.costo_cafe.errors %}
                     {% for error in form.costo_cafe.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -295,7 +313,8 @@
             </div>
             <div class="form-group">
                 {{ form.costo_cena.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_cena(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_cena_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_cena(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_cena_input", step="1", value=(form.costo_cena.data | int) if form.costo_cena.data else '') }}
                 {% if form.costo_cena.errors %}
                     {% for error in form.costo_cena.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -304,7 +323,8 @@
             </div>
             <div class="form-group">
                 {{ form.costo_refrigerio.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_refrigerio(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_refrigerio_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_refrigerio(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_refrigerio_input", step="1", value=(form.costo_refrigerio.data | int) if form.costo_refrigerio.data else '') }}
                 {% if form.costo_refrigerio.errors %}
                     {% for error in form.costo_refrigerio.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -313,7 +333,8 @@
             </div>
             <div class="form-group">
                 {{ form.costo_certificados.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_certificados(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_certificados_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_certificados(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_certificados_input", step="1", value=(form.costo_certificados.data | int) if form.costo_certificados.data else '') }}
                 {% if form.costo_certificados.errors %}
                     {% for error in form.costo_certificados.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -322,7 +343,8 @@
             </div>
             <div class="form-group">
                 {{ form.costo_reconocimientos.label(class="block text-sm font-medium text-gray-700") }}
-                {{ form.costo_reconocimientos(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_reconocimientos_input") }}
+                {# Aplicar | int para asegurar que el valor inicial sea un entero #}
+                {{ form.costo_reconocimientos(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm", id="costo_reconocimientos_input", step="1", value=(form.costo_reconocimientos.data | int) if form.costo_reconocimientos.data else '') }}
                 {% if form.costo_reconocimientos.errors %}
                     {% for error in form.costo_reconocimientos.errors %}
                         <p class="text-red-500 text-xs italic">{{ error }}</p>
@@ -363,53 +385,54 @@
     document.addEventListener('DOMContentLoaded', function() {
         const calculateTotals = () => {
             // Obtener valores de los campos de entrada. Usar 0 si el valor es nulo o no es un número.
-            const tipoCambio = parseFloat(document.getElementById('tipo_cambio').value) || 0;
-            const costoPaquete = parseFloat(document.getElementById('costo_paquete').value) || 0;
-            const cantidadPersonas = parseInt(document.getElementById('cantidad_personas_input').value) || 0;
+            // Asegurarse de que los valores de los inputs se conviertan a enteros antes de los cálculos
+            const tipoCambio = Math.round(parseFloat(document.getElementById('tipo_cambio').value) || 0);
+            const costoPaquete = Math.round(parseFloat(document.getElementById('costo_paquete').value) || 0);
+            const cantidadPersonas = Math.round(parseInt(document.getElementById('cantidad_personas_input').value) || 0);
 
             // Costos Transporte
-            const costoBusetas = parseFloat(document.getElementById('costo_busetas_input').value) || 0;
-            const costoLanchasTransporte = parseFloat(document.getElementById('costo_lanchas_transporte_input').value) || 0;
-            const costoOtroTransporte = parseFloat(document.getElementById('costo_otro_transporte_input').value) || 0;
-            const costoAerolinea = parseFloat(document.getElementById('costo_aerolinea_input').value) || 0;
+            const costoBusetas = Math.round(parseFloat(document.getElementById('costo_busetas_input').value) || 0);
+            const costoLanchasTransporte = Math.round(parseFloat(document.getElementById('costo_lanchas_transporte_input').value) || 0);
+            const costoOtroTransporte = Math.round(parseFloat(document.getElementById('costo_otro_transporte_input').value) || 0);
+            const costoAerolinea = Math.round(parseFloat(document.getElementById('costo_aerolinea_input').value) || 0);
 
             // Costos Grupales
-            const costoGuia = parseFloat(document.getElementById('costo_guia_input').value) || 0;
-            const costoEntrada = parseFloat(document.getElementById('costo_entrada_input').value) || 0;
-            const costoParqueo = parseFloat(document.getElementById('costo_parqueo_input').value) || 0;
-            const costoLanchaGrupal = parseFloat(document.getElementById('costo_lancha_grupal_input').value) || 0;
-            const costoAlquilerLocal = parseFloat(document.getElementById('costo_alquiler_local_input').value) || 0;
-            const costoEstadia = parseFloat(document.getElementById('costo_estadia_input').value) || 0;
+            const costoGuia = Math.round(parseFloat(document.getElementById('costo_guia_input').value) || 0);
+            const costoEntrada = Math.round(parseFloat(document.getElementById('costo_entrada_input').value) || 0);
+            const costoParqueo = Math.round(parseFloat(document.getElementById('costo_parqueo_input').value) || 0);
+            const costoLanchaGrupal = Math.round(parseFloat(document.getElementById('costo_lancha_grupal_input').value) || 0);
+            const costoAlquilerLocal = Math.round(parseFloat(document.getElementById('costo_alquiler_local_input').value) || 0);
+            const costoEstadia = Math.round(parseFloat(document.getElementById('costo_estadia_input').value) || 0);
 
             // Costos Individuales
-            const costoBanoDuchas = parseFloat(document.getElementById('costo_bano_duchas_input').value) || 0;
-            const costoImpuestos = parseFloat(document.getElementById('costo_impuestos_input').value) || 0;
-            const costoDesayuno = parseFloat(document.getElementById('costo_desayuno_input').value) || 0;
-            const costoAlmuerzo = parseFloat(document.getElementById('costo_almuerzo_input').value) || 0;
-            const costoCafe = parseFloat(document.getElementById('costo_cafe_input').value) || 0;
-            const costoCena = parseFloat(document.getElementById('costo_cena_input').value) || 0;
-            const costoRefrigerio = parseFloat(document.getElementById('costo_refrigerio_input').value) || 0;
-            const costoCertificados = parseFloat(document.getElementById('costo_certificados_input').value) || 0;
-            const costoReconocimientos = parseFloat(document.getElementById('costo_reconocimientos_input').value) || 0;
+            const costoBanoDuchas = Math.round(parseFloat(document.getElementById('costo_bano_duchas_input').value) || 0);
+            const costoImpuestos = Math.round(parseFloat(document.getElementById('costo_impuestos_input').value) || 0);
+            const costoDesayuno = Math.round(parseFloat(document.getElementById('costo_desayuno_input').value) || 0);
+            const costoAlmuerzo = Math.round(parseFloat(document.getElementById('costo_almuerzo_input').value) || 0);
+            const costoCafe = Math.round(parseFloat(document.getElementById('costo_cafe_input').value) || 0);
+            const costoCena = Math.round(parseFloat(document.getElementById('costo_cena_input').value) || 0);
+            const costoRefrigerio = Math.round(parseFloat(document.getElementById('costo_refrigerio_input').value) || 0);
+            const costoCertificados = Math.round(parseFloat(document.getElementById('costo_certificados_input').value) || 0);
+            const costoReconocimientos = Math.round(parseFloat(document.getElementById('costo_reconocimientos_input').value) || 0);
 
             // Cálculos
             const totalCostosTransporteBruto = costoBusetas + costoLanchasTransporte + costoOtroTransporte + costoAerolinea;
             // Si cantidadPersonas es 0, el total de transporte por persona es 0 para evitar división por cero.
-            const totalCostosTransporte = cantidadPersonas > 0 ? totalCostosTransporteBruto / cantidadPersonas : 0;
+            const totalCostosTransporte = cantidadPersonas > 0 ? Math.round(totalCostosTransporteBruto / cantidadPersonas) : 0;
 
             const totalCostosGrupalesBruto = costoGuia + costoEntrada + costoParqueo + costoLanchaGrupal + costoAlquilerLocal + costoEstadia;
             // Si cantidadPersonas es 0 o el total bruto grupal es 0, el total grupal por persona es 0.
-            const totalCostosGrupales = (cantidadPersonas > 0 && totalCostosGrupalesBruto > 0) ? totalCostosGrupalesBruto / cantidadPersonas : 0;
+            const totalCostosGrupales = (cantidadPersonas > 0 && totalCostosGrupalesBruto > 0) ? Math.round(totalCostosGrupalesBruto / cantidadPersonas) : 0;
 
             const totalCostosIndividuales = costoBanoDuchas + costoImpuestos + costoDesayuno + costoAlmuerzo + costoCafe + costoCena + costoRefrigerio + costoCertificados + costoReconocimientos;
 
             const totalBrutoIndividual = totalCostosTransporte + totalCostosGrupales + totalCostosIndividuales;
-            const totalBrutoGeneralColones = totalBrutoIndividual * cantidadPersonas;
+            const totalBrutoGeneralColones = Math.round(totalBrutoIndividual * cantidadPersonas);
             // Si tipoCambio es 0, el total en dólares es 0 para evitar división por cero.
-            const totalBrutoGeneralDolar = tipoCambio > 0 ? totalBrutoGeneralColones / tipoCambio : 0;
+            const totalBrutoGeneralDolar = tipoCambio > 0 ? Math.round(totalBrutoGeneralColones / tipoCambio) : 0; // Se ha corregido la lógica para usar totalBrutoGeneralColones
 
             const totalGananciaPP = costoPaquete - totalBrutoIndividual;
-            const totalGananciaGeneral = totalGananciaPP * cantidadPersonas;
+            const totalGananciaGeneral = Math.round(totalGananciaPP * cantidadPersonas);
 
             // Actualizar elementos en la página con los valores calculados, formateados a 0 decimales.
             document.getElementById('total_costos_transporte').innerText = totalCostosTransporte.toFixed(0);
@@ -426,8 +449,8 @@
         const roundInputValues = () => {
             const numberInputs = document.querySelectorAll('input[type="number"]');
             numberInputs.forEach(input => {
-                // Solo si el input tiene un valor y no es el campo de tipo de cambio
-                if (input.value !== '' && input.id !== 'tipo_cambio') {
+                // Solo si el input tiene un valor
+                if (input.value !== '') {
                     input.value = Math.round(parseFloat(input.value));
                 }
             });

@@ -120,19 +120,6 @@
 <div class="container mt-4">
     <h2 class="mb-4 text-center">Lista de Pagos</h2>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="mb-4">
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
-
     {% if pagos %}
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         {% for pago in pagos %}

@@ -4,7 +4,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, TextAreaField, DecimalField, IntegerField
+from wtforms import StringField, SubmitField, SelectField, TextAreaField, IntegerField # Importar IntegerField
 from wtforms.validators import DataRequired, NumberRange, Optional, Length
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
@@ -23,50 +23,51 @@ class Pago(db.Model):
     usuario = db.relationship('User', backref=db.backref('pagos', lazy=True))
 
     fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
-    tipo_cambio = db.Column(db.Numeric(10, 4), nullable=False)
+    tipo_cambio = db.Column(db.Integer, nullable=False) # CAMBIADO a Integer
     actividad = db.Column(db.String(100), nullable=False)
     nombre_actividad = db.Column(db.String(255), nullable=False)
-    costo_paquete = db.Column(db.Numeric(10, 2), nullable=False)
+    costo_paquete = db.Column(db.Integer, nullable=False) # CAMBIADO a Integer
     cantidad_personas = db.Column(db.Integer, nullable=False)
 
-    # Costos Transporte
-    costo_busetas = db.Column(db.Numeric(10, 2), nullable=True, default=0)
-    costo_lanchas_transporte = db.Column(db.Numeric(10, 2), nullable=True, default=0)
-    costo_otro_transporte = db.Column(db.Numeric(10, 2), nullable=True, default=0)
-    costo_aerolinea = db.Column(db.Numeric(10, 2), nullable=True, default=0)
+    # Costos Transporte - CAMBIADOS a Integer
+    costo_busetas = db.Column(db.Integer, nullable=True, default=0)
+    costo_lanchas_transporte = db.Column(db.Integer, nullable=True, default=0)
+    costo_otro_transporte = db.Column(db.Integer, nullable=True, default=0)
+    costo_aerolinea = db.Column(db.Integer, nullable=True, default=0)
 
-    # Costos Grupales
-    costo_guia = db.Column(db.Numeric(10, 2), nullable=True, default=0)
-    costo_entrada = db.Column(db.Numeric(10, 2), nullable=True, default=0)
-    costo_parqueo = db.Column(db.Numeric(10, 2), nullable=True, default=0)
-    costo_lancha_grupal = db.Column(db.Numeric(10, 2), nullable=True, default=0)
-    costo_alquiler_local = db.Column(db.Numeric(10, 2), nullable=True, default=0)
-    costo_estadia = db.Column(db.Numeric(10, 2), nullable=True, default=0)
+    # Costos Grupales - CAMBIADOS a Integer
+    costo_guia = db.Column(db.Integer, nullable=True, default=0)
+    costo_entrada = db.Column(db.Integer, nullable=True, default=0)
+    costo_parqueo = db.Column(db.Integer, nullable=True, default=0)
+    costo_lancha_grupal = db.Column(db.Integer, nullable=True, default=0)
+    costo_alquiler_local = db.Column(db.Integer, nullable=True, default=0)
+    costo_estadia = db.Column(db.Integer, nullable=True, default=0)
 
-    # Costos Individuales
-    costo_bano_duchas = db.Column(db.Numeric(10, 2), nullable=True, default=0)
-    costo_impuestos = db.Column(db.Numeric(10, 2), nullable=True, default=0)
-    costo_desayuno = db.Column(db.Numeric(10, 2), nullable=True, default=0)
-    costo_almuerzo = db.Column(db.Numeric(10, 2), nullable=True, default=0)
-    costo_cafe = db.Column(db.Numeric(10, 2), nullable=True, default=0)
-    costo_cena = db.Column(db.Numeric(10, 2), nullable=True, default=0)
-    costo_refrigerio = db.Column(db.Numeric(10, 2), nullable=True, default=0)
-    costo_certificados = db.Column(db.Numeric(10, 2), nullable=True, default=0)
-    costo_reconocimientos = db.Column(db.Numeric(10, 2), nullable=True, default=0)
+    # Costos Individuales - CAMBIADOS a Integer
+    costo_bano_duchas = db.Column(db.Integer, nullable=True, default=0)
+    costo_impuestos = db.Column(db.Integer, nullable=True, default=0)
+    costo_desayuno = db.Column(db.Integer, nullable=True, default=0)
+    costo_almuerzo = db.Column(db.Integer, nullable=True, default=0)
+    costo_cafe = db.Column(db.Integer, nullable=True, default=0)
+    costo_cena = db.Column(db.Integer, nullable=True, default=0)
+    costo_refrigerio = db.Column(db.Integer, nullable=True, default=0)
+    costo_certificados = db.Column(db.Integer, nullable=True, default=0)
+    costo_reconocimientos = db.Column(db.Integer, nullable=True, default=0)
 
     nota = db.Column(db.Text, nullable=True)
 
     def __repr__(self):
         return f'<Pago {self.nombre_actividad} - {self.fecha_registro.strftime("%Y-%m-%d")}>'
 
-    # Propiedades calculadas
+    # Propiedades calculadas (ajustadas para manejar enteros en el backend)
     @property
     def total_costos_transporte(self):
         total = (self.costo_busetas or 0) + \
                 (self.costo_lanchas_transporte or 0) + \
                 (self.costo_otro_transporte or 0) + \
                 (self.costo_aerolinea or 0)
-        return total / self.cantidad_personas if self.cantidad_personas else 0
+        # Usar round() para asegurar enteros en la división
+        return round(total / self.cantidad_personas) if self.cantidad_personas else 0
 
     @property
     def total_costos_grupales(self):
@@ -77,7 +78,7 @@ class Pago(db.Model):
                 (self.costo_alquiler_local or 0) + \
                 (self.costo_estadia or 0)
         # Solo calcular si el total es mayor que cero para evitar división por cero si todos son cero
-        return total / self.cantidad_personas if self.cantidad_personas and total > 0 else 0
+        return round(total / self.cantidad_personas) if self.cantidad_personas and total > 0 else 0
 
     @property
     def total_costos_individuales(self):
@@ -104,7 +105,8 @@ class Pago(db.Model):
     @property
     def total_bruto_general_dolar(self):
         # Asegurarse de que tipo_cambio no sea cero para evitar ZeroDivisionError
-        return self.costo_paquete / self.tipo_cambio if self.tipo_cambio else 0
+        # Usar round() para asegurar enteros en la división
+        return round(self.costo_paquete / self.tipo_cambio) if self.tipo_cambio else 0
 
     @property
     def total_ganancia_pp(self):
@@ -117,7 +119,8 @@ class Pago(db.Model):
 
 # --- Formulario de Pagos: PagoForm ---
 class PagoForm(FlaskForm):
-    tipo_cambio = DecimalField('Tipo de Cambio', validators=[DataRequired(), NumberRange(min=0.01)], render_kw={"step": "0.01"})
+    # CAMBIADO a IntegerField y eliminado render_kw step
+    tipo_cambio = IntegerField('Tipo de Cambio', validators=[DataRequired(), NumberRange(min=1)])
     actividad = SelectField('Actividad', choices=[
         ('El Camino de Costa Rica', 'El Camino de Costa Rica'),
         ('Parque Nacional', 'Parque Nacional'),
@@ -129,33 +132,34 @@ class PagoForm(FlaskForm):
         ('Convivio', 'Convivio')
     ], validators=[DataRequired()])
     nombre_actividad = StringField('Nombre de Actividad', validators=[DataRequired(), Length(max=255)])
-    costo_paquete = DecimalField('Costo Paquete', validators=[DataRequired(), NumberRange(min=0)], render_kw={"step": "0.01"})
+    # CAMBIADO a IntegerField y eliminado render_kw step
+    costo_paquete = IntegerField('Costo Paquete', validators=[DataRequired(), NumberRange(min=0)])
     cantidad_personas = IntegerField('Cantidad de Personas', validators=[DataRequired(), NumberRange(min=1)])
 
-    # Costos Transporte
-    costo_busetas = DecimalField('Costo Busetas', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
-    costo_lanchas_transporte = DecimalField('Costo Lanchas', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
-    costo_otro_transporte = DecimalField('Costo Otro Transporte (acarreo, 4x4)', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
-    costo_aerolinea = DecimalField('Costo Aerolínea', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
+    # Costos Transporte - CAMBIADOS a IntegerField y eliminado render_kw step
+    costo_busetas = IntegerField('Costo Busetas', validators=[Optional(), NumberRange(min=0)], default=0)
+    costo_lanchas_transporte = IntegerField('Costo Lanchas', validators=[Optional(), NumberRange(min=0)], default=0)
+    costo_otro_transporte = IntegerField('Costo Otro Transporte (acarreo, 4x4)', validators=[Optional(), NumberRange(min=0)], default=0)
+    costo_aerolinea = IntegerField('Costo Aerolínea', validators=[Optional(), NumberRange(min=0)], default=0)
 
-    # Costos Grupales
-    costo_guia = DecimalField('Costo Guía', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
-    costo_entrada = DecimalField('Costo Entrada', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
-    costo_parqueo = DecimalField('Costo Parqueo', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
-    costo_lancha_grupal = DecimalField('Costo Lancha', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
-    costo_alquiler_local = DecimalField('Costo Alquiler local', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
-    costo_estadia = DecimalField('Costo Estadía', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
+    # Costos Grupales - CAMBIADOS a IntegerField y eliminado render_kw step
+    costo_guia = IntegerField('Costo Guía', validators=[Optional(), NumberRange(min=0)], default=0)
+    costo_entrada = IntegerField('Costo Entrada', validators=[Optional(), NumberRange(min=0)], default=0)
+    costo_parqueo = IntegerField('Costo Parqueo', validators=[Optional(), NumberRange(min=0)], default=0)
+    costo_lancha_grupal = IntegerField('Costo Lancha', validators=[Optional(), NumberRange(min=0)], default=0)
+    costo_alquiler_local = IntegerField('Costo Alquiler local', validators=[Optional(), NumberRange(min=0)], default=0)
+    costo_estadia = IntegerField('Costo Estadía', validators=[Optional(), NumberRange(min=0)], default=0)
 
-    # Costos Individuales
-    costo_bano_duchas = DecimalField('Costo Baño/Duchas', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
-    costo_impuestos = DecimalField('Costo Impuestos', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
-    costo_desayuno = DecimalField('Costo Desayuno', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
-    costo_almuerzo = DecimalField('Costo Almuerzo', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
-    costo_cafe = DecimalField('Costo Café', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
-    costo_cena = DecimalField('Costo Cena', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
-    costo_refrigerio = DecimalField('Costo Refrigerio', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
-    costo_certificados = DecimalField('Costo Certificados', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
-    costo_reconocimientos = DecimalField('Costo Reconocimientos', validators=[Optional(), NumberRange(min=0)], default=0, render_kw={"step": "0.01"})
+    # Costos Individuales - CAMBIADOS a IntegerField y eliminado render_kw step
+    costo_bano_duchas = IntegerField('Costo Baño/Duchas', validators=[Optional(), NumberRange(min=0)], default=0)
+    costo_impuestos = IntegerField('Costo Impuestos', validators=[Optional(), NumberRange(min=0)], default=0)
+    costo_desayuno = IntegerField('Costo Desayuno', validators=[Optional(), NumberRange(min=0)], default=0)
+    costo_almuerzo = IntegerField('Costo Almuerzo', validators=[Optional(), NumberRange(min=0)], default=0)
+    costo_cafe = IntegerField('Costo Café', validators=[Optional(), NumberRange(min=0)], default=0)
+    costo_cena = IntegerField('Costo Cena', validators=[Optional(), NumberRange(min=0)], default=0)
+    costo_refrigerio = IntegerField('Costo Refrigerio', validators=[Optional(), NumberRange(min=0)], default=0)
+    costo_certificados = IntegerField('Costo Certificados', validators=[Optional(), NumberRange(min=0)], default=0)
+    costo_reconocimientos = IntegerField('Costo Reconocimientos', validators=[Optional(), NumberRange(min=0)], default=0)
 
     nota = TextAreaField('Nota', validators=[Optional()])
 
