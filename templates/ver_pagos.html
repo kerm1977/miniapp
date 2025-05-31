@@ -114,11 +114,63 @@
             font-size: 0.8rem; /* Botones más pequeños */
             padding: 0.375rem 0.75rem;
         }
+
+        /* Nuevo estilo para el botón de exportar PDF (general) */
+        .export-pdf-button-general {
+            position: fixed !important;
+            bottom: 100px !important;
+            left: 20px !important;
+            background-color: #28a745 !important; /* Color verde */
+            color: white !important;
+            border-radius: 50% !important;
+            width: 56px !important;
+            height: 56px !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            font-size: 24px !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+            z-index: 9999 !important;
+            text-decoration: none !important;
+        }
+
+        .export-pdf-button-general:hover {
+            background-color: #218838 !important; /* Verde más oscuro al pasar el mouse */
+            color: white !important;
+        }
+
+        .export-pdf-button-icon {
+            color: white !important;
+        }
+
+        /* Estilo para el botón de exportar PDF individual */
+        .btn-export-individual-pdf {
+            background-color: #17a2b8; /* Color info/cian */
+            color: white;
+        }
+
+        .btn-export-individual-pdf:hover {
+            background-color: #138496; /* Color info/cian más oscuro */
+            color: white;
+        }
     </style>
 
 
 <div class="container mt-4">
     <h2 class="mb-4 text-center">Lista de Pagos</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="mb-4">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
     {% if pagos %}
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
@@ -132,20 +184,20 @@
                 <div class="card-body">
                     <p class="payment-detail"><strong>Actividad:</strong> {{ pago.actividad }}</p>
                     <p class="payment-detail"><strong>Nombre:</strong> {{ pago.nombre_actividad }}</p>
-                    <p class="payment-detail"><strong>Costo Paquete:</strong> ₡{{ "%.0f"|format(pago.costo_paquete) }}</p>
+                    <p class="payment-detail"><strong>Costo Paquete:</strong> ¢{{ pago.costo_paquete }}</p>
                     <p class="payment-detail"><strong>Cant. Personas:</strong> {{ pago.cantidad_personas }}</p>
-                    <p class="payment-detail"><strong>Tipo Cambio:</strong> {{ "%.0f"|format(pago.tipo_cambio) }}</p>
+                    <p class="payment-detail"><strong>Tipo Cambio:</strong> {{ pago.tipo_cambio }}</p>
 
                     <hr class="my-2">
 
-                    <p class="payment-detail"><strong>Total Bruto Ind.:</strong> ₡{{ "%.0f"|format(pago.total_bruto_individual) }}</p>
-                    <p class="payment-detail"><strong>Ganancia P.P.:</strong> ₡{{ "%.0f"|format(pago.total_ganancia_pp) }}</p>
+                    <p class="payment-detail"><strong>Total Bruto Ind.:</strong> ¢{{ pago.total_bruto_individual }}</p>
+                    <p class="payment-detail"><strong>Ganancia P.P.:</strong> ¢{{ pago.total_ganancia_pp }}</p>
                     <p class="payment-detail"><strong>Nota:</strong> {{ pago.nota or 'N/A' }}</p>
                 </div>
                 <div class="payment-summary">
-                    <p class="mb-0"><strong>Total General (CRC):</strong> ₡{{ "%.0f"|format(pago.total_bruto_general_colones) }}</p>
-                    <p class="mb-0"><strong>Total General (USD):</strong> ${{ "%.0f"|format(pago.total_bruto_general_dolar) }}</p>
-                    <p class="mb-0"><strong>Ganancia Total:</strong> ₡{{ "%.0f"|format(pago.total_ganancia_general) }}</p>
+                    <p class="mb-0"><strong>Total General (CRC):</strong> ¢{{ pago.total_bruto_general_colones }}</p>
+                    <p class="mb-0"><strong>Total General (USD):</strong> ${{ pago.total_bruto_general_dolar }}</p>
+                    <p class="mb-0"><strong>Ganancia Total:</strong> ¢{{ pago.total_ganancia_general }}</p>
                 </div>
                 <div class="payment-actions">
                     <a href="{{ url_for('pagos.editar_pagos', id=pago.id) }}" class="btn btn-sm btn-warning">
@@ -157,6 +209,10 @@
                             <i class="fas fa-trash-alt"></i> Borrar
                         </button>
                     </form>
+                    {# Nuevo botón para exportar PDF individual #}
+                    <a href="{{ url_for('pagos.exportar_pago_individual_pdf', pago_id=pago.id) }}" class="btn btn-sm btn-export-individual-pdf">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </a>
                 </div>
             </div>
         </div>
@@ -169,11 +225,16 @@
     {% endif %}
 </div>
 
-
-
+{# --- BOTÓN FLOTANTE PARA CREAR NUEVO PAGO --- #}
 <a href="{{ url_for('pagos.crear_pagos') }}" class="floating-action-button">
     <i class="fas fa-plus"></i>
 </a>
 
+{# --- BOTÓN FLOTANTE PARA EXPORTAR TODOS LOS PAGOS A PDF --- #}
+<a href="{{ url_for('pagos.exportar_pagos_pdf') }}" class="export-pdf-button-general">
+    <i class="fas fa-file-pdf"></i>
+</a>
+{# --------------------------------------------- #}
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}
