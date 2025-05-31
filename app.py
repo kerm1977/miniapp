@@ -232,6 +232,8 @@ class CrearFacturaForm(FlaskForm):
     nombre_actividad_etapa = StringField('Nombre de la actividad o Etapa', validators=[Optional()], render_kw={"class": "form-control"})
     costo_actividad = StringField('Costo de la actividad', validators=[Optional()], render_kw={"class": "form-control"})
     otras_descripcion = TextAreaField('Otras descripción', validators=[Optional()], render_kw={"class": "form-control"})
+    impuesto_monto = StringField('Monto de Impuesto (₡)', validators=[Optional(), Regexp(r'^\d+(\.\d{1,2})?$', message="El impuesto debe ser un número válido con hasta 2 decimales.")], render_kw={"class": "form-control"})
+
 
     submit = SubmitField('Guardar Factura', render_kw={"class": "btn btn-success rounded-pill"})
 
@@ -262,6 +264,8 @@ class EditarFacturaForm(FlaskForm):
     nombre_actividad_etapa = StringField('Nombre de la actividad o Etapa', render_kw={"class": "rounded-pill"})
     costo_actividad = StringField('Costo de la actividad', render_kw={"class": "rounded-pill"})
     otras_descripcion = TextAreaField('Otras descripción', render_kw={"class": "rounded-pill"})
+    impuesto_monto = StringField('Monto de Impuesto (₡)', validators=[Optional(), Regexp(r'^\d+(\.\d{1,2})?$', message="El impuesto debe ser un número válido con hasta 2 decimales.")], render_kw={"class": "form-control"})
+
 
     submit = SubmitField('Guardar Cambios', render_kw={"class": "btn btn-primary"})
 
@@ -1184,7 +1188,7 @@ def ver_facturas():
 @login_required
 def ver_detalle_factura(id):
     factura = Factura.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
-    return render_template('ver_detalle_factura.html', factura=factura)
+    return render_template('ver_detalle_factura.html', factura=factura, generate_csrf=generate_csrf)
 
 # --- Ruta para Crear Nueva Factura ---
 @app.route('/crear_factura', methods=['GET', 'POST'])
@@ -1197,6 +1201,7 @@ def crear_factura():
         fecha_emision_str = form.fecha_emision.data
         descripcion = form.descripcion.data
         monto_total = form.monto_total.data
+        impuesto_monto = form.impuesto_monto.data # Obtener el monto del impuesto
 
         interes = form.interes.data
         realizado_por = form.realizado_por.data
@@ -1246,7 +1251,8 @@ def crear_factura():
                 tipo_actividad=tipo_actividad,
                 nombre_actividad_etapa=nombre_actividad_etapa if nombre_actividad_etapa else None,
                 costo_actividad=costo_actividad if costo_actividad else None,
-                otras_descripcion=otras_descripcion if otras_descripcion else None
+                otras_descripcion=otras_descripcion if otras_descripcion else None,
+                impuesto_monto=impuesto_monto if impuesto_monto else 0.00 # Guardar el monto del impuesto
             )
             db.session.add(nueva_factura)
             db.session.commit()
@@ -1283,12 +1289,16 @@ def editar_factura(id):
         form.nombre_actividad_etapa.data = factura.nombre_actividad_etapa
         form.costo_actividad.data = str(factura.costo_actividad) if factura.costo_actividad is not None else ''
         form.otras_descripcion.data = factura.otras_descripcion
+        form.impuesto_monto.data = str(factura.impuesto_monto) if factura.impuesto_monto is not None else '0.00' # Cargar el monto del impuesto
+
 
     if form.validate_on_submit():
         factura.cliente_id = form.cliente_id.data
         fecha_emision_str = form.fecha_emision.data
         factura.descripcion = form.descripcion.data
         factura.monto_total = form.monto_total.data
+        factura.impuesto_monto = form.impuesto_monto.data if form.impuesto_monto.data else 0.00 # Actualizar el monto del impuesto
+
 
         factura.interes = form.interes.data
         factura.realizado_por = form.realizado_por.data

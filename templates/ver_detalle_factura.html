@@ -34,218 +34,339 @@
             -webkit-print-color-adjust: exact; /* Para Chrome/Safari */
             color-adjust: exact; /* Estándar */
         }
-        .text-white {
-            color: white !important;
-        }
+        /* Otros estilos para impresión si son necesarios */
     }
 
+    /* Estilos generales para el contenedor de la factura */
     .invoice-container {
-        max-width: 900px;
+        max-width: 800px;
         margin: 40px auto;
+        padding: 30px;
+        border: 1px solid #eee;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        font-size: 16px;
+        line-height: 24px;
+        font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+        color: #555;
         background-color: #fff;
-        border-radius: 10px;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-        font-family: 'Arial', sans-serif;
+        border-radius: 8px;
+    }
+
+    .invoice-container h1, .invoice-container h2, .invoice-container h3 {
+        text-align: center;
         color: #333;
     }
 
-    .invoice-card {
-        border: none;
+    .invoice-container .invoice-header,
+    .invoice-container .invoice-details,
+    .invoice-container .invoice-items,
+    .invoice-container .invoice-totals,
+    .invoice-container .invoice-footer {
+        margin-bottom: 20px;
     }
 
-    .invoice-header, .invoice-details, .invoice-summary, .invoice-footer {
-        padding: 20px 0;
+    .invoice-container .invoice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
     }
 
-    .invoice-header {
-        border-bottom: 2px solid #eee;
+    .invoice-container .invoice-header .logo {
+        max-width: 150px;
+        height: auto;
     }
 
-    .invoice-details {
-        border-bottom: 1px dashed #eee;
+    .invoice-container .invoice-header .company-info {
+        text-align: right;
     }
 
-    .invoice-summary {
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        padding: 20px;
-        margin-top: 30px;
-        border: 1px solid #dee2e6;
+    .invoice-container .invoice-details {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
     }
 
-    .invoice-summary h5 {
+    .invoice-container .invoice-details .client-info,
+    .invoice-container .invoice-details .invoice-info {
+        width: 48%;
+    }
+
+    .invoice-container .invoice-items table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    .invoice-container .invoice-items th,
+    .invoice-container .invoice-items td {
+        border: 1px solid #eee;
+        padding: 10px;
+        text-align: left;
+    }
+
+    .invoice-container .invoice-items th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+
+    .invoice-container .invoice-totals {
+        width: 100%;
+        text-align: right;
+        margin-top: 20px;
+    }
+
+    .invoice-container .invoice-totals p {
+        margin: 5px 0;
+    }
+
+    .invoice-container .invoice-totals .total-amount {
+        font-size: 24px;
+        font-weight: bold;
         color: #007bff;
-        font-weight: bold;
-        margin-bottom: 15px;
     }
 
-    .invoice-summary p {
-        font-size: 1.1em;
-        margin-bottom: 8px;
-    }
-
-    .invoice-summary .total-amount {
-        font-size: 1.6em;
-        font-weight: bold;
-        color: #28a745; /* Verde para el total */
-    }
-
-    .section-title {
-        color: #007bff;
-        font-weight: bold;
-        margin-bottom: 15px;
-    }
-
-    .info-item strong {
-        color: #555;
-    }
-
-    .info-item span {
-        color: #777;
-    }
-
-    .invoice-footer {
-        margin-top: 50px;
+    .invoice-container .invoice-footer {
         text-align: center;
-        font-size: 0.9em;
-        color: #888;
+        font-size: 14px;
+        color: #777;
         border-top: 1px solid #eee;
         padding-top: 20px;
+        margin-top: 30px;
     }
 
+    /* Estilos para los botones de acción */
     .action-buttons {
+        text-align: center;
         margin-top: 30px;
-        display: flex;
-        justify-content: center;
-        gap: 15px;
-        flex-wrap: wrap; /* Para responsive */
     }
 
     .action-buttons .btn {
-        padding: 10px 25px;
-        border-radius: 25px;
+        margin: 0 10px;
+    }
+    .invoice-box {
+        max-width: 800px;
+        margin: auto;
+        padding: 30px;
+        border: 1px solid #eee;
+        box-shadow: 0 0 10px rgba(0, 0, 0, .15);
+        font-size: 16px;
+        line-height: 24px;
+        font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+        color: #555;
+    }
+
+    .invoice-box table {
+        width: 100%;
+        line-height: inherit;
+        text-align: left;
+    }
+
+    .invoice-box table td {
+        padding: 5px;
+        vertical-align: top;
+    }
+
+    .invoice-box table tr td:nth-child(2) {
+        text-align: right;
+    }
+
+    .invoice-box table tr.top table td {
+        padding-bottom: 20px;
+    }
+
+    .invoice-box table tr.top table td.title {
+        font-size: 45px;
+        line-height: 45px;
+        color: #333;
+    }
+
+    .invoice-box table tr.information table td {
+        padding-bottom: 40px;
+    }
+
+    .invoice-box table tr.heading td {
+        background: #eee;
+        border-bottom: 1px solid #ddd;
         font-weight: bold;
-        font-size: 0.95em;
-        transition: all 0.3s ease;
     }
 
-    .action-buttons .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+    .invoice-box table tr.details td {
+        padding-bottom: 20px;
     }
 
-    .action-buttons .btn-success:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    .invoice-box table tr.item td {
+        border-bottom: 1px solid #eee;
     }
 
-    .action-buttons .btn-secondary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+    .invoice-box table tr.item.last td {
+        border-bottom: none;
     }
 
-    .card-body h6 {
-        margin-bottom: 1rem;
-        font-size: 1.1rem;
+    .invoice-box table tr.total td:nth-child(2) {
+        border-top: 2px solid #eee;
+        font-weight: bold;
     }
 
+    @media only screen and (max-width: 600px) {
+        .invoice-box table tr.top table td {
+            width: 100%;
+            display: block;
+            text-align: center;
+        }
+
+        .invoice-box table tr.information table td {
+            width: 100%;
+            display: block;
+            text-align: center;
+        }
+    }
+
+    /** RTL **/
+    .rtl {
+        direction: rtl;
+        font-family: Tahoma, 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+    }
+
+    .rtl table {
+        text-align: right;
+    }
+
+    .rtl table tr td:nth-child(2) {
+        text-align: left;
+    }
 </style>
 
-<div class="container my-5 invoice-container">
-    <div class="card p-4 invoice-card" style="box-shadow: none !important;">
-        <div class="card-body">
-            {# --- ENCABEZADO DE FACTURA --- #}
-            <div class="row mb-5 align-items-center">
-                <div class="col-sm-6 text-start">
-                    <h2 class="text-primary mb-1">FACTURA</h2>
-                    <p class="lead mb-0">No. **{{ factura.numero_factura }}**</p>
-                </div>
-                <div class="col-sm-6 text-end">
-                    <h4 class="text-secondary mb-1">Tu Empresa (o logo)</h4>
-                    <p class="mb-0">Tu Dirección Aquí</p>
-                    <p class="mb-0">Tu Teléfono Aquí</p>
-                    <p class="mb-0">Tu Correo Electrónico Aquí</p>
-                </div>
-            </div>
+<div class="invoice-container">
+    <div class="invoice-box">
+        <table cellpadding="0" cellspacing="0">
+            <tr class="top">
+                <td colspan="2">
+                    <table>
+                        <tr>
+                            <td class="title">
+                                <img src="https://placehold.co/150x50/E0E0E0/333333?text=Tu+Logo" style="width:100%; max-width:150px;">
+                            </td>
+                            <td>
+                                Factura #: {{ factura.numero_factura }}<br>
+                                Creada: {{ factura.fecha_registro.strftime('%d-%m-%Y %H:%M') }}<br>
+                                Fecha de Emisión: {{ factura.fecha_emision.strftime('%d-%m-%Y') }}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
 
-            {# --- INFORMACIÓN DEL CLIENTE Y FECHAS --- #}
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <h5 class="text-muted mb-3">Cliente:</h5>
-                    {% if factura.cliente %}
-                        <p class="mb-1"><strong>{{ factura.cliente.nombre.title() }}
-                            {% if factura.cliente.primer_apellido %}{{ factura.cliente.primer_apellido.title() }}{% endif %}
-                            {% if factura.cliente.segundo_apellido %}{{ factura.cliente.segundo_apellido.title() }}{% endif %}
-                        </strong></p>
-                        <p class="mb-1">Cédula: {{ factura.cliente.cedula }}</p>
-                        <p class="mb-1">Teléfono: {{ factura.cliente.telefono }}</p>
-                        <p class="mb-1">Correo: {{ factura.cliente.email }}</p>
-                    {% else %}
-                        <p>Cliente no disponible</p>
-                    {% endif %}
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <h5 class="text-muted mb-3">Detalles de Factura:</h5>
-                    <p class="mb-1"><strong>Fecha de Emisión:</strong> {{ factura.fecha_emision.strftime('%d-%m-%Y') }}</p>
-                    <p class="mb-1"><strong>Fecha de Registro:</strong> {{ factura.fecha_registro.strftime('%d-%m-%Y %H:%M:%S') }}</p>
-                    <p class="mb-1"><strong>Realizado por:</strong> {{ factura.realizado_por if factura.realizado_por else 'N/A' }}</p>
-                    <p class="mb-1"><strong>Interés:</strong> {{ factura.interes if factura.interes else 'N/A' }}</p>
-                    <p class="mb-1"><strong>Sinpe Móvil:</strong> {{ factura.sinpe if factura.sinpe else 'N/A' }}</p>
-                </div>
-            </div>
+            <tr class="information">
+                <td colspan="2">
+                    <table>
+                        <tr>
+                            <td>
+                                La Tribu Hiking.<br>
+                                San Diego, La Unión, Cartago.<br>
+                                Tel: +506-86227500<br>
+                                Email: lthikingcr@gmail.com
+                            </td>
 
-            {# --- DESCRIPCIÓN DE LA FACTURA --- #}
-            <div class="mb-4">
-                <h5 class="text-muted mb-3">Descripción General:</h5>
-                <p>{{ factura.descripcion if factura.descripcion else 'Sin descripción.' }}</p>
-            </div>
+                            <td>
+                                {{ factura.cliente.nombre }} {{ factura.cliente.primer_apellido }} {{ factura.cliente.segundo_apellido }}<br>
+                                Tel: {{ factura.cliente.telefono }} / {{ factura.cliente.movil }}<br>
+                                Email: {{ factura.cliente.email }}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
 
-            {# --- DETALLES DE LA ACTIVIDAD (SI EXISTEN) --- #}
-            <div class="mb-4">
-                <h5 class="text-muted mb-3">Detalles de Actividad/Etapa:</h5>
-                <p><strong>Nombre de Actividad/Etapa:</strong> {{ factura.nombre_actividad_etapa if factura.nombre_actividad_etapa else 'N/A' }}</p>
-                <p><strong>Costo de Actividad:</strong> ₡{{ factura.costo_actividad | int }}</p>
-                <p><strong>Otras Descripciones:</strong> {{ factura.otras_descripcion if factura.otras_descripcion else 'N/A' }}</p>
-            </div>
+            <tr class="heading">
+                <td>Detalles de Factura</td>
+                <td></td>
+            </tr>
 
+            <tr class="details">
+                <td>Interés:</td>
+                <td>{{ factura.interes }}</td>
+            </tr>
+            <tr class="details">
+                <td>Realizado por:</td>
+                <td>{{ factura.realizado_por }}</td>
+            </tr>
+            <tr class="details">
+                <td>SINPE:</td>
+                <td>{{ factura.sinpe }}</td>
+            </tr>
+            <tr class="details">
+                <td>Tipo de actividad:</td>
+                <td>{{ factura.tipo_actividad }}</td>
+            </tr>
+            <tr class="details">
+                <td>Nombre de la actividad o Etapa:</td>
+                <td>{{ factura.nombre_actividad_etapa if factura.nombre_actividad_etapa else 'N/A' }}</td>
+            </tr>
+            <tr class="details">
+                <td>Costo de la actividad:</td>
+                <td>₡{{ "%.2f" | format(factura.costo_actividad | float) if factura.costo_actividad is not none else '0.00' }}</td>
+            </tr>
+            <tr class="details">
+                <td>Descripción General:</td>
+                <td>{{ factura.descripcion if factura.descripcion else 'N/A' }}</td>
+            </tr>
+            <tr class="details">
+                <td>Otras descripción:</td>
+                <td>{{ factura.otras_descripcion if factura.otras_descripcion else 'N/A' }}</td>
+            </tr>
 
-            {# --- RESUMEN DE LA FACTURA --- #}
-            <div class="invoice-summary text-end">
-                <p>Subtotal: ₡{{ (factura.monto_total - factura.impuesto_monto) | int }}</p>
-                <p>Impuesto ({{ factura.impuesto_porcentaje | float | int }}%): ₡{{ factura.impuesto_monto | int }}</p>
-                <p class="total-amount">Monto Total: ₡{{ factura.monto_total | int }}</p>
-            </div>
+            <tr class="heading">
+                <td>Artículo</td>
+                <td>Precio</td>
+            </tr>
 
-            {# --- PIE DE PÁGINA --- #}
-            <div class="invoice-footer">
-                <p>¡Gracias por tu negocio!</p>
-                <p>Este es un documento generado automáticamente y es válido sin firma.</p>
-            </div>
-        </div>
+            <tr class="item">
+                <td>Monto Total Facturado</td>
+                <td>₡{{ "%.2f" | format(factura.monto_total | float) }}</td>
+            </tr>
+            
+            <tr class="item">
+                <td>Monto de Impuesto</td>
+                <td>₡{{ "%.2f" | format(factura.impuesto_monto | float) if factura.impuesto_monto is not none else '0.00' }}</td>
+            </tr>
+
+            <tr class="total">
+                <td></td>
+                <td>
+                   Subtotal: ₡{{ "%.2f" | format(factura.monto_total | float - (factura.impuesto_monto | float if factura.impuesto_monto is not none else 0.00)) }}
+                </td>
+            </tr>
+            <tr class="total">
+                <td></td>
+                <td>
+                   Total (con impuesto): ₡{{ "%.2f" | format(factura.monto_total | float) }}
+                </td>
+            </tr>
+        </table>
     </div>
 
-    {# --- BOTONES DE ACCIÓN --- #}
     <div class="action-buttons">
-        <a href="{{ url_for('editar_factura', id=factura.id) }}" class="btn btn-primary"><i class="fas fa-edit"></i> Editar Factura</a>
-        <button type="button" class="btn btn-success" onclick="window.print()"><i class="fas fa-print"></i> Imprimir Factura</button>
-        <a href="{{ url_for('ver_facturas') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver a Facturas</a>
-        <button type="button" class="btn btn-danger borrar-factura-btn-swal"
+        <a href="{{ url_for('editar_factura', id=factura.id) }}" class="btn btn-warning rounded-pill">Editar Factura</a>
+        <button type="button" class="btn btn-danger rounded-pill delete-factura-btn"
                 data-factura-id="{{ factura.id }}"
                 data-factura-numero="{{ factura.numero_factura }}"
-                data-factura-cliente="{{ factura.cliente.nombre | title }} {{ factura.cliente.primer_apellido | title or '' }} {{ factura.cliente.segundo_apellido | title or '' }}">
-            <i class="fas fa-trash-alt"></i> Borrar Factura
+                data-factura-cliente="{{ factura.cliente.nombre }} {{ factura.cliente.primer_apellido }}">
+            Borrar Factura
         </button>
+        <a href="{{ url_for('ver_facturas') }}" class="btn btn-info rounded-pill">Volver a Facturas</a>
+        <button type="button" class="btn btn-primary rounded-pill" onclick="window.print()">Imprimir Factura</button>
     </div>
 </div>
 
-{# --- SweetAlert2 Script (Mantén este script como está) --- #}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const botonesBorrar = document.querySelectorAll('.borrar-factura-btn-swal');
-
-        botonesBorrar.forEach(boton => {
-            boton.addEventListener('click', function() {
+        const deleteButtons = document.querySelectorAll('.delete-factura-btn');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
                 const facturaId = this.dataset.facturaId;
                 const facturaNumero = this.dataset.facturaNumero;
                 const clienteNombreCompleto = this.dataset.facturaCliente;

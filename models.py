@@ -35,71 +35,72 @@ class User(UserMixin, db.Model):
         return True
     
     @property
+    def is_authenticated(self):
+        return True
+
+    @property
     def is_anonymous(self):
         return False
 
 class Contacto(db.Model):
+    __tablename__ = 'contacto'
+
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
-    primer_apellido = db.Column(db.String(100))
-    segundo_apellido = db.Column(db.String(100))
+    primer_apellido = db.Column(db.String(100), nullable=True)
+    segundo_apellido = db.Column(db.String(100), nullable=True)
     telefono = db.Column(db.String(20), nullable=False)
-    movil = db.Column(db.String(20))
-    email = db.Column(db.String(120))
-    direccion = db.Column(db.String(200))
-    actividad = db.Column(db.String(100))  # Corrección: Usando 'actividad' para el modelo
-    tipo_actividad = db.Column(db.String(100)) # Manteniendo tipo_actividad si lo usas en el formulario
-    nota = db.Column(db.Text)
-    direccion_mapa = db.Column(db.String(255))
-    avatar_path = db.Column(db.String(255)) # Para guardar la ruta del avatar
+    movil = db.Column(db.String(20), nullable=True)
+    email = db.Column(db.String(120), nullable=True)
+    direccion = db.Column(db.String(200), nullable=True)
+    tipo_actividad = db.Column(db.String(100), nullable=True)
+    nota = db.Column(db.Text, nullable=True)
     fecha_ingreso = db.Column(db.DateTime, default=datetime.utcnow)
+    direccion_mapa = db.Column(db.String(255), nullable=True)
+    avatar_path = db.Column(db.String(255), nullable=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    empresa = db.Column(db.String(100), nullable=True)
+    sitio_web = db.Column(db.String(255), nullable=True)
+    capacidad_persona = db.Column(db.String(50), nullable=True)
+    participacion = db.Column(db.String(50), nullable=True)
+
     usuario = db.relationship('User', backref=db.backref('contactos', lazy=True))
-    empresa = db.Column(db.String(100))
-    sitio_web = db.Column(db.String(200))
-    # Nuevos campos select
-    capacidad_persona = db.Column(db.String(20))
-    participacion = db.Column(db.String(30))
 
     def __repr__(self):
-        return f'<Contacto {self.nombre}>'
+        return f'<Contacto {self.nombre} {self.primer_apellido}>'
 
 class Event(db.Model):
-    __tablename__ = 'event'
-    __table_args__ = {'extend_existing': True}
-
+    __tablename__ = 'events'
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False)
-    time = db.Column(db.Time, nullable=True)  # Nuevo campo para la hora
-    title = db.Column(db.String(80), nullable=False)
+    time = db.Column(db.Time, nullable=True)
+    title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
         return {
             'id': self.id,
-            'date': self.date.isoformat(),
-            'time': self.time.strftime('%H:%M') if self.time else None, # Formatea la hora para la respuesta
+            'date': self.date.strftime('%Y-%m-%d'),
+            'time': self.time.strftime('%H:%M') if self.time else None,
             'title': self.title,
             'description': self.description
         }
 
-# Nuevo modelo para Eventos
 class Evento(db.Model):
     __tablename__ = 'eventos'
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     flyer_filename = db.Column(db.String(255), nullable=True)
-    tipo_evento = db.Column(db.String(100), nullable=False) # Parque Nacional, El Camino de Costa Rica
+    tipo_evento = db.Column(db.String(100), nullable=False)
     nombre_evento = db.Column(db.String(255), nullable=False)
-    precio_evento = db.Column(db.Numeric(10, 0), nullable=False)
+    precio_evento = db.Column(db.Numeric(10, 2), nullable=False)
     fecha_evento = db.Column(db.Date, nullable=False)
-    dificultad_evento = db.Column(db.String(50), nullable=False) # Iniciante, Básico, Intermedio, Avanzado, Técnico
+    dificultad_evento = db.Column(db.String(100), nullable=False)
     incluye = db.Column(db.Text, nullable=True)
-    lugar_salida = db.Column(db.String(255), nullable=False) # Parque de Tres Ríos Escuela, etc.
+    lugar_salida = db.Column(db.String(255), nullable=False)
     hora_salida = db.Column(db.Time, nullable=False)
-    distancia = db.Column(db.String(100), nullable=True)
-    capacidad = db.Column(db.Integer, nullable=False) # 14, 17, 28, 42
+    distancia = db.Column(db.String(50), nullable=True)
+    capacidad = db.Column(db.Integer, nullable=False)
     descripcion = db.Column(db.Text, nullable=True)
     instrucciones = db.Column(db.Text, nullable=True)
     recomendaciones = db.Column(db.Text, nullable=True)
@@ -131,6 +132,9 @@ class Factura(db.Model):
     nombre_actividad_etapa = db.Column(db.String(255), nullable=True)
     costo_actividad = db.Column(db.Numeric(10, 2), nullable=True)
     otras_descripcion = db.Column(db.Text, nullable=True)
-
+    
+    # Nuevo campo para el monto del impuesto
+    impuesto_monto = db.Column(db.Numeric(10, 2), nullable=True, default=0.00) 
+    
     def __repr__(self):
         return f'<Factura {self.numero_factura}>'
