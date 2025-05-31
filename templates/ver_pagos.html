@@ -34,41 +34,85 @@
             color: white !important;
         }
 
-        /* Estilos para las tarjetas de pago */
+        /* Estilos para las tarjetas de pago (simulando factura) */
         .payment-card {
-            border: none;
-            border-radius: 0.75rem; /* Bordes más redondeados */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s ease-in-out;
+            border: 1px solid #e0e0e0; /* Borde sutil para simular documento */
+            border-radius: 0.5rem; /* Bordes ligeramente redondeados */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* Sombra más suave */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            background-color: #ffffff;
+            overflow: hidden; /* Para contener bien los bordes */
         }
 
         .payment-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .payment-card-header {
+            background-color: #f8f9fa; /* Fondo claro para el encabezado */
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: bold;
+            color: #343a40;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .payment-card-title {
-            font-size: 1.25rem;
+            font-size: 1.1rem; /* Título un poco más pequeño */
             font-weight: bold;
             color: #0056b3; /* Azul oscuro */
+            margin-bottom: 0; /* Eliminar margen inferior */
         }
 
         .payment-card-subtitle {
-            font-size: 0.9rem;
+            font-size: 0.85rem; /* Subtítulo más pequeño */
             color: #6c757d; /* Gris */
+            margin-top: 0.25rem;
         }
 
         .payment-detail {
-            font-size: 0.95rem;
-            margin-bottom: 0.25rem;
+            font-size: 0.875rem; /* Detalles más pequeños */
+            margin-bottom: 0.15rem; /* Menos espacio entre detalles */
+            line-height: 1.4;
         }
 
         .payment-detail strong {
             color: #343a40; /* Negro casi oscuro */
+            min-width: 120px; /* Ancho mínimo para las etiquetas fuertes */
+            display: inline-block; /* Para que min-width funcione */
+        }
+
+        .payment-summary {
+            background-color: #e9ecef; /* Fondo para el resumen de totales */
+            padding: 0.75rem 1.25rem;
+            border-top: 1px solid #dee2e6;
+            margin-top: 1rem; /* Espacio antes del resumen */
+            font-size: 0.95rem;
+        }
+
+        .payment-summary p {
+            margin-bottom: 0.2rem;
+        }
+
+        .payment-summary strong {
+            color: #212529; /* Negro */
+        }
+
+        .payment-actions {
+            padding: 0.75rem 1.25rem;
+            border-top: 1px solid #e9ecef;
+            background-color: #f8f9fa; /* Fondo para las acciones */
+            display: flex;
+            justify-content: flex-end; /* Alinear botones a la derecha */
+            gap: 0.5rem; /* Espacio entre botones */
         }
 
         .payment-actions .btn {
-            margin-right: 0.5rem;
-            margin-bottom: 0.5rem;
+            font-size: 0.8rem; /* Botones más pequeños */
+            padding: 0.375rem 0.75rem;
         }
     </style>
 
@@ -94,31 +138,38 @@
         {% for pago in pagos %}
         <div class="col">
             <div class="card h-100 payment-card">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title payment-card-title">{{ pago.nombre_actividad }}</h5>
-                    <h6 class="card-subtitle payment-card-subtitle mb-2">Actividad: {{ pago.actividad }}</h6>
-                    <p class="card-text payment-detail"><strong>Fecha:</strong> {{ pago.fecha_registro.strftime('%Y-%m-%d %H:%M') }}</p>
-                    <p class="card-text payment-detail"><strong>Costo Paquete:</strong> ₡{{ "%.2f"|format(pago.costo_paquete) }}</p>
-                    <p class="card-text payment-detail"><strong>Cant. Personas:</strong> {{ pago.cantidad_personas }}</p>
-                    <p class="card-text payment-detail"><strong>Tipo Cambio:</strong> {{ "%.4f"|format(pago.tipo_cambio) }}</p>
-                    <p class="card-text payment-detail"><strong>Total Bruto Ind.:</strong> ₡{{ "%.2f"|format(pago.total_bruto_individual) }}</p>
-                    <p class="card-text payment-detail"><strong>Total Bruto Gen. (CRC):</strong> ₡{{ "%.2f"|format(pago.total_bruto_general_colones) }}</p>
-                    <p class="card-text payment-detail"><strong>Total Bruto Gen. (USD):</strong> ${{ "%.2f"|format(pago.total_bruto_general_dolar) }}</p>
-                    <p class="card-text payment-detail"><strong>Ganancia P.P.:</strong> ₡{{ "%.2f"|format(pago.total_ganancia_pp) }}</p>
-                    <p class="card-text payment-detail"><strong>Ganancia General:</strong> ₡{{ "%.2f"|format(pago.total_ganancia_general) }}</p>
-                    <p class="card-text payment-detail"><strong>Nota:</strong> {{ pago.nota or 'N/A' }}</p>
+                <div class="card-header payment-card-header">
+                    <h5 class="payment-card-title">Pago #{{ pago.id }}</h5>
+                    <span class="payment-card-subtitle">{{ pago.fecha_registro.strftime('%Y-%m-%d %H:%M') }}</span>
+                </div>
+                <div class="card-body">
+                    <p class="payment-detail"><strong>Actividad:</strong> {{ pago.actividad }}</p>
+                    <p class="payment-detail"><strong>Nombre:</strong> {{ pago.nombre_actividad }}</p>
+                    <p class="payment-detail"><strong>Costo Paquete:</strong> ₡{{ "%.0f"|format(pago.costo_paquete) }}</p>
+                    <p class="payment-detail"><strong>Cant. Personas:</strong> {{ pago.cantidad_personas }}</p>
+                    <p class="payment-detail"><strong>Tipo Cambio:</strong> {{ "%.0f"|format(pago.tipo_cambio) }}</p>
 
-                    <div class="mt-auto payment-actions">
-                        <a href="{{ url_for('pagos.editar_pagos', id=pago.id) }}" class="btn btn-sm btn-warning">
-                            <i class="fas fa-edit"></i> Editar
-                        </a>
-                        <form action="{{ url_for('pagos.borrar_pagos', id=pago.id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de que quieres borrar este pago?');">
-                            <input type="hidden" name="csrf_token" value="{{ generate_csrf() }}">
-                            <button type="submit" class="btn btn-sm btn-danger">
-                                <i class="fas fa-trash-alt"></i> Borrar
-                            </button>
-                        </form>
-                    </div>
+                    <hr class="my-2">
+
+                    <p class="payment-detail"><strong>Total Bruto Ind.:</strong> ₡{{ "%.0f"|format(pago.total_bruto_individual) }}</p>
+                    <p class="payment-detail"><strong>Ganancia P.P.:</strong> ₡{{ "%.0f"|format(pago.total_ganancia_pp) }}</p>
+                    <p class="payment-detail"><strong>Nota:</strong> {{ pago.nota or 'N/A' }}</p>
+                </div>
+                <div class="payment-summary">
+                    <p class="mb-0"><strong>Total General (CRC):</strong> ₡{{ "%.0f"|format(pago.total_bruto_general_colones) }}</p>
+                    <p class="mb-0"><strong>Total General (USD):</strong> ${{ "%.0f"|format(pago.total_bruto_general_dolar) }}</p>
+                    <p class="mb-0"><strong>Ganancia Total:</strong> ₡{{ "%.0f"|format(pago.total_ganancia_general) }}</p>
+                </div>
+                <div class="payment-actions">
+                    <a href="{{ url_for('pagos.editar_pagos', id=pago.id) }}" class="btn btn-sm btn-warning">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <form action="{{ url_for('pagos.borrar_pagos', id=pago.id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de que quieres borrar este pago?');">
+                        <input type="hidden" name="csrf_token" value="{{ generate_csrf() }}">
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            <i class="fas fa-trash-alt"></i> Borrar
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
