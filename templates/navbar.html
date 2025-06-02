@@ -30,6 +30,12 @@
                 <i class="fa-solid fa-money-bill"></i> {# Icono de dinero para pagos, puedes cambiarlo #}
             </a>
         </div>
+        {# Nuevo botón para Inventario #}
+        <div class="magic-nav-button">
+            <a href="{{ url_for('inventario_bp.ver_inventario') }}">
+                <i class="fa-solid fa-boxes-stacked"></i> {# Icono de cajas apiladas para inventario #}
+            </a>
+        </div>
         <div class="magic-nav-button">
             {% if current_user.is_authenticated %}
                 <a href="#" style="pointer-events: none; opacity: 0.2;">
@@ -37,7 +43,7 @@
                 </a>
             {% else %}
                 <a href="{{ url_for('login') }}">
-                    <i class="fas fa-user"></i>
+                    <i class="fas fa-sign-in-alt"></i>
                 </a>
             {% endif %}
         </div>

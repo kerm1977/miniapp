@@ -27,8 +27,12 @@ from reportlab.lib.units import inch
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.lib import colors
 
+
 # Importar db y los modelos desde models.py
 from models import db, User, Contacto, Event, Factura, Evento
+
+#Importar Funciones del Invetarios
+from inventario import inventario_bp
 
 # Importar el Blueprint de pagos desde el nuevo módulo pagos.py
 from pagos import pagos_bp # Importa el Blueprint de pagos
@@ -39,6 +43,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 # Asegurarse de que la carpeta de subidas exista
 if not os.path.exists(UPLOAD_FOLDER):
@@ -62,9 +67,9 @@ def is_authenticated(self):
     return True
 
 
-# --- Registro del Blueprint de Pagos ---
+# --- Registro del Blueprint de Pagos e inventarios ---
 app.register_blueprint(pagos_bp)
-
+app.register_blueprint(inventario_bp)
 
 # FORMS
 class RegistrationForm(FlaskForm):

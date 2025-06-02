@@ -1,0 +1,69 @@
+{# agregar_inventario.html #}
+{% extends 'base.html' %} {# Extiende la plantilla base #}
+
+{% block title %}Agregar Artículo de Inventario{% endblock %} {# Título de la página #}
+
+{% block content %}
+<div class="container py-4"> {# Usando clases de Bootstrap para contenedor y padding #}
+    <h1 class="text-center mb-4 text-dark">Agregar Nuevo Artículo de Inventario</h1> {# Clases de Bootstrap para centrar y color de texto #}
+
+    {# Mensajes Flash (éxito/error) #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {# Formulario para agregar artículo #}
+    <div class="card p-4 shadow-lg mx-auto" style="max-width: 500px;"> {# Usando card de Bootstrap para el contenedor del formulario, sombra y centrado #}
+        <form method="POST" action="{{ url_for('inventario_bp.agregar_inventario') }}">
+            {{ form.csrf_token }} {# Token CSRF para seguridad #}
+
+            <div class="mb-3"> {# Margen inferior para cada campo del formulario #}
+                {{ form.nombre.label(class="form-label") }} {# Clase de Bootstrap para etiquetas de formulario #}
+                {{ form.nombre(class="form-control", placeholder="Nombre del artículo") }} {# Clase de Bootstrap para inputs #}
+                {% for error in form.nombre.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div> {# Clases de Bootstrap para errores #}
+                {% endfor %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.descripcion.label(class="form-label") }}
+                {{ form.descripcion(class="form-control", rows="3", placeholder="Descripción del artículo") }} {# rows para altura del textarea #}
+                {% for error in form.descripcion.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.cantidad.label(class="form-label") }}
+                {{ form.cantidad(class="form-control", placeholder="Cantidad en stock") }}
+                {% for error in form.cantidad.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-4"> {# Mayor margen inferior antes de los botones #}
+                {{ form.precio_unitario.label(class="form-label") }}
+                {{ form.precio_unitario(class="form-control", placeholder="Precio unitario (ej. 19.99)") }}
+                {% for error in form.precio_unitario.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end"> {# Utiliza d-grid para botones apilados en móvil y d-md-flex, justify-content-md-end para alineación en pantallas medianas y grandes #}
+                <a href="{{ url_for('inventario_bp.ver_inventario') }}"
+                   class="btn btn-secondary w-100 w-md-auto"> {# Botón Secundario de Bootstrap #}
+                    Cancelar
+                </a>
+                {{ form.submit(class="btn btn-primary w-100 w-md-auto") }} {# Botón Primario de Bootstrap #}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

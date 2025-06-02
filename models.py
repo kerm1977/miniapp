@@ -138,3 +138,20 @@ class Factura(db.Model):
     
     def __repr__(self):
         return f'<Factura {self.numero_factura}>'
+
+
+# --- Nuevo Modelo para Inventario ---
+class ArticuloInventario(db.Model):
+    __tablename__ = 'articulos_inventario'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(255), nullable=False)
+    descripcion = db.Column(db.Text, nullable=True)
+    cantidad = db.Column(db.Integer, nullable=False, default=0)
+    precio_unitario = db.Column(db.Numeric(10, 2), nullable=False)
+    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    usuario = db.relationship('User', backref=db.backref('articulos_inventario', lazy=True))
+
+    def __repr__(self):
+        return f'<ArticuloInventario {self.nombre}>'
