@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{# La línea {% import "macros.html" as macros %} ha sido eliminada ya que no se utiliza y causaba el error #}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Crear Nueva Rifa</h2>
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        <div class="mb-3">
+            {{ form.nombre_rifa.label(class="form-label") }}
+            {{ form.nombre_rifa(class="form-control") }}
+            {% for error in form.nombre_rifa.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.valor_rifa.label(class="form-label") }}
+            {{ form.valor_rifa(class="form-control", type="number", step="0.01") }}
+            {% for error in form.valor_rifa.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.fecha_rifa.label(class="form-label") }}
+            {{ form.fecha_rifa(class="form-control", type="date") }}
+            {% for error in form.fecha_rifa.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.descripcion_rifa.label(class="form-label") }}
+            {{ form.descripcion_rifa(class="form-control", rows="5") }}
+            {% for error in form.descripcion_rifa.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.imagen_rifa.label(class="form-label") }}
+            {{ form.imagen_rifa(class="form-control") }}
+            {% for error in form.imagen_rifa.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        {{ form.submit(class="btn btn-success") }}
+    </form>
+</div>
+{% endblock %}

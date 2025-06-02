@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Listado de Rifas</h2>
+
+    {% if can_create_rifa %}
+    <div class="mb-3">
+        <a href="{{ url_for('rifas.crear_rifa') }}" class="btn btn-primary">Crear una nueva rifa</a>
+    </div>
+    {% endif %}
+
+    {% if rifas %}
+    <div class="row">
+        {% for rifa in rifas %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                {% if rifa.imagen_rifa %}
+                <img src="{{ url_for('static', filename='uploads/rifas/' + rifa.imagen_rifa) }}" class="card-img-top" alt="{{ rifa.nombre_rifa }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                <img src="{{ url_for('static', filename='images/default_rifa.png') }}" class="card-img-top" alt="Imagen por defecto" style="height: 200px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ rifa.nombre_rifa }}</h5>
+                    <p class="card-text"><strong>Valor:</strong> ₡{{ "%.2f"|format(rifa.valor_rifa) }}</p>
+                    <p class="card-text"><strong>Fecha:</strong> {{ rifa.fecha_rifa.strftime('%d/%m/%Y') }}</p>
+                    <p class="card-text">{{ rifa.descripcion_rifa | truncate(100) }}</p>
+                    <a href="{{ url_for('rifas.ver_rifa', rifa_id=rifa.id) }}" class="btn btn-info btn-sm">Ver Detalles y Números</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        No hay rifas disponibles en este momento.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

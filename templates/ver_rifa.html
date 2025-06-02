@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <a href="{{ url_for('rifas.lista_rifas') }}" class="btn btn-secondary mb-3">Volver a Rifas</a> {# Enlace actualizado a rifas.lista_rifas #}
+
+    <h2 class="mb-4">{{ rifa.nombre_rifa }}</h2>
+
+    <div class="row">
+        <div class="col-md-5">
+            {% if rifa.imagen_rifa %}
+            <img src="{{ url_for('static', filename='uploads/rifas/' + rifa.imagen_rifa) }}" class="img-fluid rounded mb-3" alt="{{ rifa.nombre_rifa }}">
+            {% else %}
+            <img src="{{ url_for('static', filename='images/default_rifa.png') }}" class="img-fluid rounded mb-3" alt="Imagen por defecto">
+            {% endif %}
+            <p><strong>Valor:</strong> ₡{{ "%.2f"|format(rifa.valor_rifa) }}</p>
+            <p><strong>Fecha del Sorteo:</strong> {{ rifa.fecha_rifa.strftime('%d/%m/%Y') }}</p>
+            <p><strong>Descripción:</strong> {{ rifa.descripcion_rifa }}</p>
+        </div>
+        <div class="col-md-7">
+            <h4>Seleccionar Números</h4>
+            <form id="seleccionarNumerosForm" method="POST">
+                {{ form.csrf_token }}
+                <div class="mb-3">
+                    {{ form.nombre_jugador.label(class="form-label") }}
+                    {{ form.nombre_jugador(class="form-control", id="nombre_jugador_input") }}
+                    {% for error in form.nombre_jugador.errors %}
+                        <span class="text-danger">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                <div class="mb-3">
+                    {{ form.telefono_jugador.label(class="form-label") }}
+                    {{ form.telefono_jugador(class="form-control", id="telefono_jugador_input") }}
+                    {% for error in form.telefono_jugador.errors %}
+                        <span class="text-danger">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="panel-numeros mb-4 border p-3 rounded">
+                    <h5 class="mb-3">Números Disponibles (00 - 99)</h5>
+                    <div class="row row-cols-5 row-cols-sm-6 row-cols-md-8 row-cols-lg-10 g-2">
+                        {% for i in range(100) %}
+                            {% set num_str = '%02d' % i %}
+                            <div class="col">
+                                {% if num_str in numeros_ocupados %}
+                                    <button type="button" class="btn btn-secondary btn-sm w-100 disabled text-nowrap"
+                                            data-number="{{ num_str }}"
+                                            title="Ocupado por: {{ numeros_ocupados[num_str].nombre }} (Tel: {{ numeros_ocupados[num_str].telefono }})">
+                                        {{ num_str }}<br><small>{{ numeros_ocupados[num_str].nombre | truncate(8) }}</small>
+                                    </button>
+                                {% else %}
+                                    <button type="button" class="btn btn-outline-primary btn-sm w-100 numero-btn" data-number="{{ num_str }}">
+                                        {{ num_str }}
+                                    </button>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <input type="hidden" name="selected_numbers_hidden" id="selected_numbers_hidden" value="[]">
+
+                {{ form.submit(class="btn btn-success", id="guardar_numeros_btn") }}
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const numeroButtons = document.querySelectorAll('.numero-btn');
+    const guardarBtn = document.getElementById('guardar_numeros_btn');
+    const selectedNumbersHiddenInput = document.getElementById('selected_numbers_hidden');
+    let selectedNumbers = [];
+
+    // Cargar números seleccionados previamente si el formulario falló la validación (flash message)
+    // Esto es útil si el usuario selecciona números, falla la validación del nombre/teléfono y queremos mantener los números
+    if (selectedNumbersHiddenInput.value && selectedNumbersHiddenInput.value !== '[]') {
+        try {
+            selectedNumbers = JSON.parse(selectedNumbersHiddenInput.value);
+            selectedNumbers.forEach(num => {
+                const btn = document.querySelector(`.numero-btn[data-number="${num}"]`);
+                if (btn) {
+                    btn.classList.remove('btn-outline-primary');
+                    btn.classList.add('btn-success');
+                }
+            });
+        } catch (e) {
+            console.error("Error parsing pre-selected numbers:", e);
+            selectedNumbers = [];
+        }
+    }
+
+
+    numeroButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const number = this.dataset.number;
+            const index = selectedNumbers.indexOf(number);
+
+            if (index > -1) {
+                // Deseleccionar
+                selectedNumbers.splice(index, 1);
+                this.classList.remove('btn-success');
+                this.classList.add('btn-outline-primary');
+            } else {
+                // Seleccionar
+                selectedNumbers.push(number);
+                this.classList.remove('btn-outline-primary');
+                this.classList.add('btn-success');
+            }
+            selectedNumbersHiddenInput.value = JSON.stringify(selectedNumbers.sort()); // Guardar y ordenar
+        });
+    });
+
+    // Validar antes de enviar el formulario
+    document.getElementById('seleccionarNumerosForm').addEventListener('submit', function(event) {
+        if (selectedNumbers.length === 0) {
+            alert('Por favor, selecciona al menos un número para la rifa.');
+            event.preventDefault(); // Evitar que el formulario se envíe
+        }
+    });
+});
+</script>
+{% endblock %}

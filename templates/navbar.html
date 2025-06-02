@@ -36,6 +36,12 @@
                 <i class="fa-solid fa-boxes-stacked"></i> {# Icono de cajas apiladas para inventario #}
             </a>
         </div>
+        {# Nuevo botón para Rifas #}
+        <div class="magic-nav-button">
+            <a href="{{ url_for('rifas.lista_rifas') }}"> {# Enlace para la lista de rifas #}
+                <i class="fa-solid fa-ticket-alt"></i> {# Icono de ticket para rifas, puedes cambiarlo #}
+            </a>
+        </div>
         <div class="magic-nav-button">
             {% if current_user.is_authenticated %}
                 <a href="#" style="pointer-events: none; opacity: 0.2;">

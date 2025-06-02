@@ -37,6 +37,10 @@ from inventario import inventario_bp
 # Importar el Blueprint de pagos desde el nuevo módulo pagos.py
 from pagos import pagos_bp # Importa el Blueprint de pagos
 
+# Importar el Blueprint de rifas desde rifas.py
+from rifas import rifas_bp
+
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'tu_clave_secreta'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.db'
@@ -70,6 +74,8 @@ def is_authenticated(self):
 # --- Registro del Blueprint de Pagos e inventarios ---
 app.register_blueprint(pagos_bp)
 app.register_blueprint(inventario_bp)
+app.register_blueprint(rifas_bp)
+
 
 # FORMS
 class RegistrationForm(FlaskForm):
