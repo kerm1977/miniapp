@@ -18,7 +18,7 @@
             <p><strong>Descripción:</strong> {{ rifa.descripcion_rifa }}</p>
         </div>
         <div class="col-md-7">
-            <h4>Seleccionar Números</h4>
+            <h4>Seleccionar Números Disponibles</h4>
             <form id="seleccionarNumerosForm" method="POST">
                 {{ form.csrf_token }}
                 <div class="mb-3">
@@ -41,19 +41,14 @@
                     <div class="row row-cols-5 row-cols-sm-6 row-cols-md-8 row-cols-lg-10 g-2">
                         {% for i in range(100) %}
                             {% set num_str = '%02d' % i %}
-                            <div class="col">
-                                {% if num_str in numeros_ocupados %}
-                                    <button type="button" class="btn btn-secondary btn-sm w-100 disabled text-nowrap"
-                                            data-number="{{ num_str }}"
-                                            title="Ocupado por: {{ numeros_ocupados[num_str].nombre }} (Tel: {{ numeros_ocupados[num_str].telefono }})">
-                                        {{ num_str }}<br><small>{{ numeros_ocupados[num_str].nombre | truncate(8) }}</small>
-                                    </button>
-                                {% else %}
+                            {# Only show the button if the number is NOT occupied #}
+                            {% if num_str not in numeros_ocupados %}
+                                <div class="col">
                                     <button type="button" class="btn btn-outline-primary btn-sm w-100 numero-btn" data-number="{{ num_str }}">
                                         {{ num_str }}
                                     </button>
-                                {% endif %}
-                            </div>
+                                </div>
+                            {% endif %}
                         {% endfor %}
                     </div>
                 </div>
@@ -62,6 +57,27 @@
 
                 {{ form.submit(class="btn btn-success", id="guardar_numeros_btn") }}
             </form>
+
+            {# START: List of numbers sold grouped by person #}
+            <div class="lista-numeros-vendidos mt-4">
+                <h4>Números Vendidos por Persona</h4>
+                {% if grouped_numeros_por_jugador %}
+                    <ul class="list-group">
+                    {# Iterate over the grouped dictionary. player_key is (name_lower, phone) #}
+                    {% for player_key, player_data in grouped_numeros_por_jugador.items() | sort %}
+                        <li class="list-group-item">
+                            <strong>Números Seleccionados por:</strong> {{ player_data.nombre_original }} (Tel: {{ player_data.telefono }})
+                            <br>
+                            {{ player_data.numeros | join(', ') }} {# Join the list of numbers with commas and spaces #}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>Aún no se han vendido números para esta rifa.</p>
+                {% endif %}
+            </div>
+            {# END: List of numbers sold grouped by person #}
+
         </div>
     </div>
 </div>
@@ -73,8 +89,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectedNumbersHiddenInput = document.getElementById('selected_numbers_hidden');
     let selectedNumbers = [];
 
-    // Cargar números seleccionados previamente si el formulario falló la validación (flash message)
-    // Esto es útil si el usuario selecciona números, falla la validación del nombre/teléfono y queremos mantener los números
+    // Load previously selected numbers if form validation failed (flash message)
+    // This is useful if the user selects numbers, name/phone validation fails, and we want to keep the numbers
     if (selectedNumbersHiddenInput.value && selectedNumbersHiddenInput.value !== '[]') {
         try {
             selectedNumbers = JSON.parse(selectedNumbersHiddenInput.value);
@@ -98,25 +114,25 @@ document.addEventListener('DOMContentLoaded', function() {
             const index = selectedNumbers.indexOf(number);
 
             if (index > -1) {
-                // Deseleccionar
+                // Deselect
                 selectedNumbers.splice(index, 1);
                 this.classList.remove('btn-success');
                 this.classList.add('btn-outline-primary');
             } else {
-                // Seleccionar
+                // Select
                 selectedNumbers.push(number);
                 this.classList.remove('btn-outline-primary');
                 this.classList.add('btn-success');
             }
-            selectedNumbersHiddenInput.value = JSON.stringify(selectedNumbers.sort()); // Guardar y ordenar
+            selectedNumbersHiddenInput.value = JSON.stringify(selectedNumbers.sort()); // Save and sort
         });
     });
 
-    // Validar antes de enviar el formulario
+    // Validate before submitting the form
     document.getElementById('seleccionarNumerosForm').addEventListener('submit', function(event) {
         if (selectedNumbers.length === 0) {
-            alert('Por favor, selecciona al menos un número para la rifa.');
-            event.preventDefault(); // Evitar que el formulario se envíe
+            alert('Please select at least one number for the raffle.');
+            event.preventDefault(); // Prevent form submission
         }
     });
 });

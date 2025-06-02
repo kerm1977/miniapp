@@ -164,9 +164,28 @@ def ver_rifa(rifa_id):
         flash('Rifa no encontrada.', 'danger')
         return redirect(url_for('rifas.lista_rifas')) # Redirige a lista_rifas
 
-    # Obtiene los números ya vendidos para esta rifa y los formatea para la vista.
     numeros_vendidos_objetos = obtener_numeros_vendidos(rifa_id)
-    numeros_ocupados = {n.numero: {'nombre': n.nombre_jugador, 'telefono': n.telefono_jugador} for n in numeros_vendidos_objetos}
+    
+    # Prepara el diccionario para los botones (número -> datos del jugador)
+    numeros_ocupados_para_botones = {n.numero: {'nombre': n.nombre_jugador, 'telefono': n.telefono_jugador} for n in numeros_vendidos_objetos}
+
+    # Prepara el diccionario para la lista agrupada (jugador -> lista de números)
+    grouped_numeros_por_jugador = {}
+    for num_obj in numeros_vendidos_objetos:
+        # Clave para agrupar: nombre en minúsculas y teléfono para insensibilidad a mayúsculas/minúsculas y unicidad
+        player_key = (num_obj.nombre_jugador.lower(), num_obj.telefono_jugador)
+        
+        if player_key not in grouped_numeros_por_jugador:
+            grouped_numeros_por_jugador[player_key] = {
+                'nombre_original': num_obj.nombre_jugador, # Guarda el nombre original para mostrar
+                'telefono': num_obj.telefono_jugador,
+                'numeros': []
+            }
+        grouped_numeros_por_jugador[player_key]['numeros'].append(num_obj.numero)
+    
+    # Ordena los números dentro de cada lista de jugador
+    for player_data in grouped_numeros_por_jugador.values():
+        player_data['numeros'].sort() # Ordena los números como strings (ej. "01" antes que "10")
 
     form = SeleccionarNumerosForm()
 
@@ -199,5 +218,10 @@ def ver_rifa(rifa_id):
             # Si hay un error, recarga la página para mostrar los números ya ocupados.
             return redirect(url_for('rifas.ver_rifa', rifa_id=rifa_id))
 
-    # Renderiza la plantilla con los datos de la rifa, números ocupados y el formulario.
-    return render_template('ver_rifa.html', rifa=rifa, numeros_ocupados=numeros_ocupados, form=form)
+    # Renderiza la plantilla con los datos de la rifa, números ocupados para botones y la lista agrupada.
+    return render_template('ver_rifa.html',
+                           rifa=rifa,
+                           numeros_ocupados=numeros_ocupados_para_botones, # Para los botones
+                           grouped_numeros_por_jugador=grouped_numeros_por_jugador, # Para la lista agrupada
+                           form=form)
+
