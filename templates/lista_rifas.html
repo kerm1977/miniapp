@@ -16,7 +16,7 @@
         <div class="col-md-4 mb-4">
             <div class="card h-100">
                 {% if rifa.imagen_rifa %}
-                <img src="{{ url_for('static', filename='uploads/rifas/' + rifa.imagen_rifa) }}" class="card-img-top" alt="{{ rifa.nombre_rifa }}" style="height: 200px; object-fit: cover;">
+                <img src="{{ url_for('static', filename='uploads/' + rifa.imagen_rifa) }}" class="card-img-top" alt="{{ rifa.nombre_rifa }}" style="height: 200px; object-fit: cover;">
                 {% else %}
                 <img src="{{ url_for('static', filename='images/default_rifa.png') }}" class="card-img-top" alt="Imagen por defecto" style="height: 200px; object-fit: cover;">
                 {% endif %}

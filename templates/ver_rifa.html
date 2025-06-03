@@ -1,140 +1,139 @@
+{# ver_rifa.html #}
 {% extends "base.html" %}
 
 {% block content %}
 <div class="container mt-4">
-    <a href="{{ url_for('rifas.lista_rifas') }}" class="btn btn-secondary mb-3">Volver a Rifas</a> {# Enlace actualizado a rifas.lista_rifas #}
+    <h2 class="mb-4">Detalles de la Rifa: {{ rifa.nombre_rifa }}</h2>
 
-    <h2 class="mb-4">{{ rifa.nombre_rifa }}</h2>
-
-    <div class="row">
-        <div class="col-md-5">
+    <div class="card mb-4">
+        <div class="card-body">
             {% if rifa.imagen_rifa %}
-            <img src="{{ url_for('static', filename='uploads/rifas/' + rifa.imagen_rifa) }}" class="img-fluid rounded mb-3" alt="{{ rifa.nombre_rifa }}">
+            {# CAMBIO AQUÍ: La ruta ahora es 'uploads/' directamente #}
+            <img src="{{ url_for('static', filename='uploads/' + rifa.imagen_rifa) }}" class="img-fluid rounded mb-3" alt="{{ rifa.nombre_rifa }}" style="max-height: 400px; object-fit: cover;">
             {% else %}
-            <img src="{{ url_for('static', filename='images/default_rifa.png') }}" class="img-fluid rounded mb-3" alt="Imagen por defecto">
+            <img src="{{ url_for('static', filename='images/default_rifa.png') }}" class="img-fluid rounded mb-3" alt="Imagen por defecto" style="max-height: 400px; object-fit: cover;">
             {% endif %}
-            <p><strong>Valor:</strong> ₡{{ "%.2f"|format(rifa.valor_rifa) }}</p>
-            <p><strong>Fecha del Sorteo:</strong> {{ rifa.fecha_rifa.strftime('%d/%m/%Y') }}</p>
-            <p><strong>Descripción:</strong> {{ rifa.descripcion_rifa }}</p>
-        </div>
-        <div class="col-md-7">
-            <h4>Seleccionar Números Disponibles</h4>
-            <form id="seleccionarNumerosForm" method="POST">
-                {{ form.csrf_token }}
-                <div class="mb-3">
-                    {{ form.nombre_jugador.label(class="form-label") }}
-                    {{ form.nombre_jugador(class="form-control", id="nombre_jugador_input") }}
-                    {% for error in form.nombre_jugador.errors %}
-                        <span class="text-danger">{{ error }}</span>
-                    {% endfor %}
-                </div>
-                <div class="mb-3">
-                    {{ form.telefono_jugador.label(class="form-label") }}
-                    {{ form.telefono_jugador(class="form-control", id="telefono_jugador_input") }}
-                    {% for error in form.telefono_jugador.errors %}
-                        <span class="text-danger">{{ error }}</span>
-                    {% endfor %}
-                </div>
 
-                <div class="panel-numeros mb-4 border p-3 rounded">
-                    <h5 class="mb-3">Números Disponibles (00 - 99)</h5>
-                    <div class="row row-cols-5 row-cols-sm-6 row-cols-md-8 row-cols-lg-10 g-2">
-                        {% for i in range(100) %}
-                            {% set num_str = '%02d' % i %}
-                            {# Only show the button if the number is NOT occupied #}
-                            {% if num_str not in numeros_ocupados %}
-                                <div class="col">
-                                    <button type="button" class="btn btn-outline-primary btn-sm w-100 numero-btn" data-number="{{ num_str }}">
-                                        {{ num_str }}
-                                    </button>
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <input type="hidden" name="selected_numbers_hidden" id="selected_numbers_hidden" value="[]">
-
-                {{ form.submit(class="btn btn-success", id="guardar_numeros_btn") }}
-            </form>
-
-            {# START: List of numbers sold grouped by person #}
-            <div class="lista-numeros-vendidos mt-4">
-                <h4>Números Vendidos por Persona</h4>
-                {% if grouped_numeros_por_jugador %}
-                    <ul class="list-group">
-                    {# Iterate over the grouped dictionary. player_key is (name_lower, phone) #}
-                    {% for player_key, player_data in grouped_numeros_por_jugador.items() | sort %}
-                        <li class="list-group-item">
-                            <strong>Números Seleccionados por:</strong> {{ player_data.nombre_original }} (Tel: {{ player_data.telefono }})
-                            <br>
-                            {{ player_data.numeros | join(', ') }} {# Join the list of numbers with commas and spaces #}
-                        </li>
-                    {% endfor %}
-                    </ul>
-                {% else %}
-                    <p>Aún no se han vendido números para esta rifa.</p>
-                {% endif %}
-            </div>
-            {# END: List of numbers sold grouped by person #}
-
+            <h5 class="card-title">{{ rifa.nombre_rifa }}</h5>
+            <p class="card-text"><strong>Valor:</strong> ₡{{ "%.2f"|format(rifa.valor_rifa) }}</p>
+            <p class="card-text"><strong>Fecha:</strong> {{ rifa.fecha_rifa.strftime('%d/%m/%Y') }}</p>
+            <p class="card-text"><strong>Descripción:</strong> {{ rifa.descripcion_rifa }}</p>
         </div>
     </div>
+
+    {# --- Sección para la selección de números --- #}
+    <h3 class="mt-4">Seleccionar Números</h3>
+    <form method="POST" action="{{ url_for('rifas.ver_rifa', rifa_id=rifa.id) }}" class="mb-4">
+        {{ form.csrf_token }}
+        <div class="mb-3">
+            {{ form.nombre_jugador.label(class="form-label") }}
+            {{ form.nombre_jugador(class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.telefono_jugador.label(class="form-label") }}
+            {{ form.telefono_jugador(class="form-control") }}
+        </div>
+        
+        {# Campo oculto para almacenar los números seleccionados #}
+        <input type="hidden" id="selected_numbers_hidden" name="selected_numbers_hidden" value="{{ form.numeros_seleccionados.data or '[]' }}">
+
+        <div class="row row-cols-10 g-2 mb-4" id="numeros-container">
+            {% for i in range(100) %}
+                {% set num_str = '%02d' % i %}
+                {% set is_occupied = num_str in numeros_ocupados %}
+                <div class="col">
+                    <button type="button" 
+                            class="btn btn-sm w-100 {% if is_occupied %}btn-danger{% else %}btn-outline-success{% endif %}" 
+                            data-numero="{{ num_str }}"
+                            {% if is_occupied %}disabled{% endif %}
+                            id="btn-{{ num_str }}"
+                            data-bs-toggle="tooltip" data-bs-placement="top"
+                            title="{% if is_occupied %}Ocupado por: {{ numeros_ocupados[num_str].nombre }} (Tel: {{ numeros_ocupados[num_str].telefono }}){% else %}Disponible{% endif %}">
+                        {{ num_str }}
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            <p>Números seleccionados: <span id="selected-numbers-display"></span></p>
+        </div>
+        {{ form.submit(class="btn btn-primary") }}
+    </form>
+
+    {# --- Lista de números vendidos y jugadores --- #}
+    <h3 class="mt-4">Números Vendidos</h3>
+    {% if grouped_numeros_por_jugador %}
+    <div class="accordion" id="accordionNumerosVendidos">
+        {% for player_key, player_data in grouped_numeros_por_jugador.items() %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading{{ loop.index }}">
+                <button class="accordion-button {% if loop.index != 1 %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}" aria-expanded="{% if loop.index == 1 %}true{% else %}false{% endif %}" aria-controls="collapse{{ loop.index }}">
+                    {{ player_data.nombre_original }} (Tel: {{ player_data.telefono }})
+                </button>
+            </h2>
+            <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {% if loop.index == 1 %}show{% endif %}" aria-labelledby="heading{{ loop.index }}" data-bs-parent="#accordionNumerosVendidos">
+                <div class="accordion-body">
+                    <strong>Números:</strong> {{ player_data.numeros | join(', ') }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        Aún no se han vendido números para esta rifa.
+    </div>
+    {% endif %}
+
+    <a href="{{ url_for('rifas.lista_rifas') }}" class="btn btn-secondary mt-4">Volver a la lista de rifas</a>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const numeroButtons = document.querySelectorAll('.numero-btn');
-    const guardarBtn = document.getElementById('guardar_numeros_btn');
-    const selectedNumbersHiddenInput = document.getElementById('selected_numbers_hidden');
-    let selectedNumbers = [];
+    document.addEventListener('DOMContentLoaded', function() {
+        var selectedNumbers = JSON.parse(document.getElementById('selected_numbers_hidden').value || '[]');
+        var displayElement = document.getElementById('selected-numbers-display');
+        var hiddenInput = document.getElementById('selected_numbers_hidden');
+        var numeroButtons = document.querySelectorAll('#numeros-container .btn');
 
-    // Load previously selected numbers if form validation failed (flash message)
-    // This is useful if the user selects numbers, name/phone validation fails, and we want to keep the numbers
-    if (selectedNumbersHiddenInput.value && selectedNumbersHiddenInput.value !== '[]') {
-        try {
-            selectedNumbers = JSON.parse(selectedNumbersHiddenInput.value);
-            selectedNumbers.forEach(num => {
-                const btn = document.querySelector(`.numero-btn[data-number="${num}"]`);
-                if (btn) {
-                    btn.classList.remove('btn-outline-primary');
-                    btn.classList.add('btn-success');
+        function updateDisplay() {
+            displayElement.textContent = selectedNumbers.join(', ');
+            hiddenInput.value = JSON.stringify(selectedNumbers);
+        }
+
+        numeroButtons.forEach(function(button) {
+            var numero = button.dataset.numero;
+            // Si el número ya está seleccionado (ej. por un error de validación anterior)
+            if (selectedNumbers.includes(numero)) {
+                button.classList.remove('btn-outline-success');
+                button.classList.add('btn-info'); // Color para números seleccionados
+            }
+
+            button.addEventListener('click', function() {
+                // Solo permite seleccionar/deseleccionar si el botón no está deshabilitado (ocupado)
+                if (!button.disabled) {
+                    if (selectedNumbers.includes(numero)) {
+                        // Deseleccionar
+                        selectedNumbers = selectedNumbers.filter(function(n) { return n !== numero; });
+                        button.classList.remove('btn-info');
+                        button.classList.add('btn-outline-success');
+                    } else {
+                        // Seleccionar
+                        selectedNumbers.push(numero);
+                        button.classList.remove('btn-outline-success');
+                        button.classList.add('btn-info');
+                    }
+                    updateDisplay();
                 }
             });
-        } catch (e) {
-            console.error("Error parsing pre-selected numbers:", e);
-            selectedNumbers = [];
-        }
-    }
-
-
-    numeroButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const number = this.dataset.number;
-            const index = selectedNumbers.indexOf(number);
-
-            if (index > -1) {
-                // Deselect
-                selectedNumbers.splice(index, 1);
-                this.classList.remove('btn-success');
-                this.classList.add('btn-outline-primary');
-            } else {
-                // Select
-                selectedNumbers.push(number);
-                this.classList.remove('btn-outline-primary');
-                this.classList.add('btn-success');
-            }
-            selectedNumbersHiddenInput.value = JSON.stringify(selectedNumbers.sort()); // Save and sort
         });
-    });
 
-    // Validate before submitting the form
-    document.getElementById('seleccionarNumerosForm').addEventListener('submit', function(event) {
-        if (selectedNumbers.length === 0) {
-            alert('Please select at least one number for the raffle.');
-            event.preventDefault(); // Prevent form submission
-        }
+        // Inicializar tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+
+        updateDisplay(); // Actualiza la visualización inicial
     });
-});
 </script>
 {% endblock %}
