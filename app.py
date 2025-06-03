@@ -28,6 +28,7 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.lib import colors
 
 
+
 # Importar db y los modelos desde models.py
 from models import db, User, Contacto, Event, Factura, Evento
 
@@ -37,12 +38,14 @@ from inventario import inventario_bp
 # Importar el Blueprint de pagos desde el nuevo módulo pagos.py
 from pagos import pagos_bp # Importa el Blueprint de pagos
 
-# Importar el Blueprint de rifas desde rifas.py
-from rifas import rifas_bp
+# Importar el Blueprint de rifas y su función de configuración desde rifas.py
+from rifas import rifas_bp, configure_rifas_uploads # CAMBIO CLAVE AQUÍ: Importa configure_rifas_uploads
+
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'tu_clave_secreta'
+
+app.config['SECRET_KEY'] = 'tu_clave_secreta' # ¡ASEGÚRATE DE CAMBIAR ESTO EN PRODUCCIÓN!
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
@@ -74,7 +77,11 @@ def is_authenticated(self):
 # --- Registro del Blueprint de Pagos e inventarios ---
 app.register_blueprint(pagos_bp)
 app.register_blueprint(inventario_bp)
-app.register_blueprint(rifas_bp)
+app.register_blueprint(rifas_bp, url_prefix='/rifas') # CAMBIO CLAVE AQUÍ
+
+# CAMBIO CLAVE AQUÍ: Llama a la función de configuración de la carpeta de subida de rifas
+with app.app_context(): # Es buena práctica llamar a esto dentro de un contexto de aplicación
+    configure_rifas_uploads(app)
 
 
 # FORMS

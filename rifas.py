@@ -8,18 +8,18 @@ from flask_wtf.file import FileAllowed
 from datetime import datetime
 import os
 from flask_login import login_required, current_user
+import re # Importar el módulo re para expresiones regulares
+from flask_wtf.csrf import generate_csrf # Importar generate_csrf
 
-# Importar db y los modelos existentes desde models.py
-from models import db
+# CAMBIO CLAVE AQUÍ: Solo importa 'db' desde models.py, ya que Rifa y NumeroRifa están definidos en este archivo.
+from models import db 
 
 # --- Blueprint para Rifas ---
 rifas_bp = Blueprint('rifas', __name__, template_folder='templates', static_folder='static')
 
 # --- Configuración de la carpeta de subida de imágenes para las rifas ---
-# CAMBIO AQUÍ: Ahora apunta directamente a 'static/uploads'
 RIFAS_UPLOAD_FOLDER_RELATIVE = os.path.join('static', 'uploads')
 
-# Función para configurar la carpeta de subida de imágenes
 def configure_rifas_uploads(app):
     """
     Configura la carpeta de subida de imágenes para las rifas.
@@ -31,9 +31,8 @@ def configure_rifas_uploads(app):
     print(f"Carpeta de subida de rifas configurada en: {upload_folder_absolute}")
 
 
-# --- Resto del código de rifas.py permanece igual ---
-
-# Modelos de Rifa
+# --- Modelos de Rifa (DEFINIDOS AQUÍ) ---
+# Modelo para la tabla 'rifas' en la base de datos.
 class Rifa(db.Model):
     __tablename__ = 'rifas'
     id = db.Column(db.Integer, primary_key=True)
@@ -41,26 +40,32 @@ class Rifa(db.Model):
     valor_rifa = db.Column(db.Numeric(10, 2), nullable=False)
     fecha_rifa = db.Column(db.Date, nullable=False)
     descripcion_rifa = db.Column(db.Text, nullable=True)
-    imagen_rifa = db.Column(db.String(255), nullable=True)
+    imagen_rifa = db.Column(db.String(255), nullable=True) # Nombre del archivo de la imagen
+
+    # Relación con NumeroRifa: una rifa puede tener muchos números vendidos.
+    # 'cascade="all, delete-orphan"' asegura que los números asociados se borren si la rifa se borra.
     numeros_vendidos = db.relationship('NumeroRifa', backref='rifa', lazy=True, cascade="all, delete-orphan")
 
     def __repr__(self):
         return f'<Rifa {self.nombre_rifa}>'
 
+# Modelo para la tabla 'numeros_rifa' en la base de datos.
 class NumeroRifa(db.Model):
     __tablename__ = 'numeros_rifa'
     id = db.Column(db.Integer, primary_key=True)
     rifa_id = db.Column(db.Integer, db.ForeignKey('rifas.id'), nullable=False)
-    numero = db.Column(db.String(2), nullable=False)
+    numero = db.Column(db.String(2), nullable=False) # Almacena el número como string (ej. "00", "05", "99")
     nombre_jugador = db.Column(db.String(255), nullable=False)
     telefono_jugador = db.Column(db.String(20), nullable=False)
     fecha_seleccion = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Restricción única para asegurar que un número solo se pueda vender una vez por rifa.
     __table_args__ = (db.UniqueConstraint('rifa_id', 'numero', name='_rifa_numero_uc'),)
 
     def __repr__(self):
         return f'<NumeroRifa Rifa: {self.rifa_id}, Número: {self.numero}, Jugador: {self.nombre_jugador}>'
 
-# Formularios de Rifa
+# --- Formularios de Rifa ---
 class CrearRifaForm(FlaskForm):
     nombre_rifa = StringField('Nombre de la Rifa', validators=[DataRequired()])
     valor_rifa = DecimalField('Valor de la Rifa', validators=[DataRequired(), NumberRange(min=0.01)])
@@ -75,14 +80,13 @@ class SeleccionarNumerosForm(FlaskForm):
     numeros_seleccionados = StringField('Números Seleccionados (internos)', render_kw={'readonly': True})
     submit = SubmitField('Guardar mis números')
 
-# Lista de correos autorizados
 AUTHORIZED_RIFA_CREATORS = [
     "kenth1977@gmail.com",
     "jceciliano69@gmail.com",
     "lthikingcr@gmail.com"
 ]
 
-# Funciones Lógicas de Rifa
+# --- Funciones Lógicas de Rifa ---
 def guardar_imagen_rifa(imagen):
     if imagen:
         filename = datetime.now().strftime("%Y%m%d%H%M%S") + "_" + imagen.filename
@@ -115,13 +119,15 @@ def guardar_seleccion_numeros(rifa_id, nombre_jugador, telefono_jugador, numeros
             return False, "Alguno de los números seleccionados ya está ocupado."
         return False, f"Error al guardar los números: {str(e)}"
 
-# Rutas de Rifa
+# --- Rutas de Rifa (dentro del Blueprint) ---
+
 @rifas_bp.route('/rifas')
 @login_required
 def lista_rifas():
     rifas = Rifa.query.order_by(Rifa.fecha_rifa.desc()).all()
     can_create_rifa = current_user.email in AUTHORIZED_RIFA_CREATORS
-    return render_template('lista_rifas.html', rifas=rifas, can_create_rifa=can_create_rifa)
+    csrf_token_value = generate_csrf() # Genera el token CSRF aquí
+    return render_template('lista_rifas.html', rifas=rifas, can_create_rifa=can_create_rifa, csrf_token=csrf_token_value)
 
 @rifas_bp.route('/crear_rifa', methods=['GET', 'POST'])
 @login_required
@@ -133,6 +139,7 @@ def crear_rifa():
     form = CrearRifaForm()
     if form.validate_on_submit():
         imagen_filename = guardar_imagen_rifa(form.imagen_rifa.data)
+
         nueva_rifa = Rifa(
             nombre_rifa=form.nombre_rifa.data,
             valor_rifa=form.valor_rifa.data,
@@ -155,12 +162,22 @@ def ver_rifa(rifa_id):
         return redirect(url_for('rifas.lista_rifas'))
 
     numeros_vendidos_objetos = obtener_numeros_vendidos(rifa_id)
-    numeros_ocupados_para_botones = {n.numero: {'nombre': n.nombre_jugador, 'telefono': n.telefono_jugador} for n in numeros_vendidos_objetos}
     
+    numeros_ocupados_para_botones = {n.numero: {'nombre': n.nombre_jugador, 'telefono': n.telefono_jugador} for n in numeros_vendidos_objetos}
+
     grouped_numeros_por_jugador = {}
     for num_obj in numeros_vendidos_objetos:
-        player_key = (num_obj.nombre_jugador.lower(), num_obj.telefono_jugador)
+        normalized_nombre = num_obj.nombre_jugador.strip().lower()
+        normalized_telefono = re.sub(r'\D', '', num_obj.telefono_jugador).strip()
+
+        player_key = (normalized_nombre, normalized_telefono)
         
+        # --- DEBUGGING PRINTS ---
+        print(f"DEBUG: Numero: {num_obj.numero}, Nombre Original: '{num_obj.nombre_jugador}', Telefono Original: '{num_obj.telefono_jugador}'")
+        print(f"DEBUG: Nombre Normalizado: '{normalized_nombre}', Telefono Normalizado: '{normalized_telefono}'")
+        print(f"DEBUG: Clave de Jugador: {player_key}")
+        # --- FIN DEBUGGING PRINTS ---
+
         if player_key not in grouped_numeros_por_jugador:
             grouped_numeros_por_jugador[player_key] = {
                 'nombre_original': num_obj.nombre_jugador,
@@ -205,3 +222,35 @@ def ver_rifa(rifa_id):
                            grouped_numeros_por_jugador=grouped_numeros_por_jugador,
                            form=form)
 
+@rifas_bp.route('/borrar_rifa/<int:rifa_id>', methods=['POST'])
+@login_required
+def borrar_rifa(rifa_id):
+    if current_user.email not in AUTHORIZED_RIFA_CREATORS:
+        flash('No tienes permiso para borrar rifas.', 'danger')
+        return redirect(url_for('rifas.lista_rifas'))
+
+    rifa = Rifa.query.get_or_404(rifa_id)
+    
+    try:
+        if rifa.imagen_rifa:
+            image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], rifa.imagen_rifa)
+            if os.path.exists(image_path):
+                os.remove(image_path)
+                print(f"DEBUG: Imagen eliminada: {image_path}")
+            else:
+                print(f"DEBUG: La imagen no se encontró en la ruta: {image_path}")
+
+        db.session.delete(rifa)
+        db.session.commit()
+        flash(f'¡Rifa "{rifa.nombre_rifa}" eliminada exitosamente!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al intentar borrar la rifa: {str(e)}', 'danger')
+        print(f"ERROR: Fallo al borrar rifa {rifa_id}: {e}")
+    
+    return redirect(url_for('rifas.lista_rifas'))
+
+
+@rifas_bp.route('/test_rifas')
+def test_rifas():
+    return "¡La ruta de prueba de rifas funciona!"

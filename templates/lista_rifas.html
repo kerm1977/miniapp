@@ -1,6 +1,40 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    /* Estilo para el contenedor cuadrado de la imagen */
+    .image-square-container {
+        width: 100%; /* Ocupa el ancho disponible de la tarjeta */
+        padding-bottom: 100%; /* Crea una relación de aspecto 1:1 (cuadrada) */
+        position: relative;
+        overflow: hidden; /* Oculta cualquier parte de la imagen que se salga del cuadrado */
+        border-top-left-radius: 0.5rem; /* Hereda los bordes redondeados de la tarjeta */
+        border-top-right-radius: 0.5rem; /* Hereda los bordes redondeados de la tarjeta */
+    }
+
+    .image-square-container img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* Asegura que la imagen cubra el contenedor sin distorsionarse */
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+    }
+
+    /* Ajustes sutiles para la tarjeta si es necesario, Bootstrap ya hace un buen trabajo */
+    .card {
+        border-radius: 0.5rem; /* Bordes redondeados */
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Sombra suave para efecto de tarjeta */
+        transition: transform 0.2s ease-in-out; /* Pequeña transición al pasar el ratón */
+    }
+
+    .card:hover {
+        transform: translateY(-5px); /* Efecto de elevación al pasar el ratón */
+    }
+</style>
+
 <div class="container mt-4">
     <h2 class="mb-4">Listado de Rifas</h2>
 
@@ -14,18 +48,35 @@
     <div class="row">
         {% for rifa in rifas %}
         <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                {% if rifa.imagen_rifa %}
-                <img src="{{ url_for('static', filename='uploads/' + rifa.imagen_rifa) }}" class="card-img-top" alt="{{ rifa.nombre_rifa }}" style="height: 200px; object-fit: cover;">
-                {% else %}
-                <img src="{{ url_for('static', filename='images/default_rifa.png') }}" class="card-img-top" alt="Imagen por defecto" style="height: 200px; object-fit: cover;">
-                {% endif %}
+            {# Añadir un ID único a cada tarjeta de rifa para la exportación #}
+            <div class="card h-100" id="rifa-card-{{ rifa.id }}">
+                <div class="image-square-container"> {# Nuevo contenedor para la imagen cuadrada #}
+                    {% if rifa.imagen_rifa %}
+                    <img src="{{ url_for('static', filename='uploads/' + rifa.imagen_rifa) }}" alt="{{ rifa.nombre_rifa }}">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='images/default_rifa.png') }}" alt="Imagen por defecto">
+                    {% endif %}
+                </div>
                 <div class="card-body">
                     <h5 class="card-title">{{ rifa.nombre_rifa }}</h5>
                     <p class="card-text"><strong>Valor:</strong> ₡{{ "%.2f"|format(rifa.valor_rifa) }}</p>
                     <p class="card-text"><strong>Fecha:</strong> {{ rifa.fecha_rifa.strftime('%d/%m/%Y') }}</p>
                     <p class="card-text">{{ rifa.descripcion_rifa | truncate(100) }}</p>
-                    <a href="{{ url_for('rifas.ver_rifa', rifa_id=rifa.id) }}" class="btn btn-info btn-sm">Ver Detalles y Números</a>
+                    {# --- Botón "Ver Detalles y Números" ahora con clase para ocultar --- #}
+                    <a href="{{ url_for('rifas.ver_rifa', rifa_id=rifa.id) }}" class="btn btn-info btn-sm hide-on-export">Ver Detalles y Números</a>
+                    
+                    {# --- Contenedor de botones de exportar para ocultar --- #}
+                    <div class="mt-3 export-buttons-container">
+                        <button class="btn btn-info btn-sm me-2 export-jpg-btn" data-rifa-id="{{ rifa.id }}">Exportar JPG</button>
+                        <button class="btn btn-secondary btn-sm export-png-btn" data-rifa-id="{{ rifa.id }}">Exportar PNG</button>
+                    </div>
+
+                    {# --- Botón de Borrar Rifa con SweetAlert --- #}
+                    {% if can_create_rifa %} {# Solo muestra el botón si el usuario tiene permiso #}
+                    <div class="mt-2">
+                        <button class="btn btn-danger btn-sm delete-rifa-btn" data-rifa-id="{{ rifa.id }}" data-rifa-nombre="{{ rifa.nombre_rifa }}">Borrar Rifa</button>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -37,4 +88,118 @@
     </div>
     {% endif %}
 </div>
+
+{# --- Importar html2canvas (CDN) --- #}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+{# --- Importar SweetAlert2 (CDN) --- #}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Función para descargar la imagen
+        function downloadImage(dataUrl, filename, format) {
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = `${filename}.${format}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Obtener todos los botones de exportar JPG
+        const exportJpgButtons = document.querySelectorAll('.export-jpg-btn');
+        // Obtener todos los botones de exportar PNG
+        const exportPngButtons = document.querySelectorAll('.export-png-btn');
+
+        // Función genérica para manejar la exportación
+        function handleExport(button, format) {
+            const rifaId = button.dataset.rifaId; // Obtener el ID de la rifa del atributo data
+            const rifaCard = document.getElementById(`rifa-card-${rifaId}`); // Encontrar la tarjeta de la rifa
+            
+            if (rifaCard) {
+                // Seleccionar todos los elementos que deben ocultarse antes de la captura
+                // Ahora incluye el botón de borrar también
+                const elementsToHide = rifaCard.querySelectorAll('.export-buttons-container, .hide-on-export, .delete-rifa-btn');
+                
+                // Ocultar los elementos
+                elementsToHide.forEach(element => {
+                    element.style.visibility = 'hidden';
+                    element.style.position = 'absolute';
+                    element.style.left = '-9999px';
+                });
+
+                // Dar un pequeño respiro para que el DOM se actualice antes de la captura
+                setTimeout(() => {
+                    html2canvas(rifaCard, { scale: 2 }).then(function(canvas) { // scale para mejor calidad
+                        const rifaTitle = rifaCard.querySelector('.card-title').textContent;
+                        const filename = `Rifa_${rifaTitle.replace(/[^a-z0-9]/gi, '_')}`; // Limpiar el nombre para el archivo
+                        
+                        let dataUrl;
+                        if (format === 'jpg') {
+                            dataUrl = canvas.toDataURL('image/jpeg', 0.9); // 0.9 para calidad JPG
+                        } else {
+                            dataUrl = canvas.toDataURL('image/png');
+                        }
+                        
+                        downloadImage(dataUrl, filename, format);
+
+                        // Volver a mostrar los elementos después de la captura
+                        elementsToHide.forEach(element => {
+                            element.style.visibility = 'visible';
+                            element.style.position = 'static';
+                            element.style.left = 'auto';
+                        });
+                    });
+                }, 50); // Pequeño retraso
+            }
+        }
+
+        // Añadir los event listeners a los botones de exportar
+        exportJpgButtons.forEach(button => {
+            button.addEventListener('click', () => handleExport(button, 'jpg'));
+        });
+
+        exportPngButtons.forEach(button => {
+            button.addEventListener('click', () => handleExport(button, 'png'));
+        });
+
+        // --- Lógica para el botón de Borrar Rifa con SweetAlert ---
+        const deleteRifaButtons = document.querySelectorAll('.delete-rifa-btn');
+
+        deleteRifaButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const rifaId = this.dataset.rifaId;
+                const rifaNombre = this.dataset.rifaNombre;
+
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: `¡No podrás revertir esto! La rifa "${rifaNombre}" será eliminada.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, borrarla!',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Crear un formulario dinámico para enviar la solicitud POST
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = `/rifas/borrar_rifa/${rifaId}`; // Ruta de borrado en Flask
+
+                        // Añadir el token CSRF
+                        const csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = 'csrf_token'; // Nombre del campo CSRF
+                        csrfInput.value = "{{ csrf_token }}"; // <-- CORRECCIÓN CLAVE AQUÍ
+                        form.appendChild(csrfInput);
+
+                        document.body.appendChild(form);
+                        form.submit(); // Enviar el formulario
+                    }
+                });
+            });
+        });
+    });
+</script>
 {% endblock %}
