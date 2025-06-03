@@ -30,7 +30,7 @@ from reportlab.lib import colors
 
 
 # Importar db y los modelos desde models.py
-from models import db, User, Contacto, Event, Factura, Evento
+from models import db, User, Contacto, Event, Factura, Evento, Nota
 
 #Importar Funciones del Invetarios
 from inventario import inventario_bp
@@ -41,6 +41,8 @@ from pagos import pagos_bp # Importa el Blueprint de pagos
 # Importar el Blueprint de rifas y su función de configuración desde rifas.py
 from rifas import rifas_bp, configure_rifas_uploads # CAMBIO CLAVE AQUÍ: Importa configure_rifas_uploads
 
+# Importar el blueprint de notas
+from notas import notas_bp # Importa el blueprint que creamos
 
 
 app = Flask(__name__)
@@ -78,6 +80,9 @@ def is_authenticated(self):
 app.register_blueprint(pagos_bp)
 app.register_blueprint(inventario_bp)
 app.register_blueprint(rifas_bp, url_prefix='/rifas') # CAMBIO CLAVE AQUÍ
+app.register_blueprint(notas_bp)
+
+
 
 # CAMBIO CLAVE AQUÍ: Llama a la función de configuración de la carpeta de subida de rifas
 with app.app_context(): # Es buena práctica llamar a esto dentro de un contexto de aplicación

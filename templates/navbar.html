@@ -42,6 +42,12 @@
                 <i class="fa-solid fa-ticket-alt"></i> {# Icono de ticket para rifas, puedes cambiarlo #}
             </a>
         </div>
+        {# Nuevo botón para Notas #}
+        <div class="magic-nav-button">
+            <a href="{{ url_for('notas.ver_notas') }}"> {# Enlace para la lista de notas #}
+                <i class="fa-solid fa-note-sticky"></i> {# Icono de nota adhesiva para notas #}
+            </a>
+        </div>
         <div class="magic-nav-button">
             {% if current_user.is_authenticated %}
                 <a href="#" style="pointer-events: none; opacity: 0.2;">

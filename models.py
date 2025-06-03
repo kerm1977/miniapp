@@ -8,7 +8,7 @@ db = SQLAlchemy()
 
 # MODELOS
 class User(UserMixin, db.Model):
-    __tablename__ = 'users'
+    __tablename__ = 'users' # Nombre de la tabla es 'users'
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -155,3 +155,19 @@ class ArticuloInventario(db.Model):
 
     def __repr__(self):
         return f'<ArticuloInventario {self.nombre}>'
+
+# Nuevo modelo para Notas
+class Nota(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False) # ¡CORREGIDO AQUÍ!
+    titulo = db.Column(db.String(200), nullable=False)
+    descripcion = db.Column(db.Text, nullable=False)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    # Puedes agregar campos para la alineación si quieres almacenarlos en la DB,
+    # pero para un editor WYSIWYG, la alineación se maneja en el HTML/CSS/JS.
+    # Por simplicidad, lo manejaremos en el frontend y la descripción guardará el HTML.
+    # Por ejemplo:
+    # alineacion = db.Column(db.String(20), default='left') # 'left', 'right', 'center', 'justify'
+
+    def __repr__(self):
+        return f'<Nota {self.titulo}>'
