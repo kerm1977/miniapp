@@ -10,6 +10,7 @@ import os
 from flask_login import login_required, current_user
 import re # Importar el módulo re para expresiones regulares
 from flask_wtf.csrf import generate_csrf # Importar generate_csrf
+import json # Importar json para parsear los números seleccionados
 
 # CAMBIO CLAVE AQUÍ: Solo importa 'db' desde models.py, ya que Rifa y NumeroRifa están definidos en este archivo.
 from models import db 
@@ -77,6 +78,7 @@ class CrearRifaForm(FlaskForm):
 class SeleccionarNumerosForm(FlaskForm):
     nombre_jugador = StringField('Nombre del Jugador', validators=[DataRequired()])
     telefono_jugador = StringField('Teléfono del Jugador', validators=[DataRequired()])
+    # Este campo se usa para enviar los números seleccionados desde JS
     numeros_seleccionados = StringField('Números Seleccionados (internos)', render_kw={'readonly': True})
     submit = SubmitField('Guardar mis números')
 
@@ -104,19 +106,23 @@ def obtener_rifa_por_id(rifa_id):
 def guardar_seleccion_numeros(rifa_id, nombre_jugador, telefono_jugador, numeros):
     try:
         for num_str in numeros:
+            # Asegura que el número se guarde como una cadena de 2 dígitos
             numero = NumeroRifa(
                 rifa_id=rifa_id,
-                numero=num_str,
+                numero=str(num_str).zfill(2), # CAMBIO CLAVE AQUÍ: Formatear a cadena de 2 dígitos
                 nombre_jugador=nombre_jugador,
                 telefono_jugador=telefono_jugador
             )
             db.session.add(numero)
         db.session.commit()
+        print(f"DEBUG: Números guardados exitosamente en la DB para rifa {rifa_id}: {numeros}") # DEBUG PRINT
         return True, "Números guardados exitosamente."
     except Exception as e:
         db.session.rollback()
+        # Captura el error específico de restricción única
         if "UNIQUE constraint failed: numeros_rifa.rifa_id, numeros_rifa.numero" in str(e):
             return False, "Alguno de los números seleccionados ya está ocupado."
+        print(f"ERROR: Fallo al guardar números para rifa {rifa_id}: {e}") # DEBUG PRINT
         return False, f"Error al guardar los números: {str(e)}"
 
 # --- Rutas de Rifa (dentro del Blueprint) ---
@@ -161,61 +167,111 @@ def ver_rifa(rifa_id):
         flash('Rifa no encontrada.', 'danger')
         return redirect(url_for('rifas.lista_rifas'))
 
+    # Siempre obtén los números vendidos actualizados de la base de datos
     numeros_vendidos_objetos = obtener_numeros_vendidos(rifa_id)
     
-    numeros_ocupados_para_botones = {n.numero: {'nombre': n.nombre_jugador, 'telefono': n.telefono_jugador} for n in numeros_vendidos_objetos}
+    # DEBUG PRINT: Muestra los objetos NumeroRifa recuperados de la DB
+    print(f"DEBUG (GET/POST): Objetos NumeroRifa recuperados de la DB: {numeros_vendidos_objetos}")
 
+    # Prepara el diccionario de números ocupados para la lógica de Jinja y JS
+    # Asegura que las claves sean siempre cadenas de 2 dígitos
+    numeros_ocupados_para_botones = {str(n.numero).zfill(2): {'nombre': n.nombre_jugador, 'telefono': n.telefono_jugador} for n in numeros_vendidos_objetos} # CAMBIO CLAVE AQUÍ
+    
+    # DEBUG PRINT: Muestra el diccionario de números ocupados que se pasa a la plantilla
+    print(f"DEBUG (GET/POST): Diccionario numeros_ocupados_para_botones: {numeros_ocupados_para_botones}")
+
+
+    # Prepara los números agrupados por jugador para la sección de "Números Vendidos"
     grouped_numeros_por_jugador = {}
     for num_obj in numeros_vendidos_objetos:
+        # Normaliza el nombre y el teléfono para la clave de agrupación
         normalized_nombre = num_obj.nombre_jugador.strip().lower()
-        normalized_telefono = re.sub(r'\D', '', num_obj.telefono_jugador).strip()
+        # Elimina caracteres no numéricos del teléfono para una mejor agrupación
+        normalized_telefono = re.sub(r'\D', '', num_obj.telefono_jugador).strip() 
 
         player_key = (normalized_nombre, normalized_telefono)
         
-        # --- DEBUGGING PRINTS ---
-        print(f"DEBUG: Numero: {num_obj.numero}, Nombre Original: '{num_obj.nombre_jugador}', Telefono Original: '{num_obj.telefono_jugador}'")
-        print(f"DEBUG: Nombre Normalizado: '{normalized_nombre}', Telefono Normalizado: '{normalized_telefono}'")
-        print(f"DEBUG: Clave de Jugador: {player_key}")
-        # --- FIN DEBUGGING PRINTS ---
-
         if player_key not in grouped_numeros_por_jugador:
             grouped_numeros_por_jugador[player_key] = {
-                'nombre_original': num_obj.nombre_jugador,
+                'nombre_original': num_obj.nombre_jugador, # Mantener el nombre original para mostrar
                 'telefono': num_obj.telefono_jugador,
                 'numeros': []
             }
-        grouped_numeros_por_jugador[player_key]['numeros'].append(num_obj.numero)
+        grouped_numeros_por_jugador[player_key]['numeros'].append(str(num_obj.numero).zfill(2)) # CAMBIO CLAVE AQUÍ: Asegurar que se añaden como cadenas de 2 dígitos
     
+    # Ordena los números dentro de cada jugador para una mejor presentación
     for player_data in grouped_numeros_por_jugador.values():
         player_data['numeros'].sort()
 
     form = SeleccionarNumerosForm()
 
     if form.validate_on_submit() and request.method == 'POST':
-        numeros_seleccionados_str = request.form.get('selected_numbers_hidden', '[]')
+        nombre_jugador = form.nombre_jugador.data
+        telefono_jugador = form.telefono_jugador.data
+        selected_numbers_json = request.form.get('selected_numbers_hidden', '[]')
+        
         try:
-            numeros_seleccionados_list = [num.strip() for num in numeros_seleccionados_str.strip('[]').split(',') if num.strip()]
-        except Exception:
-            flash('Error en la selección de números. Inténtalo de nuevo.', 'danger')
+            # Parsear el JSON de números seleccionados y asegurar que sean cadenas de 2 dígitos
+            selected_numbers_list = [str(num).zfill(2) for num in json.loads(selected_numbers_json)] # CAMBIO CLAVE AQUÍ
+        except json.JSONDecodeError:
+            flash('Error en la selección de números. Formato inválido.', 'danger')
             return redirect(url_for('rifas.ver_rifa', rifa_id=rifa_id))
 
-        if not numeros_seleccionados_list:
+        if not selected_numbers_list:
             flash('Debes seleccionar al menos un número.', 'danger')
             return redirect(url_for('rifas.ver_rifa', rifa_id=rifa_id))
 
-        exito, mensaje = guardar_seleccion_numeros(
-            rifa_id,
-            form.nombre_jugador.data,
-            form.telefono_jugador.data,
-            numeros_seleccionados_list
-        )
-        if exito:
-            flash(mensaje, 'success')
-            return redirect(url_for('rifas.ver_rifa', rifa_id=rifa_id))
-        else:
-            flash(mensaje, 'danger')
+        # Validación adicional en el servidor para evitar que se seleccionen números ya ocupados
+        # Es crucial volver a obtener los números ocupados *justo antes* de guardar
+        # para manejar posibles selecciones simultáneas.
+        current_numeros_ocupados_en_db = {str(n.numero).zfill(2) for n in obtener_numeros_vendidos(rifa_id)} # CAMBIO CLAVE AQUÍ
+        
+        nuevos_numeros_a_guardar = []
+        numeros_conflictivos = []
+
+        for num_elegido in selected_numbers_list:
+            if num_elegido in current_numeros_ocupados_en_db:
+                numeros_conflictivos.append(num_elegido)
+            else:
+                nuevos_numeros_a_guardar.append(num_elegido)
+
+        if numeros_conflictivos:
+            flash(f'Los números {", ".join(numeros_conflictivos)} ya han sido ocupados. Por favor, selecciona otros.', 'danger')
+            # Si hay conflictos, no redirigimos inmediatamente.
+            # En su lugar, re-renderizamos la plantilla con los datos del formulario
+            # para que el usuario no pierda el nombre/teléfono y los números válidos seleccionados.
+            form.nombre_jugador.data = nombre_jugador
+            form.telefono_jugador.data = telefono_jugador
+            # Pasar los números que *sí* pudo seleccionar para que se muestren en la plantilla
+            form.numeros_seleccionados.data = json.dumps(nuevos_numeros_a_guardar) # Esto es importante para el JS
+            
+            return render_template('ver_rifa.html',
+                                   rifa=rifa,
+                                   numeros_ocupados=numeros_ocupados_para_botones, # Se pasa el estado actual de la BD
+                                   grouped_numeros_por_jugador=grouped_numeros_por_jugador,
+                                   form=form) # Se pasa el formulario con los datos pre-llenados
+
+        try:
+            exito, mensaje = guardar_seleccion_numeros(
+                rifa_id,
+                form.nombre_jugador.data,
+                form.telefono_jugador.data,
+                nuevos_numeros_a_guardar
+            )
+            if exito:
+                flash(mensaje, 'success')
+                # Redirige para forzar una recarga limpia y que los números se oculten
+                return redirect(url_for('rifas.ver_rifa', rifa_id=rifa_id))
+            else:
+                flash(mensaje, 'danger')
+                # Si falla el guardado (pero no por conflicto), también redirige
+                return redirect(url_for('rifas.ver_rifa', rifa_id=rifa_id))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error inesperado al guardar los números: {e}', 'danger')
             return redirect(url_for('rifas.ver_rifa', rifa_id=rifa_id))
 
+    # Renderizado inicial o si el método no es POST
     return render_template('ver_rifa.html',
                            rifa=rifa,
                            numeros_ocupados=numeros_ocupados_para_botones,

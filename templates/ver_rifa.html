@@ -2,6 +2,13 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    /* Regla CSS para ocultar las columnas de números vendidos */
+    .col.is-hidden-after-selection {
+        display: none !important;
+    }
+</style>
+
 <div class="container mt-4">
     <h2 class="mb-4">Detalles de la Rifa: {{ rifa.nombre_rifa }}</h2>
 
@@ -46,7 +53,7 @@
             {% for i in range(100) %}
                 {% set num_str = '%02d' % i %}
                 {% set is_occupied = num_str in numeros_ocupados %}
-                <div class="col">
+                <div class="col" data-is-occupied="{{ 'true' if is_occupied else 'false' }}"> {# Añadido data-is-occupied #}
                     <button type="button" 
                             class="btn btn-sm w-100 {% if is_occupied %}btn-danger{% else %}btn-outline-success{% endif %}" 
                             data-numero="{{ num_str }}"
@@ -94,24 +101,34 @@
         var selectedNumbers = JSON.parse(document.getElementById('selected_numbers_hidden').value || '[]');
         var displayElement = document.getElementById('selected-numbers-display');
         var hiddenInput = document.getElementById('selected_numbers_hidden');
-        var numeroButtons = document.querySelectorAll('#numeros-container .btn');
+        
+        // Seleccionamos los divs de columna, no los botones directamente para controlar la visibilidad
+        var numeroCols = document.querySelectorAll('#numeros-container .col'); 
 
         function updateDisplay() {
             displayElement.textContent = selectedNumbers.join(', ');
             hiddenInput.value = JSON.stringify(selectedNumbers);
         }
 
-        numeroButtons.forEach(function(button) {
+        numeroCols.forEach(function(colDiv) {
+            var button = colDiv.querySelector('.btn');
             var numero = button.dataset.numero;
-            // Si el número ya está seleccionado (ej. por un error de validación anterior)
-            if (selectedNumbers.includes(numero)) {
-                button.classList.remove('btn-outline-success');
-                button.classList.add('btn-info'); // Color para números seleccionados
-            }
+            var isInitiallyOccupied = colDiv.dataset.isOccupied === 'true'; // Leer el estado del data-attribute
 
-            button.addEventListener('click', function() {
-                // Solo permite seleccionar/deseleccionar si el botón no está deshabilitado (ocupado)
-                if (!button.disabled) {
+            if (isInitiallyOccupied) {
+                colDiv.classList.add('is-hidden-after-selection'); // Si está ocupado, lo ocultamos
+            } else {
+                // Si NO está ocupado, significa que es un número disponible.
+                // Entonces, podemos adjuntar el event listener y manejar la selección/deselección.
+                if (selectedNumbers.includes(numero)) {
+                    button.classList.remove('btn-outline-success');
+                    button.classList.add('btn-info'); // Color para números seleccionados actualmente
+                } else {
+                    button.classList.remove('btn-info');
+                    button.classList.add('btn-outline-success');
+                }
+
+                button.addEventListener('click', function() {
                     if (selectedNumbers.includes(numero)) {
                         // Deseleccionar
                         selectedNumbers = selectedNumbers.filter(function(n) { return n !== numero; });
@@ -124,8 +141,8 @@
                         button.classList.add('btn-info');
                     }
                     updateDisplay();
-                }
-            });
+                });
+            }
         });
 
         // Inicializar tooltips
@@ -166,4 +183,5 @@
 
     });
 </script>
+
 {% endblock %}
