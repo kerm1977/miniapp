@@ -5,7 +5,7 @@
 <div class="container mt-4">
     <h2 class="mb-4">Detalles de la Rifa: {{ rifa.nombre_rifa }}</h2>
 
-    <div class="card mb-4" id="rifa-details-to-export"> {# <--- ID añadido aquí para la exportación #}
+    <div class="card mb-4" id="rifa-details-to-export">
         <div class="card-body">
             {% if rifa.imagen_rifa %}
             <img src="{{ url_for('static', filename='uploads/' + rifa.imagen_rifa) }}" class="img-fluid rounded mb-3" alt="{{ rifa.nombre_rifa }}" style="max-height: 400px; object-fit: cover;">
@@ -65,22 +65,15 @@
         {{ form.submit(class="btn btn-primary") }}
     </form>
 
-    {# --- Lista de números vendidos y jugadores --- #}
+    {# --- Lista de números vendidos y jugadores (ahora en texto plano y expandido) --- #}
     <h3 class="mt-4">Números Vendidos</h3>
     {% if grouped_numeros_por_jugador %}
-    <div class="accordion" id="accordionNumerosVendidos">
+    <div class="list-group mb-4">
         {% for player_key, player_data in grouped_numeros_por_jugador.items() %}
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="heading{{ loop.index }}">
-                <button class="accordion-button {% if loop.index != 1 %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}" aria-expanded="{% if loop.index == 1 %}true{% else %}false{% endif %}" aria-controls="collapse{{ loop.index }}">
-                    {{ player_data.nombre_original }} (Tel: {{ player_data.telefono }})
-                </button>
-            </h2>
-            <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {% if loop.index == 1 %}show{% endif %}" aria-labelledby="heading{{ loop.index }}" data-bs-parent="#accordionNumerosVendidos">
-                <div class="accordion-body">
-                    <strong>Números:</strong> {{ player_data.numeros | join(', ') }}
-                </div>
-            </div>
+        <div class="list-group-item">
+            <p class="mb-1"><strong>Jugador:</strong> {{ player_data.nombre_original }}</p>
+            <p class="mb-1"><strong>Teléfono:</strong> {{ player_data.telefono }}</p>
+            <p class="mb-0"><strong>Números:</strong> {{ player_data.numeros | join(', ') }}</p>
         </div>
         {% endfor %}
     </div>
