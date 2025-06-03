@@ -23,6 +23,9 @@
 
 <div class="container mt-4">
     <h2 class="mb-4">Detalles de la Rifa: {{ rifa.nombre_rifa }}</h2>
+    {# La línea de "Total de números desocupados" se mantiene si estaba en tu base, pero no es parte de esta solicitud explícita #}
+    {# Si no la quieres, puedes eliminar la siguiente línea #}
+    {# <p class="text-muted mb-4">Total de números desocupados: <span id="total-unoccupied-count"></span></p> #}
 
     <div class="card mb-4" id="rifa-details-to-export">
         <div class="card-body">
@@ -39,14 +42,17 @@
         </div>
     </div>
 
-    {# --- Botones de Exportar --- #}
+    {# --- Botones de Exportar (para toda la rifa) --- #}
     <div class="mb-4">
-        <button id="export-jpg-btn" class="btn btn-info me-2">Exportar a JPG</button>
-        <button id="export-png-btn" class="btn btn-secondary">Exportar a PNG</button>
+        <button id="export-jpg-btn" class="btn btn-info me-2">Exportar a JPG (Rifa Completa)</button>
+        <button id="export-png-btn" class="btn btn-secondary">Exportar a PNG (Rifa Completa)</button>
     </div>
 
     {# --- Sección para la selección de números --- #}
     <h3 class="mt-4">Seleccionar Números</h3>
+    {# NUEVA LÍNEA: Mostrar cuántos números quedan disponibles para seleccionar #}
+    <p class="text-muted">Números disponibles: <span id="remaining-available-count"></span></p>
+    
     <form method="POST" action="{{ url_for('rifas.ver_rifa', rifa_id=rifa.id) }}" class="mb-4">
         {{ form.csrf_token }}
         <div class="mb-3">
@@ -61,12 +67,10 @@
         {# Campo oculto para almacenar los números seleccionados #}
         <input type="hidden" id="selected_numbers_hidden" name="selected_numbers_hidden" value="{{ form.numeros_seleccionados.data or '[]' }}">
 
-        {# Se eliminó row-cols-10 para usar un control responsivo más preciso con col-x #}
         <div class="row g-2 mb-4 justify-content-center" id="numeros-container"> 
             {% for i in range(100) %}
                 {% set num_str = '%02d' % i %}
                 {% set is_occupied = num_str in numeros_ocupados %}
-                {# Clases responsivas para el tamaño de la columna en diferentes dispositivos #}
                 <div class="col-3 col-sm-2 col-md-1"> 
                     <button type="button" 
                             class="btn btn-sm w-100 {% if is_occupied %}btn-danger{% else %}btn-outline-success{% endif %} rounded-lg"
@@ -91,10 +95,20 @@
     {% if grouped_numeros_por_jugador %}
     <div class="list-group mb-4">
         {% for player_key, player_data in grouped_numeros_por_jugador.items() %}
-        <div class="list-group-item">
+        {# Añadido un ID único para cada sección de jugador para poder exportarla #}
+        <div class="list-group-item" id="player-details-{{ loop.index }}"> 
             <p class="mb-1"><strong>Jugador:</strong> {{ player_data.nombre_original }}</p>
             <p class="mb-1"><strong>Teléfono:</strong> {{ player_data.telefono }}</p>
             <p class="mb-0"><strong>Números:</strong> {{ player_data.numeros | join(', ') }}</p>
+            {# Nuevo contenedor para el botón de exportar, alineado a la derecha #}
+            <div class="d-flex justify-content-end mt-2"> 
+                <button class="btn btn-sm btn-outline-info export-player-jpg-btn" 
+                        data-player-id="{{ loop.index }}" 
+                        data-player-name="{{ player_data.nombre_original }}"
+                        style="margin-top: 5px;"> {# Margen superior de 5px para vista móvil #}
+                    <i class="fa-solid fa-file-image"></i> Exportar JPG
+                </button>
+            </div>
         </div>
         {% endfor %}
     </div>
@@ -116,10 +130,26 @@
         var displayElement = document.getElementById('selected-numbers-display');
         var hiddenInput = document.getElementById('selected_numbers_hidden');
         var numeroButtons = document.querySelectorAll('#numeros-container .btn');
+        // var numeroCols = document.querySelectorAll('#numeros-container .col'); // No se usa en esta versión para la lógica de ocultamiento de columnas
+
+        // Referencia al nuevo span para el contador de números disponibles
+        var remainingAvailableCountSpan = document.getElementById('remaining-available-count'); 
+        
+        // Calcular el total de botones disponibles (no deshabilitados) al cargar la página
+        let totalAvailableButtons = 0;
+        numeroButtons.forEach(function(button) { 
+            if (!button.disabled) { // Contar solo si el botón NO está deshabilitado por Jinja
+                totalAvailableButtons++;
+            }
+        });
 
         function updateDisplay() {
             displayElement.textContent = selectedNumbers.join(', ');
             hiddenInput.value = JSON.stringify(selectedNumbers);
+            
+            // Actualizar el contador de números disponibles
+            let currentRemaining = totalAvailableButtons - selectedNumbers.length;
+            remainingAvailableCountSpan.textContent = currentRemaining;
         }
 
         numeroButtons.forEach(function(button) {
@@ -155,9 +185,9 @@
           return new bootstrap.Tooltip(tooltipTriggerEl)
         })
 
-        updateDisplay(); // Actualiza la visualización inicial
+        updateDisplay(); // Actualiza la visualización inicial del contador y números seleccionados
 
-        // --- Lógica para Exportar a Imagen ---
+        // --- Lógica para Exportar a Imagen (Rifa Completa) ---
         const rifaDetails = document.getElementById('rifa-details-to-export');
         const exportJpgBtn = document.getElementById('export-jpg-btn');
         const exportPngBtn = document.getElementById('export-png-btn');
@@ -185,7 +215,37 @@
             });
         });
 
+        // --- Lógica para Exportar la sección de cada Jugador ---
+        document.querySelectorAll('.export-player-jpg-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const playerId = this.dataset.playerId;
+                const playerName = this.dataset.playerName;
+                const playerDetailsDiv = document.getElementById(`player-details-${playerId}`);
+                const exportButton = this; // Referencia al botón de exportar actual
+
+                if (playerDetailsDiv) {
+                    // Ocultar el botón de exportar antes de la captura
+                    exportButton.style.visibility = 'hidden';
+                    exportButton.style.position = 'absolute';
+                    exportButton.style.left = '-9999px';
+
+                    // Pequeño retraso para asegurar que el DOM se actualice antes de la captura
+                    setTimeout(() => {
+                        html2canvas(playerDetailsDiv, { scale: 2 }).then(function(canvas) {
+                            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                            // Limpiar el nombre del jugador para el nombre del archivo
+                            const filename = `Rifa_Jugador_${playerName.replace(/[^a-z0-9]/gi, '_')}`;
+                            downloadImage(dataUrl, filename, 'jpg');
+
+                            // Volver a mostrar el botón después de la captura
+                            exportButton.style.visibility = 'visible';
+                            exportButton.style.position = 'static';
+                            exportButton.style.left = 'auto';
+                        });
+                    }, 50); // 50ms de retraso
+                }
+            });
+        });
     });
 </script>
-
 {% endblock %}
