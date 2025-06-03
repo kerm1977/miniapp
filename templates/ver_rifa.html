@@ -3,7 +3,19 @@
 
 {% block content %}
 <style>
-    /* Regla CSS para ocultar las columnas de números vendidos */
+    /* Estilo para asegurar que todos los botones tengan el mismo tamaño y margen */
+    #numeros-container .btn {
+        min-width: 45px; /* Ajusta este valor según sea necesario para el tamaño */
+        min-height: 45px; /* Ajusta este valor según sea necesario para el tamaño */
+        display: flex; /* Para centrar el contenido del botón */
+        justify-content: center; /* Centra horizontalmente */
+        align-items: center; /* Centra verticalmente */
+        margin: 0.25rem; /* Margen uniforme alrededor de cada botón */
+        border-radius: 0.5rem; /* Asegura esquinas redondeadas (alternativa a rounded-lg si no funciona) */
+    }
+
+    /* Regla CSS para ocultar las columnas de números vendidos (si se usa en el futuro) */
+    /* Esta regla se mantiene por si decides reintroducir la funcionalidad de ocultar */
     .col.is-hidden-after-selection {
         display: none !important;
     }
@@ -49,13 +61,15 @@
         {# Campo oculto para almacenar los números seleccionados #}
         <input type="hidden" id="selected_numbers_hidden" name="selected_numbers_hidden" value="{{ form.numeros_seleccionados.data or '[]' }}">
 
-        <div class="row row-cols-10 g-2 mb-4" id="numeros-container">
+        {# Se eliminó row-cols-10 para usar un control responsivo más preciso con col-x #}
+        <div class="row g-2 mb-4 justify-content-center" id="numeros-container"> 
             {% for i in range(100) %}
                 {% set num_str = '%02d' % i %}
                 {% set is_occupied = num_str in numeros_ocupados %}
-                <div class="col" data-is-occupied="{{ 'true' if is_occupied else 'false' }}"> {# Añadido data-is-occupied #}
+                {# Clases responsivas para el tamaño de la columna en diferentes dispositivos #}
+                <div class="col-3 col-sm-2 col-md-1"> 
                     <button type="button" 
-                            class="btn btn-sm w-100 {% if is_occupied %}btn-danger{% else %}btn-outline-success{% endif %}" 
+                            class="btn btn-sm w-100 {% if is_occupied %}btn-danger{% else %}btn-outline-success{% endif %} rounded-lg"
                             data-numero="{{ num_str }}"
                             {% if is_occupied %}disabled{% endif %}
                             id="btn-{{ num_str }}"
@@ -101,34 +115,24 @@
         var selectedNumbers = JSON.parse(document.getElementById('selected_numbers_hidden').value || '[]');
         var displayElement = document.getElementById('selected-numbers-display');
         var hiddenInput = document.getElementById('selected_numbers_hidden');
-        
-        // Seleccionamos los divs de columna, no los botones directamente para controlar la visibilidad
-        var numeroCols = document.querySelectorAll('#numeros-container .col'); 
+        var numeroButtons = document.querySelectorAll('#numeros-container .btn');
 
         function updateDisplay() {
             displayElement.textContent = selectedNumbers.join(', ');
             hiddenInput.value = JSON.stringify(selectedNumbers);
         }
 
-        numeroCols.forEach(function(colDiv) {
-            var button = colDiv.querySelector('.btn');
+        numeroButtons.forEach(function(button) {
             var numero = button.dataset.numero;
-            var isInitiallyOccupied = colDiv.dataset.isOccupied === 'true'; // Leer el estado del data-attribute
+            // Si el número ya está seleccionado (ej. por un error de validación anterior)
+            if (selectedNumbers.includes(numero)) {
+                button.classList.remove('btn-outline-success');
+                button.classList.add('btn-info'); // Color para números seleccionados
+            }
 
-            if (isInitiallyOccupied) {
-                colDiv.classList.add('is-hidden-after-selection'); // Si está ocupado, lo ocultamos
-            } else {
-                // Si NO está ocupado, significa que es un número disponible.
-                // Entonces, podemos adjuntar el event listener y manejar la selección/deselección.
-                if (selectedNumbers.includes(numero)) {
-                    button.classList.remove('btn-outline-success');
-                    button.classList.add('btn-info'); // Color para números seleccionados actualmente
-                } else {
-                    button.classList.remove('btn-info');
-                    button.classList.add('btn-outline-success');
-                }
-
-                button.addEventListener('click', function() {
+            button.addEventListener('click', function() {
+                // Solo permite seleccionar/deseleccionar si el botón no está deshabilitado (ocupado)
+                if (!button.disabled) {
                     if (selectedNumbers.includes(numero)) {
                         // Deseleccionar
                         selectedNumbers = selectedNumbers.filter(function(n) { return n !== numero; });
@@ -141,8 +145,8 @@
                         button.classList.add('btn-info');
                     }
                     updateDisplay();
-                });
-            }
+                }
+            });
         });
 
         // Inicializar tooltips
