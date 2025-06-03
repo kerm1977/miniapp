@@ -173,10 +173,12 @@ def ver_rifa(rifa_id):
     
     grouped_numeros_por_jugador = {}
     for num_obj in numeros_vendidos_objetos:
+        # Normalizar nombre y teléfono para agrupar
         normalized_nombre = num_obj.nombre_jugador.strip().lower()
         normalized_telefono = re.sub(r'\D', '', num_obj.telefono_jugador).strip() 
 
-        player_key = (normalized_nombre, normalized_telefono)
+        # CAMBIO CLAVE AQUÍ: Crear una clave de cadena para el diccionario
+        player_key = f"{normalized_nombre}_{normalized_telefono}" 
         
         if player_key not in grouped_numeros_por_jugador:
             grouped_numeros_por_jugador[player_key] = {
@@ -286,6 +288,44 @@ def borrar_rifa(rifa_id):
         print(f"ERROR: Fallo al borrar rifa {rifa_id}: {e}")
     
     return redirect(url_for('rifas.lista_rifas'))
+
+@rifas_bp.route('/<int:rifa_id>/eliminar_jugador', methods=['POST'])
+@login_required
+def eliminar_jugador_rifa(rifa_id):
+    # Solo los creadores autorizados pueden eliminar jugadores
+    if current_user.email not in AUTHORIZED_RIFA_CREATORS:
+        flash('No tienes permiso para eliminar jugadores de rifas.', 'danger')
+        return redirect(url_for('rifas.ver_rifa', rifa_id=rifa_id))
+
+    nombre_jugador_a_eliminar = request.form.get('nombre_jugador')
+    telefono_jugador_a_eliminar = request.form.get('telefono_jugador')
+    
+    if not nombre_jugador_a_eliminar or not telefono_jugador_a_eliminar:
+        flash('Datos del jugador incompletos para la eliminación.', 'danger')
+        return redirect(url_for('rifas.ver_rifa', rifa_id=rifa_id))
+
+    try:
+        # Encuentra y elimina todos los números asociados a este jugador en esta rifa
+        numeros_a_eliminar = NumeroRifa.query.filter_by(
+            rifa_id=rifa_id,
+            nombre_jugador=nombre_jugador_a_eliminar,
+            telefono_jugador=telefono_jugador_a_eliminar
+        ).all()
+
+        if numeros_a_eliminar:
+            for num_obj in numeros_a_eliminar:
+                db.session.delete(num_obj)
+            db.session.commit()
+            flash(f'Los números del jugador "{nombre_jugador_a_eliminar}" han sido restablecidos.', 'success')
+        else:
+            flash(f'No se encontraron números para el jugador "{nombre_jugador_a_eliminar}" en esta rifa.', 'info')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al intentar eliminar los números del jugador: {str(e)}', 'danger')
+        print(f"ERROR: Fallo al eliminar números de jugador {nombre_jugador_a_eliminar} en rifa {rifa_id}: {e}")
+    
+    return redirect(url_for('rifas.ver_rifa', rifa_id=rifa_id))
 
 
 @rifas_bp.route('/test_rifas')

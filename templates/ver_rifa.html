@@ -48,6 +48,21 @@
         <button id="export-png-btn" class="btn btn-secondary">Exportar a PNG (Rifa Completa)</button>
     </div>
 
+    {# --- Sección para el número ganador --- #}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title">Número Ganador</h4>
+            <div class="input-group mb-3">
+                <input type="text" id="winning-number-input" class="form-control" placeholder="Ingrese el número ganador (ej. 05)" maxlength="2">
+                <button class="btn btn-primary" type="button" id="set-winner-btn">Establecer Ganador</button>
+            </div>
+            <div id="winner-display" class="mt-3">
+                <p><strong>Ganador:</strong> <span id="winner-name">N/A</span></p>
+                <p><strong>Teléfono:</strong> <span id="winner-phone">N/A</span></p>
+            </div>
+        </div>
+    </div>
+
     {# --- Sección para la selección de números --- #}
     <h3 class="mt-4">Seleccionar Números</h3>
     {# Mostrar cuántos números quedan disponibles para seleccionar #}
@@ -102,13 +117,21 @@
             <p class="mb-0"><strong>Números:</strong> {{ player_data.numeros | join(', ') }}</p>
             {# Total por números #}
             <p class="mb-0"><strong>Total por números:</strong> ₡{{ "%.2f"|format(player_data.numeros | length * rifa.valor_rifa) }}</p>
-            {# Nuevo contenedor para el botón de exportar, alineado a la derecha #}
+            {# Nuevo contenedor para los botones, alineado a la derecha #}
             <div class="d-flex justify-content-end mt-2"> 
-                <button class="btn btn-sm btn-outline-info export-player-jpg-btn" 
+                <button class="btn btn-sm btn-outline-info export-player-jpg-btn me-2" 
                         data-player-id="{{ loop.index }}" 
                         data-player-name="{{ player_data.nombre_original }}"
                         style="margin-top: 5px;"> {# Margen superior de 5px para vista móvil #}
                     <i class="fa-solid fa-file-image"></i> Exportar JPG
+                </button>
+                {# Nuevo botón para eliminar jugador #}
+                <button class="btn btn-sm btn-outline-danger delete-player-btn"
+                        data-rifa-id="{{ rifa.id }}"
+                        data-player-name="{{ player_data.nombre_original }}"
+                        data-player-phone="{{ player_data.telefono }}"
+                        style="margin-top: 5px;">
+                    <i class="fa-solid fa-trash-can"></i> Eliminar Jugador
                 </button>
             </div>
         </div>
@@ -123,8 +146,10 @@
     <a href="{{ url_for('rifas.lista_rifas') }}" class="btn btn-secondary mt-4">Volver a la lista de rifas</a>
 </div>
 
-{# --- Importar html2canvas (CDN) --- #}
+{# --- Importar html2canvas (CDN) y SweetAlert2 (CDN) --- #}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> {# SweetAlert2 para confirmación #}
+
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -132,8 +157,7 @@
         var displayElement = document.getElementById('selected-numbers-display');
         var hiddenInput = document.getElementById('selected_numbers_hidden');
         var numeroButtons = document.querySelectorAll('#numeros-container .btn');
-        // var numeroCols = document.querySelectorAll('#numeros-container .col'); // No se usa en esta versión para la lógica de ocultamiento de columnas
-
+        
         // Referencia al nuevo span para el contador de números disponibles
         var remainingAvailableCountSpan = document.getElementById('remaining-available-count'); 
         
@@ -248,6 +272,148 @@
                 }
             });
         });
+
+        // --- Lógica para Eliminar Jugador ---
+        document.querySelectorAll('.delete-player-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const rifaId = this.dataset.rifaId;
+                const playerName = this.dataset.playerName;
+                const playerPhone = this.dataset.playerPhone;
+                const csrfToken = document.querySelector('input[name="csrf_token"]').value; // Obtener el token CSRF
+
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: `Se eliminarán todos los números de "${playerName}" (${playerPhone}) en esta rifa y no podrás revertirlo.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, eliminar jugador',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Crear un formulario dinámico para enviar la solicitud POST
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = `/rifas/${rifaId}/eliminar_jugador`; 
+
+                        // Añadir los campos ocultos para el nombre y teléfono del jugador
+                        const nameInput = document.createElement('input');
+                        nameInput.type = 'hidden';
+                        nameInput.name = 'nombre_jugador';
+                        nameInput.value = playerName;
+                        form.appendChild(nameInput);
+
+                        const phoneInput = document.createElement('input');
+                        phoneInput.type = 'hidden';
+                        phoneInput.name = 'telefono_jugador';
+                        phoneInput.value = playerPhone;
+                        form.appendChild(phoneInput);
+
+                        // Añadir el token CSRF
+                        const csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = 'csrf_token'; 
+                        csrfInput.value = csrfToken; 
+                        form.appendChild(csrfInput);
+
+                        document.body.appendChild(form);
+                        form.submit(); // Enviar el formulario
+                    }
+                });
+            });
+        });
+
+        // --- Lógica para Número Ganador ---
+        const winningNumberInput = document.getElementById('winning-number-input');
+        const setWinnerBtn = document.getElementById('set-winner-btn');
+        const winnerNameSpan = document.getElementById('winner-name');
+        const winnerPhoneSpan = document.getElementById('winner-phone');
+
+        // Pasar los datos de los números vendidos agrupados a JavaScript
+        // Asegúrate de que 'grouped_numeros_por_jugador' se pase correctamente desde Flask como JSON
+        const groupedNumerosPorJugadorJS = {{ grouped_numeros_por_jugador | tojson }};
+
+        setWinnerBtn.addEventListener('click', function() {
+            const winningNumber = winningNumberInput.value.trim();
+            if (winningNumber.length === 0) {
+                Swal.fire('Error', 'Por favor, ingrese un número ganador.', 'error');
+                return;
+            }
+            // Asegurar formato de dos dígitos (ej. "5" se convierte en "05")
+            const formattedWinningNumber = winningNumber.padStart(2, '0');
+
+            let winnerFound = false;
+            // Itera sobre los valores del objeto (los datos de cada jugador)
+            for (const playerKey in groupedNumerosPorJugadorJS) {
+                const playerData = groupedNumerosPorJugadorJS[playerKey];
+                // Comprueba si el número ganador formateado está en la lista de números de este jugador
+                if (playerData.numeros.includes(formattedWinningNumber)) {
+                    winnerNameSpan.textContent = playerData.nombre_original;
+                    winnerPhoneSpan.textContent = playerData.telefono;
+                    Swal.fire(
+                        '¡Felicidades!',
+                        `¡El ganador es ${playerData.nombre_original} con el número ${formattedWinningNumber}!`,
+                        'success'
+                    );
+                    winnerFound = true;
+                    break; // Salir del bucle una vez que se encuentra el ganador
+                }
+            }
+
+            if (!winnerFound) {
+                winnerNameSpan.textContent = 'N/A';
+                winnerPhoneSpan.textContent = 'N/A';
+                Swal.fire(
+                    'Número no vendido',
+                    `El número ${formattedWinningNumber} no ha sido vendido.`,
+                    'info'
+                );
+            }
+        });
+
+        // --- Lógica para Verificar Número de Jugador (Nueva Sección) ---
+        const checkNumberInput = document.getElementById('check-number-input');
+        const checkPlayerBtn = document.getElementById('check-player-btn');
+        const checkedPlayerNameSpan = document.getElementById('checked-player-name');
+        const checkedPlayerPhoneSpan = document.getElementById('checked-player-phone');
+
+        checkPlayerBtn.addEventListener('click', function() {
+            const numberToVerify = checkNumberInput.value.trim();
+            if (numberToVerify.length === 0) {
+                Swal.fire('Error', 'Por favor, ingrese un número para verificar.', 'error');
+                return;
+            }
+            const formattedNumberToVerify = numberToVerify.padStart(2, '0');
+
+            let playerFound = false;
+            for (const playerKey in groupedNumerosPorJugadorJS) {
+                const playerData = groupedNumerosPorJugadorJS[playerKey];
+                if (playerData.numeros.includes(formattedNumberToVerify)) {
+                    checkedPlayerNameSpan.textContent = playerData.nombre_original;
+                    checkedPlayerPhoneSpan.textContent = playerData.telefono;
+                    Swal.fire(
+                        '¡Felicidades!',
+                        `¡El número ${formattedNumberToVerify} ha sido seleccionado por ${playerData.nombre_original}!`,
+                        'success'
+                    );
+                    playerFound = true;
+                    break;
+                }
+            }
+
+            if (!playerFound) {
+                checkedPlayerNameSpan.textContent = 'N/A';
+                checkedPlayerPhoneSpan.textContent = 'N/A';
+                Swal.fire(
+                    'Número no seleccionado',
+                    `El número ${formattedNumberToVerify} no ha sido seleccionado por ningún jugador.`,
+                    'info'
+                );
+            }
+        });
+
     });
 </script>
+
 {% endblock %}
