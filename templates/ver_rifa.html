@@ -50,7 +50,7 @@
 
     {# --- Sección para la selección de números --- #}
     <h3 class="mt-4">Seleccionar Números</h3>
-    {# NUEVA LÍNEA: Mostrar cuántos números quedan disponibles para seleccionar #}
+    {# Mostrar cuántos números quedan disponibles para seleccionar #}
     <p class="text-muted">Números disponibles: <span id="remaining-available-count"></span></p>
     
     <form method="POST" action="{{ url_for('rifas.ver_rifa', rifa_id=rifa.id) }}" class="mb-4">
@@ -100,7 +100,7 @@
             <p class="mb-1"><strong>Jugador:</strong> {{ player_data.nombre_original }}</p>
             <p class="mb-1"><strong>Teléfono:</strong> {{ player_data.telefono }}</p>
             <p class="mb-0"><strong>Números:</strong> {{ player_data.numeros | join(', ') }}</p>
-            {# NUEVA LÍNEA: Total por números #}
+            {# Total por números #}
             <p class="mb-0"><strong>Total por números:</strong> ₡{{ "%.2f"|format(player_data.numeros | length * rifa.valor_rifa) }}</p>
             {# Nuevo contenedor para el botón de exportar, alineado a la derecha #}
             <div class="d-flex justify-content-end mt-2"> 
@@ -250,5 +250,4 @@
         });
     });
 </script>
-
 {% endblock %}
