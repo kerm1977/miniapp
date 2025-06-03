@@ -1,8 +1,15 @@
 {% extends 'base.html' %}
+
 {% block head %}
+    <title>Ver Notas</title>
+    <!-- Enlace a Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Fuente Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- html2canvas para exportar a JPG -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -32,6 +39,7 @@
             padding: 1.25rem;
             margin-bottom: 1rem;
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            position: relative; /* Necesario para el botón de colapsar/expandir */
         }
         .note-card:hover {
             transform: translateY(-5px);
@@ -46,27 +54,48 @@
             color: #555;
             line-height: 1.6;
             margin-bottom: 0.75rem;
+            overflow: hidden; /* Oculta el contenido extra */
+            position: relative;
+        }
+        .note-content.collapsed {
+            max-height: 150px; /* Altura máxima para colapsar, ajusta según sea necesario */
+        }
+        .note-content.collapsed::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50px; /* Degradado para indicar que hay más contenido */
+            background: linear-gradient(to top, rgba(255,255,255,1), rgba(255,255,255,0));
+            pointer-events: none; /* Permite hacer clic en el texto subyacente */
+        }
+        .read-more-btn {
+            display: block;
+            margin-top: 0.5rem;
+            color: #007bff;
+            cursor: pointer;
+            text-align: right;
+            font-size: 0.9rem;
+            font-weight: 500;
         }
         .note-date {
             font-size: 0.85rem;
             color: #777;
             text-align: right;
         }
-        .actions button {
+        .actions button, .actions a {
             padding: 0.5rem 1rem;
             border-radius: 6px;
             font-weight: 500;
             transition: background-color 0.2s ease-in-out;
+            text-decoration: none; /* Para los enlaces */
+            display: inline-block; /* Para que los enlaces se comporten como botones */
+            text-align: center;
         }
         .edit-btn {
             background-color: #4CAF50; /* Verde */
             color: white;
-            padding: 0.5rem 1rem; /* Asegura el padding para 'a' también */
-            border-radius: 6px;
-            font-weight: 500;
-            transition: background-color 0.2s ease-in-out;
-            display: inline-block; /* Para que el padding y el margen funcionen correctamente en 'a' */
-            text-decoration: none; /* Quita el subrayado del enlace */
         }
         .edit-btn:hover {
             background-color: #45a049;
@@ -77,6 +106,13 @@
         }
         .delete-btn:hover {
             background-color: #da190b;
+        }
+        .view-detail-btn {
+            background-color: #17a2b8; /* Cian de Bootstrap */
+            color: white;
+        }
+        .view-detail-btn:hover {
+            background-color: #138496;
         }
         .create-btn {
             background-color: #007bff; /* Azul primario */
@@ -107,8 +143,9 @@
             border: 1px solid #f5c6cb;
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <div class="container">
         <div class="header">
             <h1 class="text-3xl font-bold text-gray-800">Mis Notas</h1>
@@ -131,13 +168,18 @@
         <!-- Lista de notas -->
         {% if notas %}
             {% for nota in notas %}
-                <div class="note-card">
+                <div class="note-card" id="note-card-{{ nota.id }}">
                     <h2 class="note-title text-xl">{{ nota.titulo }}</h2>
-                    {# Usamos 'nota.descripcion' en lugar de 'nota.contenido' #}
-                    <p class="note-content">{{ nota.descripcion | safe }}</p> {# Usamos | safe para renderizar HTML si el editor lo genera #}
+                    <div class="note-content" id="note-content-{{ nota.id }}">
+                        {{ nota.descripcion | safe }}
+                    </div>
                     <p class="note-date">{{ nota.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</p>
                     <div class="flex justify-end space-x-3 mt-4 actions">
                         <a href="{{ url_for('notas.editar_nota', id=nota.id) }}" class="edit-btn">Editar</a>
+                        {# Botones de exportación movidos a notas_detail.html #}
+                        {# <a href="{{ url_for('notas.exportar_nota_pdf', id=nota.id) }}" class="export-btn-pdf" target="_blank">Exportar PDF</a> #}
+                        {# <button type="button" class="export-btn-jpg" onclick="exportToJpg('note-content-{{ nota.id }}', '{{ nota.titulo }}')">Exportar JPG</button> #}
+                        <a href="{{ url_for('notas.detalle_nota', id=nota.id) }}" class="view-detail-btn">Ver Completa</a>
                         <form action="{{ url_for('notas.borrar_nota', id=nota.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres borrar esta nota?');">
                             <input type="hidden" name="csrf_token" value="{{ generate_csrf() }}">
                             <button type="submit" class="delete-btn">Borrar</button>
@@ -149,4 +191,67 @@
             <p class="text-center text-gray-600 text-lg mt-8">No tienes notas aún. ¡Crea una nueva!</p>
         {% endif %}
     </div>
+
+    <script>
+        // Función para exportar a JPG (ya no se usa aquí, pero se mantiene si se necesita en otro lugar)
+        function exportToJpg(elementId, title) {
+            const element = document.getElementById(elementId);
+            html2canvas(element, {
+                scale: 2, // Aumenta la escala para una mejor calidad
+                useCORS: true // Importante si hay imágenes de diferentes dominios
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/jpeg', 0.9); // 0.9 es la calidad JPG
+                const link = document.createElement('a');
+                link.download = `${title.replace(/[^a-z0-9]/gi, '_')}.jpg`; // Limpia el título para el nombre del archivo
+                link.href = imgData;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }).catch(error => {
+                console.error("Error al generar JPG:", error);
+                // Usar SweetAlert2 en lugar de alert()
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al exportar JPG',
+                    text: 'Hubo un error al exportar a JPG. Por favor, inténtalo de nuevo.'
+                });
+            });
+        }
+
+        // Función para colapsar/expandir notas
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.note-content').forEach(contentDiv => {
+                // Clonar el contenido para medir la altura real sin el estilo colapsado
+                const tempDiv = document.createElement('div');
+                tempDiv.style.visibility = 'hidden';
+                tempDiv.style.position = 'absolute';
+                tempDiv.style.height = 'auto';
+                tempDiv.style.width = contentDiv.offsetWidth + 'px'; // Usar el mismo ancho
+                tempDiv.innerHTML = contentDiv.innerHTML;
+                document.body.appendChild(tempDiv);
+
+                const actualHeight = tempDiv.offsetHeight;
+                document.body.removeChild(tempDiv);
+
+                const maxHeight = 150; // La misma altura que en el CSS .note-content.collapsed
+
+                if (actualHeight > maxHeight) {
+                    contentDiv.classList.add('collapsed');
+                    const readMoreBtn = document.createElement('span');
+                    readMoreBtn.classList.add('read-more-btn');
+                    readMoreBtn.textContent = 'Leer más';
+                    contentDiv.parentNode.insertBefore(readMoreBtn, contentDiv.nextSibling); // Insertar después del div de contenido
+
+                    readMoreBtn.addEventListener('click', () => {
+                        contentDiv.classList.toggle('collapsed');
+                        if (contentDiv.classList.contains('collapsed')) {
+                            readMoreBtn.textContent = 'Leer más';
+                        } else {
+                            readMoreBtn.textContent = 'Mostrar menos';
+                        }
+                    });
+                }
+            });
+        });
+    </script>
 {% endblock %}

@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Detalle de Nota: {{ nota.titulo }}</title>
+    <!-- Enlace a Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuente Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- html2canvas para exportar a JPG -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: {{ pastel_color }}; /* Color pastel aleatorio */
+            color: #333;
+            transition: background-color 0.5s ease; /* Transición suave para el cambio de color */
+        }
+        .container {
+            max-width: 960px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        .header {
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .note-full-content {
+            line-height: 1.8;
+            color: #444;
+            padding: 1rem 0;
+            border-top: 1px solid #eee;
+            margin-top: 1rem;
+        }
+        .back-btn {
+            background-color: #6c757d; /* Gris */
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1.5rem;
+        }
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+        .export-buttons {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        .export-btn-pdf {
+            background-color: #dc3545; /* Rojo de Bootstrap */
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        .export-btn-pdf:hover {
+            background-color: #c82333;
+        }
+        .export-btn-jpg {
+            background-color: #ffc107; /* Amarillo de Bootstrap */
+            color: #212529;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        .export-btn-jpg:hover {
+            background-color: #e0a800;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="header">
+            <h1 class="text-3xl font-bold text-gray-800">{{ nota.titulo }}</h1>
+            <p class="text-gray-500 text-sm">Creada el: {{ nota.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</p>
+        </div>
+
+        <div class="note-full-content" id="note-full-content-{{ nota.id }}">
+            {% if nota.descripcion %}
+                {{ nota.descripcion | safe }}
+            {% else %}
+                <p class="text-center text-gray-600">Esta nota no tiene contenido.</p>
+            {% endif %}
+        </div>
+
+        <div class="flex justify-between items-center mt-6">
+            <a href="{{ url_for('notas.ver_notas') }}" class="back-btn">Volver a Notas</a>
+            <div class="export-buttons">
+                <a href="{{ url_for('notas.exportar_nota_pdf', id=nota.id) }}" class="export-btn-pdf" target="_blank">Exportar PDF</a>
+                <button type="button" class="export-btn-jpg" onclick="exportToJpg('note-full-content-{{ nota.id }}', '{{ nota.titulo }}')">Exportar JPG</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para exportar a JPG
+        function exportToJpg(elementId, title) {
+            const element = document.getElementById(elementId);
+            html2canvas(element, {
+                scale: 2, // Aumenta la escala para una mejor calidad
+                useCORS: true // Importante si hay imágenes de diferentes dominios
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/jpeg', 0.9); // 0.9 es la calidad JPG
+                const link = document.createElement('a');
+                link.download = `${title.replace(/[^a-z0-9]/gi, '_')}.jpg`; // Limpia el título para el nombre del archivo
+                link.href = imgData;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }).catch(error => {
+                console.error("Error al generar JPG:", error);
+                // Usar SweetAlert2 en lugar de alert()
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al exportar JPG',
+                    text: 'Hubo un error al exportar a JPG. Por favor, inténtalo de nuevo.'
+                });
+            });
+        }
+    </script>
+{% endblock %}

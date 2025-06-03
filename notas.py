@@ -7,15 +7,17 @@ from wtforms.validators import DataRequired, Length
 from datetime import datetime
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT, TA_JUSTIFY
 from io import BytesIO
 from PIL import Image as PILImage # Importar Pillow para JPG
 import os
+import re # Importar el módulo de expresiones regulares
 
 # Importar db y el modelo Nota desde models.py
 from models import db, Nota # Asegúrate de que esta importación sea correcta
 from flask_wtf.csrf import generate_csrf # ¡IMPORTANTE: Importar generate_csrf!
+from reportlab.lib.units import inch # ¡IMPORTADO: Añadir esta línea para 'inch'!
 
 notas_bp = Blueprint('notas', __name__, template_folder='templates')
 
@@ -93,6 +95,15 @@ def borrar_nota(id):
         flash('Error al intentar borrar la nota.', 'danger')
     return redirect(url_for('notas.ver_notas'))
 
+# Nueva ruta para ver el detalle de una nota
+@notas_bp.route('/notas_detail/<int:id>')
+@login_required
+def detalle_nota(id):
+    nota = Nota.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+    pastel_color = generate_pastel_color()
+    return render_template('notas_detail.html', nota=nota, pastel_color=pastel_color, generate_csrf=generate_csrf)
+
+
 # Función para exportar nota a PDF
 @notas_bp.route('/exportar_nota_pdf/<int:id>')
 @login_required
@@ -107,8 +118,8 @@ def exportar_nota_pdf(id):
     styles.add(ParagraphStyle(name='NotaTitle', fontSize=24, leading=28, alignment=TA_CENTER, spaceAfter=20, fontName='Helvetica-Bold'))
     # Estilo para la fecha
     styles.add(ParagraphStyle(name='NotaDate', fontSize=10, leading=12, alignment=TA_RIGHT, spaceAfter=10, textColor='#666666'))
-    # Estilo para la descripción
-    styles.add(ParagraphStyle(name='NotaDescription', fontSize=12, leading=14, spaceAfter=10))
+    # Estilo para la descripción, ¡habilitando el modo XML!
+    styles.add(ParagraphStyle(name='NotaDescription', fontSize=12, leading=14, spaceAfter=10, allowXML=1)) # ¡Añadido allowXML=1!
 
     story = []
 
@@ -118,7 +129,17 @@ def exportar_nota_pdf(id):
     story.append(Paragraph(f"Fecha de Creación: {nota.fecha_creacion.strftime('%d-%m-%Y %H:%M')}", styles['NotaDate']))
     story.append(Spacer(1, 0.2 * inch))
 
-    story.append(Paragraph(nota.descripcion, styles['NotaDescription']))
+    # Limpiar el HTML de la descripción antes de pasarlo a ReportLab
+    # 1. Eliminar comentarios HTML
+    cleaned_description = re.sub(r'<!--.*?-->', '', nota.descripcion, flags=re.DOTALL)
+    # 2. Normalizar <br> a <br/> para compatibilidad XML si es necesario (ReportLab suele preferir esto)
+    cleaned_description = cleaned_description.replace('<br>', '<br/>')
+    # 3. Asegurarse de que el contenido esté dentro de etiquetas <p> si no lo está ya,
+    #    o ReportLab podría tener problemas con el texto plano o HTML suelto.
+    #    Para este caso, asumiendo que el editor WYSIWYG ya genera <p> o <div>,
+    #    confiaremos en allowXML=1 para manejarlo.
+
+    story.append(Paragraph(cleaned_description, styles['NotaDescription']))
 
     doc.build(story)
     buffer.seek(0)
@@ -135,6 +156,5 @@ def exportar_nota_pdf(id):
 # y luego se envía una imagen ya generada o se renderiza en el navegador.
 # Si necesitas generar JPG en el backend, tendrías que usar librerías como imgkit (requiere wkhtmltopdf)
 # o Pillow para manipular imágenes si la descripción es texto plano.
-# Dado que el editor WYSIWYG genera HTML, la exportación a JPG desde el backend sería compleja.
-# La solución más común es usar html2canvas en el frontend como ya lo tienes en editar_notas.html.
+# Dado que el editor WYSIWYG genera HTML, la solución más común es usar html2canvas en el frontend como ya lo tienes en editar_notas.html.
 # Por lo tanto, no se necesita una ruta de backend para exportar a JPG si ya se hace en el frontend.
