@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block head %}
+{% block content %}
     <title>Editar Nota</title>
     <!-- Enlace a Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -8,19 +8,13 @@
     <!-- Font Awesome para iconos de editor -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: {{ pastel_color }}; /* Color pastel aleatorio */
-            color: #333;
-            transition: background-color 0.5s ease; /* Transición suave para el cambio de color */
-        }
-        .container {
+     
+        .cards{
             max-width: 960px;
             margin: 2rem auto;
             padding: 1.5rem;
             background-color: #ffffff;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
         .header {
             border-bottom: 2px solid #e0e0e0;
@@ -40,7 +34,8 @@
             color: #4a5568;
         }
         .form-group input[type="text"],
-        .form-group textarea {
+        .form-group textarea,
+        .form-group input[type="color"] { /* Añadido input[type="color"] */
             width: 100%;
             padding: 0.75rem;
             border: 1px solid #cbd5e0;
@@ -50,10 +45,16 @@
             transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
         .form-group input[type="text"]:focus,
-        .form-group textarea:focus {
+        .form-group textarea:focus,
+        .form-group input[type="color"]:focus { /* Añadido input[type="color"] */
             border-color: #63b3ed;
             box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
             outline: none;
+        }
+        /* Estilo específico para el input de color para que no tenga padding extra */
+        .form-group input[type="color"] {
+            padding: 0.2rem; /* Ajusta el padding para el selector de color */
+            height: 40px; /* Altura para que se vea bien */
         }
         .btn-primary {
             background-color: #007bff;
@@ -126,7 +127,8 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container-block">
+    <div class="cards">
         <div class="header">
             <h1 class="text-3xl font-bold text-gray-800">Editar Nota</h1>
             <a href="{{ url_for('notas.ver_notas') }}" class="btn-primary">Volver a Notas</a>
@@ -138,6 +140,7 @@
                 {{ form.titulo.label }}
                 {{ form.titulo(class="block mt-1 w-full") }}
             </div>
+          
             <div class="form-group">
                 {{ form.descripcion.label }}
                 <!-- Barra de herramientas del editor de texto -->
@@ -146,7 +149,8 @@
                     <button type="button" onclick="formatDoc('italic')"><i class="fas fa-italic"></i></button>
                     <button type="button" onclick="formatDoc('underline')"><i class="fas fa-underline"></i></button>
                     <button type="button" onclick="formatDoc('strikeThrough')"><i class="fas fa-strikethrough"></i></button>
-                    <button type="button" onclick="formatDoc('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
+                    {# Botón para lista desordenada (eliminado) #}
+                    {# Botón para lista ordenada (eliminado) #}
                     <button type="button" onclick="formatDoc('justifyLeft')"><i class="fas fa-align-left"></i></button>
                     <button type="button" onclick="formatDoc('justifyCenter')"><i class="fas fa-align-center"></i></button>
                     <button type="button" onclick="formatDoc('justifyRight')"><i class="fas fa-align-right"></i></button>
@@ -181,6 +185,7 @@
             document.execCommand(command, false, value);
             // Asegura que el foco permanezca en el editor para continuar escribiendo
             document.getElementById('descriptionEditor').focus();
+   
         }
 
         // Función para actualizar el campo oculto con el contenido HTML del editor
@@ -204,7 +209,12 @@
                 document.body.removeChild(link);
             }).catch(error => {
                 console.error("Error al generar JPG:", error);
-                alert("Hubo un error al exportar a JPG. Por favor, inténtalo de nuevo.");
+                // Usar SweetAlert2 en lugar de alert()
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al exportar JPG',
+                    text: 'Hubo un error al exportar a JPG. Por favor, inténtalo de nuevo.'
+                });
             });
         }
 
@@ -215,4 +225,5 @@
             body.style.backgroundColor = '{{ pastel_color | safe }}';
         });
     </script>
+</div>
 {% endblock %}

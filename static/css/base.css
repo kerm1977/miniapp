@@ -9,11 +9,13 @@ body {
     margin-bottom: 250px;
 }
 
-.container {
-    width: 80%;
-    margin: 20px auto;
+.container-block{
+    margin-top:80px;
     padding: 20px;
+}
 
+.container-flash{
+    margin-top:60px;
 }
 
 .top-right {
