@@ -1,7 +1,9 @@
 alembic==1.15.2
+beautifulsoup4==4.13.4
 blinker==1.9.0
 Brotli==1.1.0
 cffi==1.17.1
+chardet==5.2.0
 click==8.1.8
 colorama==0.4.6
 cssselect2==0.8.0
@@ -29,7 +31,9 @@ pydyf==0.11.0
 pyphen==0.17.2
 python-dateutil==2.9.0.post0
 pytz==2025.2
+reportlab==4.4.1
 six==1.17.0
+soupsieve==2.7
 SQLAlchemy==2.0.40
 tinycss2==1.4.0
 tinyhtml5==2.0.0

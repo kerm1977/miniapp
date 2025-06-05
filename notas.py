@@ -13,11 +13,12 @@ from io import BytesIO
 from PIL import Image as PILImage # Importar Pillow para JPG
 import os
 import re # Importar el módulo de expresiones regulares
+from bs4 import BeautifulSoup # Importar BeautifulSoup para parsear HTML
 
-# Importar db y el modelo Nota desde models.py
-from models import db, Nota # Asegúrate de que esta importación sea correcta
-from flask_wtf.csrf import generate_csrf # ¡IMPORTANTE: Importar generate_csrf!
-from reportlab.lib.units import inch # ¡IMPORTADO: Añadir esta línea para 'inch'!
+# Importar db y los modelos Nota y User desde models.py
+from models import db, Nota, User # ¡CORRECCIÓN AQUÍ: Agregado 'User'!
+from flask_wtf.csrf import generate_csrf
+from reportlab.lib.units import inch
 
 notas_bp = Blueprint('notas', __name__, template_folder='templates')
 
@@ -29,117 +30,157 @@ class NotaForm(FlaskForm):
 
 # Función para generar colores pastel aleatorios
 def generate_pastel_color():
-    # Genera un color pastel en formato hexadecimal
-    r = int((255 + (datetime.now().microsecond % 100)) / 2)
-    g = int((255 + (datetime.now().microsecond % 100) + 50) / 2)
-    b = int((255 + (datetime.now().microsecond % 100) + 100) / 2)
-    return f'#{r:02x}{g:02x}{b:02x}'
+    """Genera un color pastel aleatorio en formato hexadecimal."""
+    import random
+    r = random.randint(200, 255)
+    g = random.randint(200, 255)
+    b = random.randint(200, 255)
+    return f"#{r:02x}{g:02x}{b:02x}"
 
-# Rutas para el CRUD de Notas
-
+# Rutas de notas
 @notas_bp.route('/ver_notas')
 @login_required
 def ver_notas():
-    # Obtiene todas las notas del usuario actual, ordenadas por fecha de creación descendente
-    notas = Nota.query.filter_by(usuario_id=current_user.id).order_by(Nota.fecha_creacion.desc()).all()
-    pastel_color = generate_pastel_color() # Genera un color pastel para el fondo
-    # ¡IMPORTANTE: Pasar generate_csrf a la plantilla!
-    return render_template('ver_notas.html', notas=notas, pastel_color=pastel_color, generate_csrf=generate_csrf)
+    pastel_color = generate_pastel_color()
+    # Asegúrate de que solo se muestran las notas del usuario actual
+    user_notes = Nota.query.filter_by(usuario_id=current_user.id).order_by(Nota.fecha_creacion.desc()).all()
+    # Generar un token CSRF para el botón de eliminar, si es necesario, o manejarlo con un formulario separado
+    csrf_token = generate_csrf()
+    return render_template('ver_notas.html', user_notes=user_notes, pastel_color=pastel_color, csrf_token=csrf_token)
 
 @notas_bp.route('/crear_nota', methods=['GET', 'POST'])
 @login_required
 def crear_nota():
     form = NotaForm()
+    pastel_color = generate_pastel_color()
     if form.validate_on_submit():
-        # Crea una nueva nota con los datos del formulario y la fecha actual
-        nueva_nota = Nota(
-            usuario_id=current_user.id,
+        # La descripción ya viene como HTML del frontend
+        new_note = Nota(
             titulo=form.titulo.data,
-            descripcion=form.descripcion.data,
-            fecha_creacion=datetime.utcnow() # La fecha se coloca automáticamente
+            descripcion=form.descripcion.data, # Guardar el HTML directamente
+            usuario_id=current_user.id
         )
-        db.session.add(nueva_nota)
+        db.session.add(new_note)
         db.session.commit()
         flash('¡Nota creada exitosamente!', 'success')
         return redirect(url_for('notas.ver_notas'))
-    pastel_color = generate_pastel_color() # Genera un color pastel para el fondo
-    return render_template('crear_notas.html', form=form, pastel_color=pastel_color, generate_csrf=generate_csrf) # Pasar generate_csrf aquí también
+    return render_template('crear_notas.html', form=form, pastel_color=pastel_color, csrf_token=generate_csrf())
 
-@notas_bp.route('/editar_nota/<int:id>', methods=['GET', 'POST'])
+@notas_bp.route('/editar_nota/<int:nota_id>', methods=['GET', 'POST'])
 @login_required
-def editar_nota(id):
-    # Busca la nota por ID y usuario actual
-    nota = Nota.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
-    form = NotaForm(obj=nota) # Pre-llena el formulario con los datos de la nota
+def editar_nota(nota_id):
+    note_to_edit = Nota.query.get_or_404(nota_id)
+
+    # Asegurarse de que el usuario actual es el propietario de la nota
+    if note_to_edit.usuario_id != current_user.id:
+        flash('No tienes permiso para editar esta nota.', 'danger')
+        return redirect(url_for('notas.ver_notas'))
+
+    form = NotaForm(obj=note_to_edit) # Pre-llenar el formulario con los datos de la nota existente
+    pastel_color = generate_pastel_color()
 
     if form.validate_on_submit():
-        # Actualiza los datos de la nota
-        nota.titulo = form.titulo.data
-        nota.descripcion = form.descripcion.data
+        note_to_edit.titulo = form.titulo.data
+        note_to_edit.descripcion = form.descripcion.data # Actualizar con el HTML del editor
         db.session.commit()
         flash('¡Nota actualizada exitosamente!', 'success')
         return redirect(url_for('notas.ver_notas'))
-    pastel_color = generate_pastel_color() # Genera un color pastel para el fondo
-    return render_template('editar_notas.html', form=form, nota=nota, pastel_color=pastel_color, generate_csrf=generate_csrf) # Pasar generate_csrf aquí también
+    
+    # Cuando se carga la página por primera vez (GET request),
+    # el 'descripcion' del formulario se llena con el contenido de la DB,
+    # y luego en el HTML se renderiza con |safe
+    return render_template('editar_notas.html', form=form, nota=note_to_edit, pastel_color=pastel_color, csrf_token=generate_csrf())
 
-@notas_bp.route('/borrar_nota/<int:id>', methods=['POST'])
+
+@notas_bp.route('/eliminar_nota/<int:nota_id>', methods=['POST'])
 @login_required
-def borrar_nota(id):
-    # Busca y borra la nota
-    nota = Nota.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
-    if nota:
-        db.session.delete(nota)
-        db.session.commit()
-        flash('¡Nota borrada exitosamente!', 'success')
-    else:
-        flash('Error al intentar borrar la nota.', 'danger')
+def eliminar_nota(nota_id):
+    note_to_delete = Nota.query.get_or_404(nota_id)
+
+    # Asegurarse de que el usuario actual es el propietario de la nota
+    if note_to_delete.usuario_id != current_user.id:
+        flash('No tienes permiso para eliminar esta nota.', 'danger')
+        return redirect(url_for('notas.ver_notas'))
+
+    db.session.delete(note_to_delete)
+    db.session.commit()
+    flash('¡Nota eliminada exitosamente!', 'success')
     return redirect(url_for('notas.ver_notas'))
 
-# Nueva ruta para ver el detalle de una nota
-@notas_bp.route('/notas_detail/<int:id>')
+@notas_bp.route('/notas/<int:nota_id>')
 @login_required
-def detalle_nota(id):
-    nota = Nota.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+def notas_detail(nota_id):
     pastel_color = generate_pastel_color()
-    return render_template('notas_detail.html', nota=nota, pastel_color=pastel_color, generate_csrf=generate_csrf)
+    nota = Nota.query.get_or_404(nota_id)
+    if nota.usuario_id != current_user.id:
+        flash('No tienes permiso para ver esta nota.', 'danger')
+        return redirect(url_for('notas.ver_notas'))
+    
+    csrf_token = generate_csrf()
+    return render_template('notas_detail.html', nota=nota, pastel_color=pastel_color, csrf_token=csrf_token)
 
 
-# Función para exportar nota a PDF
-@notas_bp.route('/exportar_nota_pdf/<int:id>')
+@notas_bp.route('/exportar_pdf/<int:nota_id>')
 @login_required
-def exportar_nota_pdf(id):
-    nota = Nota.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+def exportar_pdf(nota_id):
+    nota = Nota.query.get_or_404(nota_id)
+
+    if nota.usuario_id != current_user.id:
+        flash('No tienes permiso para exportar esta nota.', 'danger')
+        return redirect(url_for('notas.ver_notas'))
 
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
-    styles = getSampleStyleSheet()
-    
-    # Estilo para el título de la nota
-    styles.add(ParagraphStyle(name='NotaTitle', fontSize=24, leading=28, alignment=TA_CENTER, spaceAfter=20, fontName='Helvetica-Bold'))
-    # Estilo para la fecha
-    styles.add(ParagraphStyle(name='NotaDate', fontSize=10, leading=12, alignment=TA_RIGHT, spaceAfter=10, textColor='#666666'))
-    # Estilo para la descripción, ¡habilitando el modo XML!
-    styles.add(ParagraphStyle(name='NotaDescription', fontSize=12, leading=14, spaceAfter=10, allowXML=1)) # ¡Añadido allowXML=1!
-
     story = []
+    styles = getSampleStyleSheet()
 
-    # Título de la nota
+    # Estilos personalizados para la nota
+    styles.add(ParagraphStyle(name='NotaTitle', fontName='Helvetica-Bold', fontSize=24, spaceAfter=14, alignment=TA_CENTER))
+    styles.add(ParagraphStyle(name='NotaMeta', fontName='Helvetica', fontSize=10, textColor='#666666', spaceAfter=12, alignment=TA_CENTER))
+    styles.add(ParagraphStyle(name='NotaDescription', fontName='Helvetica', fontSize=12, leading=16, spaceAfter=6, alignment=TA_JUSTIFY))
+
+    # Título
     story.append(Paragraph(nota.titulo, styles['NotaTitle']))
-    # Fecha de creación
-    story.append(Paragraph(f"Fecha de Creación: {nota.fecha_creacion.strftime('%d-%m-%Y %H:%M')}", styles['NotaDate']))
+    
+    # Metadatos
+    story.append(Paragraph(f"Creada por: {nota.usuario.username} el {nota.fecha_creacion.strftime('%d/%m/%Y a las %H:%M')}", styles['NotaMeta']))
     story.append(Spacer(1, 0.2 * inch))
 
-    # Limpiar el HTML de la descripción antes de pasarlo a ReportLab
-    # 1. Eliminar comentarios HTML
-    cleaned_description = re.sub(r'<!--.*?-->', '', nota.descripcion, flags=re.DOTALL)
-    # 2. Normalizar <br> a <br/> para compatibilidad XML si es necesario (ReportLab suele preferir esto)
-    cleaned_description = cleaned_description.replace('<br>', '<br/>')
-    # 3. Asegurarse de que el contenido esté dentro de etiquetas <p> si no lo está ya,
-    #    o ReportLab podría tener problemas con el texto plano o HTML suelto.
-    #    Para este caso, asumiendo que el editor WYSIWYG ya genera <p> o <div>,
-    #    confiaremos en allowXML=1 para manejarlo.
+    # Transformar los elementos de la lista de checkboxes para PDF
+    def transform_checkbox_items_for_pdf(html_content):
+        soup = BeautifulSoup(html_content, 'html.parser')
+        
+        for ul in soup.find_all('ul', class_='checkbox-list'):
+            for li in ul.find_all('li'):
+                checkbox = li.find('input', type='checkbox')
+                
+                # Encontrar el elemento de texto (span o s)
+                text_element = li.find('span') or li.find('s')
+                
+                if checkbox and text_element:
+                    item_text = text_element.get_text()
+                    # Si el checkbox está marcado o el texto está tachado (se asume que si está tachado, el checkbox está marcado)
+                    if checkbox.has_attr('checked') or text_element.name == 's':
+                        li.string = f"[X] {item_text}"
+                    else:
+                        li.string = f"[ ] {item_text}"
+                    # Eliminar el checkbox y el span/s original para dejar solo el texto transformado
+                    if checkbox:
+                        checkbox.decompose()
+                    if text_element:
+                        text_element.decompose()
+        return str(soup)
 
-    story.append(Paragraph(cleaned_description, styles['NotaDescription']))
+    transformed_description = transform_checkbox_items_for_pdf(nota.descripcion)
+
+    # Limpiar comentarios HTML antes de pasar a ReportLab (no es estrictamente necesario, pero es buena práctica)
+    cleaned_description = re.sub(r'<!--.*?-->', '', transformed_description, flags=re.DOTALL)
+    # Normalizar <br> a <br/> para compatibilidad XML si es necesario (ReportLab suele preferir esto)
+    cleaned_description = cleaned_description.replace('<br>', '<br/>')
+
+    # Ahora ReportLab puede usar el HTML transformado para renderizar la descripción.
+    # El `allowXML=1` es crucial para que ReportLab interprete las etiquetas HTML.
+    story.append(Paragraph(cleaned_description, styles['NotaDescription'], encoding='utf-8', allowXML=1))
 
     doc.build(story)
     buffer.seek(0)
@@ -151,10 +192,5 @@ def exportar_nota_pdf(id):
         download_name=f'nota_{nota.titulo}.pdf'
     )
 
-# Función para exportar nota a JPG (usando Pillow y html2canvas en el frontend)
-# Esta función es para el backend, pero el proceso de JPG se maneja en el frontend
-# y luego se envía una imagen ya generada o se renderiza en el navegador.
-# Si necesitas generar JPG en el backend, tendrías que usar librerías como imgkit (requiere wkhtmltopdf)
-# o Pillow para manipular imágenes si la descripción es texto plano.
-# Dado que el editor WYSIWYG genera HTML, la solución más común es usar html2canvas en el frontend como ya lo tienes en editar_notas.html.
-# Por lo tanto, no se necesita una ruta de backend para exportar a JPG si ya se hace en el frontend.
+# La función de exportar a JPG se maneja completamente en el frontend con html2canvas.
+# No se necesita una ruta de backend para generar el JPG en este caso.

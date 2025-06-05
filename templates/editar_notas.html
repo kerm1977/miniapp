@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome para iconos de editor -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- SweetAlert2 para mensajes de exportación -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
      
         .cards{
@@ -31,162 +33,399 @@
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 600;
-            color: #4a5568;
+            color: #2d3748;
         }
         .form-group input[type="text"],
-        .form-group textarea,
-        .form-group input[type="color"] { /* Añadido input[type="color"] */
+        .form-group textarea {
             width: 100%;
             padding: 0.75rem;
-            border: 1px solid #cbd5e0;
-            border-radius: 8px;
-            font-size: 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
             box-sizing: border-box;
-            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            font-size: 1rem;
+            background-color: #fcfcfc;
         }
         .form-group input[type="text"]:focus,
-        .form-group textarea:focus,
-        .form-group input[type="color"]:focus { /* Añadido input[type="color"] */
-            border-color: #63b3ed;
-            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+        .form-group textarea:focus {
+            border-color: #2196F3;
             outline: none;
-        }
-        /* Estilo específico para el input de color para que no tenga padding extra */
-        .form-group input[type="color"] {
-            padding: 0.2rem; /* Ajusta el padding para el selector de color */
-            height: 40px; /* Altura para que se vea bien */
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
         }
         .btn-primary {
-            background-color: #007bff;
+            background-color: #4CAF50;
             color: white;
             padding: 0.75rem 1.5rem;
-            border-radius: 8px;
+            border-radius: 6px;
             font-weight: 600;
-            transition: background-color 0.2s ease-in-out;
             cursor: pointer;
+            transition: background-color 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
         .btn-primary:hover {
-            background-color: #0056b3;
+            background-color: #45a049;
         }
-        .btn-danger {
-            background-color: #f44336;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: background-color 0.2s ease-in-out;
-            cursor: pointer;
-        }
-        .btn-danger:hover {
-            background-color: #da190b;
-        }
-        .editor-toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            padding: 0.75rem;
-            background-color: #f0f0f0;
-            border-radius: 8px;
+        .editor-container {
             border: 1px solid #e0e0e0;
-        }
-        .editor-toolbar button {
-            background-color: #e2e8f0;
-            color: #2d3748;
-            padding: 0.5rem 0.75rem;
             border-radius: 6px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+            overflow: hidden;
+            background-color: #fcfcfc;
         }
-        .editor-toolbar button:hover {
-            background-color: #cbd5e0;
-            color: #1a202c;
-        }
-        .editor-toolbar button.active {
-            background-color: #4c51bf;
-            color: white;
-        }
-        .description-editor {
-            min-height: 200px;
-            border: 1px solid #cbd5e0;
-            border-radius: 8px;
-            padding: 0.75rem;
-            font-size: 1rem;
-            line-height: 1.6;
-            outline: none;
-            overflow-y: auto;
-            background-color: #fdfdfd;
-        }
-        .export-buttons {
-            margin-top: 1.5rem;
+        .toolbar {
+            background-color: #f0f0f0;
+            padding: 0.5rem;
+            border-bottom: 1px solid #e0e0e0;
             display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
+            flex-wrap: wrap; /* Permite que los botones se envuelvan */
+            gap: 5px; /* Espacio entre botones */
+        }
+        .toolbar button {
+            background-color: #e0e0e0;
+            border: 1px solid #ccc;
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .toolbar button:hover {
+            background-color: #d0d0d0;
+        }
+        .toolbar select {
+            padding: 0.4rem 0.6rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #e0e0e0;
+            cursor: pointer;
+        }
+        .editor-content {
+            min-height: 250px;
+            padding: 1.5rem; /* Ajustado para un mejor espaciado */
+            outline: none;
+            line-height: 1.6;
+            tab-size: 4; /* Para las listas de tareas */
+        }
+        /* Estilos para listas de tareas con checkboxes */
+        .checkbox-list {
+            list-style: none; /* Elimina los marcadores de lista por defecto */
+            padding-left: 0;
+            margin-top: 5px; /* Espacio superior para la lista */
+            margin-bottom: 5px; /* Espacio inferior para la lista */
+        }
+        .checkbox-list li {
+            display: flex;
+            align-items: flex-start; /* Alinea el contenido con la parte superior del checkbox */
+            margin-bottom: 5px; /* Espacio entre items */
+            position: relative; /* Para posicionar el pseudo-elemento del checkbox */
+            padding-left: 25px; /* Espacio para el checkbox personalizado */
+        }
+        .checkbox-list li input[type="checkbox"] {
+            position: absolute;
+            left: 0;
+            top: 2px; /* Ajuste vertical para alinear con el texto */
+            margin: 0; /* Eliminar márgenes por defecto */
+            width: 18px; /* Tamaño del checkbox */
+            height: 18px; /* Tamaño del checkbox */
+            /* Se hace visible el checkbox nativo para que sea interactivo */
+            opacity: 1; 
+            cursor: pointer; 
+            z-index: 1; 
+        }
+
+        .checkbox-list li span {
+            flex-grow: 1;
+            /* Permitir que el span de texto se seleccione y se copie */
+            user-select: text; 
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+        }
+
+        .checkbox-list li s {
+            text-decoration: line-through;
+            color: #888; /* Color para el texto tachado */
+        }
+        
+        /* Estilos de alineación (para compatibilidad con Quill.js) */
+        .ql-align-left { text-align: left; }
+        .ql-align-center { text-align: center; }
+        .ql-align-right { text-align: right; }
+        .ql-align-justify { text-align: justify; }
+        /* Tamaños de fuente (para compatibilidad con Quill.js) */
+        .ql-size-small { font-size: 0.75em; }
+        .ql-size-large { font-size: 1.5em; }
+        .ql-size-huge { font-size: 2.5em; }
+        /* Familias de fuente (para compatibilidad con Quill.js) */
+        .ql-font-serif { font-family: serif; }
+        .ql-font-monospace { font-family: monospace; }
+        /* Otros estilos Quill.js */
+        .ql-bubble .ql-tooltip.ql-flip { left: auto; }
+
+        /* NUEVOS ESTILOS PARA LISTAS ESTÁNDAR EN EL EDITOR */
+        .editor-content ul:not(.checkbox-list),
+        .editor-content ol {
+            padding-left: 20px; /* Asegura sangría para las viñetas/números */
+            margin-bottom: 10px; /* Espacio debajo de la lista */
+            list-style-position: outside; /* Asegura que la viñeta/número esté fuera del texto */
+        }
+        .editor-content ul:not(.checkbox-list) {
+            list-style-type: disc; /* Viñetas por defecto para listas no-checkbox */
+        }
+        .editor-content ol {
+            list-style-type: decimal; /* Números por defecto */
+        }
+        .editor-content li:not(.checkbox-list li) { /* Aplica a LI que no son parte de checkbox-list */
+            margin-bottom: 5px; /* Espacio entre elementos de lista */
         }
     </style>
 </head>
 <body>
-    <div class="container-block">
-    <div class="cards">
+    <div class="container">
         <div class="header">
             <h1 class="text-3xl font-bold text-gray-800">Editar Nota</h1>
-            <a href="{{ url_for('notas.ver_notas') }}" class="btn-primary">Volver a Notas</a>
+            <a href="{{ url_for('notas.ver_notas') }}" class="btn-primary">
+                <i class="fas fa-arrow-alt-circle-left mr-2"></i>Volver a Notas
+            </a>
         </div>
 
         <form method="POST">
-            {{ form.hidden_tag() }}
+            {# CORRECCIÓN: Aquí también se usa csrf_token sin paréntesis #}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}"> 
             <div class="form-group">
-                {{ form.titulo.label }}
-                {{ form.titulo(class="block mt-1 w-full") }}
+                <label for="titulo">Título</label>
+                {{ form.titulo(class_="w-full p-2 border border-gray-300 rounded-md", id="titulo") }}
             </div>
-          
             <div class="form-group">
-                {{ form.descripcion.label }}
-                <!-- Barra de herramientas del editor de texto -->
-                <div class="editor-toolbar">
-                    <button type="button" onclick="formatDoc('bold')"><i class="fas fa-bold"></i></button>
-                    <button type="button" onclick="formatDoc('italic')"><i class="fas fa-italic"></i></button>
-                    <button type="button" onclick="formatDoc('underline')"><i class="fas fa-underline"></i></button>
-                    <button type="button" onclick="formatDoc('strikeThrough')"><i class="fas fa-strikethrough"></i></button>
-                    {# Botón para lista desordenada (eliminado) #}
-                    {# Botón para lista ordenada (eliminado) #}
-                    <button type="button" onclick="formatDoc('justifyLeft')"><i class="fas fa-align-left"></i></button>
-                    <button type="button" onclick="formatDoc('justifyCenter')"><i class="fas fa-align-center"></i></button>
-                    <button type="button" onclick="formatDoc('justifyRight')"><i class="fas fa-align-right"></i></button>
-                    <button type="button" onclick="formatDoc('justifyFull')"><i class="fas fa-align-justify"></i></button>
+                <label for="descriptionEditor">Descripción</label>
+                <div class="editor-container">
+                    <div class="toolbar">
+                        <button type="button" onclick="formatDoc('bold')"><i class="fas fa-bold"></i></button>
+                        <button type="button" onclick="formatDoc('italic')"><i class="fas fa-italic"></i></button>
+                        <button type="button" onclick="formatDoc('underline')"><i class="fas fa-underline"></i></button>
+                        <button type="button" onclick="formatDoc('strikeThrough')"><i class="fas fa-strikethrough"></i></button>
+                        <button type="button" onclick="formatDoc('subscript')"><i class="fas fa-subscript"></i></button> {# Subscript #}
+                        <button type="button" onclick="formatDoc('superscript')"><i class="fas fa-superscript"></i></button> {# Superscript #}
+                        
+                        <button type="button" onclick="formatDoc('insertOrderedList')"><i class="fas fa-list-ol"></i></button>
+                        <button type="button" onclick="formatDoc('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
+                        <button type="button" onclick="formatDoc('outdent')"><i class="fas fa-outdent"></i></button>
+                        <button type="button" onclick="formatDoc('indent')"><i class="fas fa-indent"></i></button>
+                        
+                        <button type="button" onclick="formatDoc('justifyLeft')"><i class="fas fa-align-left"></i></button>
+                        <button type="button" onclick="formatDoc('justifyCenter')"><i class="fas fa-align-center"></i></button>
+                        <button type="button" onclick="formatDoc('justifyRight')"><i class="fas fa-align-right"></i></button>
+                        <button type="button" onclick="formatDoc('justifyFull')"><i class="fas fa-align-justify"></i></button>
+                        
+                        <button type="button" onclick="insertLink()"><i class="fas fa-link"></i></button> {# createLink #}
+                        <button type="button" onclick="formatDoc('unlink')"><i class="fas fa-unlink"></i></button>
+                        <button type="button" onclick="insertImage()"><i class="fas fa-image"></i></button> {# insertImage #}
+                        
+                        <button type="button" onclick="formatDoc('undo')"><i class="fas fa-undo"></i></button> {# Undo #}
+                        <button type="button" onclick="formatDoc('redo')"><i class="fas fa-redo"></i></button> {# Redo #}
+                        <button type="button" onclick="formatDoc('removeFormat')"><i class="fas fa-remove-format"></i></button>
+                        
+                        {# Selectores para FontName y FontSize #}
+                        <select onchange="formatDoc('fontName', this.value);">
+                            <option value="">Fuente</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Verdana">Verdana</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Courier New">Courier New</option>
+                            <option value="serif">Serif</option>
+                            <option value="sans-serif" selected>Sans-serif</option>
+                            <option value="monospace">Monospace</option>
+                        </select>
+                        <select onchange="formatDoc('fontSize', this.value);">
+                            <option value="">Tamaño</option>
+                            <option value="1">Pequeño</option>
+                            <option value="2">Normal</option>
+                            <option value="3" selected>Medio</option>
+                            <option value="4">Grande</option>
+                            <option value="5">Muy Grande</option>
+                            <option value="6">Enorme</option>
+                            <option value="7">Máximo</option>
+                        </select>
+                        
+                        {# Botones para ForeColor y BackColor #}
+                        <button type="button" onclick="applyColor('foreColor')"><i class="fas fa-palette"></i> Color Texto</button>
+                        <button type="button" onclick="applyColor('backColor')"><i class="fas fa-fill-drip"></i> Color Fondo</button>
+                        
+                        {# Botones para Headers (H1, H2, H3) #}
+                        <button type="button" onclick="formatDoc('formatBlock', 'h1')">H1</button>
+                        <button type="button" onclick="formatDoc('formatBlock', 'h2')">H2</button>
+                        <button type="button" onclick="formatDoc('formatBlock', 'h3')">H3</button>
+                        
+                        {# Botón para insertar checkbox #}
+                        <button type="button" onclick="insertCheckboxList();"><i class="fas fa-check-square"></i> Lista de Tareas</button>
+                        
+                        {# Botones para Insertar HTML y Texto (requieren prompts adicionales) #}
+                        <button type="button" onclick="insertHtml()"><i class="fas fa-code"></i> HTML</button> {# insertHTML #}
+                        <button type="button" onclick="insertText()"><i class="fas fa-font"></i> Texto</button> {# insertText #}
+                        
+                        {# Botón para Select All #}
+                        <button type="button" onclick="formatDoc('selectAll')"><i class="fas fa-mouse-pointer"></i> Seleccionar Todo</button> {# selectAll #}
+                    </div>
+                    <div class="editor-content" id="descriptionEditor" contenteditable="true">
+                        {{ nota.descripcion | safe }}
+                    </div>
+                    <!-- Campo oculto para enviar el contenido HTML al servidor -->
+                    <textarea name="descripcion" id="hiddenDescription" style="display:none;"></textarea>
                 </div>
-                <!-- Área de texto editable con contenido HTML -->
-                <div id="descriptionEditor" class="description-editor" contenteditable="true">
-                    {{ nota.descripcion | safe }}
-                </div>
-                <!-- Campo oculto para enviar el contenido HTML al servidor -->
-                <textarea name="descripcion" id="hiddenDescription" style="display:none;"></textarea>
             </div>
-            <div class="flex justify-between items-center mt-6">
+            <div class="flex justify-end mt-6">
                 <button type="submit" class="btn-primary" onclick="updateHiddenDescription()">Guardar Cambios</button>
-                <form action="{{ url_for('notas.borrar_nota', id=nota.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres borrar esta nota?');">
-                    <input type="hidden" name="csrf_token" value="{{ generate_csrf() }}">
-                    <button type="submit" class="btn-danger">Borrar Nota</button>
-                </form>
             </div>
         </form>
-
-        <div class="export-buttons">
-            <a href="{{ url_for('notas.exportar_nota_pdf', id=nota.id) }}" class="btn-primary">Exportar a PDF</a>
-            <button class="btn-primary" onclick="exportToJpg({{ nota.id }})">Exportar a JPG</button>
-        </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script>
         // Función para aplicar formato al texto
         function formatDoc(command, value) {
             document.execCommand(command, false, value);
-            // Asegura que el foco permanezca en el editor para continuar escribiendo
             document.getElementById('descriptionEditor').focus();
-   
         }
+
+        // Función para aplicar color (Fore o Back)
+        function applyColor(command) {
+            const color = prompt('Introduce el color (ej. #FF0000 o red):');
+            if (color) {
+                document.execCommand(command, false, color);
+            }
+            document.getElementById('descriptionEditor').focus();
+        }
+
+        // Función para insertar un enlace
+        function insertLink() {
+            const url = prompt("Introduce la URL del enlace:");
+            if (url) {
+                document.execCommand('createLink', false, url);
+            }
+            document.getElementById('descriptionEditor').focus();
+        }
+
+        // Función para insertar una imagen
+        function insertImage() {
+            const imageUrl = prompt("Introduce la URL de la imagen:");
+            if (imageUrl) {
+                document.execCommand('insertImage', false, imageUrl);
+            }
+            document.getElementById('descriptionEditor').focus();
+        }
+
+        // Función para insertar HTML
+        function insertHtml() {
+            const htmlContent = prompt("Introduce el código HTML:");
+            if (htmlContent) {
+                document.execCommand('insertHTML', false, htmlContent);
+            }
+            document.getElementById('descriptionEditor').focus();
+        }
+
+        // Función para insertar texto
+        function insertText() {
+            const textContent = prompt("Introduce el texto:");
+            if (textContent) {
+                document.execCommand('insertText', false, textContent);
+            }
+            document.getElementById('descriptionEditor').focus();
+        }
+
+        // Función para insertar una lista de tareas con checkboxes
+        function insertCheckboxList() {
+            const editor = document.getElementById('descriptionEditor');
+            editor.focus(); // Asegurarse de que el editor esté en foco
+
+            // Crear una lista desordenada si no estamos ya en una lista de checkboxes
+            let ul = editor.querySelector('.checkbox-list');
+            if (!ul) {
+                document.execCommand('insertUnorderedList');
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    const li = document.createElement('li');
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    const span = document.createElement('span');
+                    span.textContent = 'Nueva tarea'; // Texto predeterminado para la tarea
+
+                    li.appendChild(input);
+                    li.appendChild(span);
+
+                    let currentUl = range.commonAncestorContainer.closest('.checkbox-list');
+                    if (currentUl) {
+                        currentUl.appendChild(li);
+                    } else {
+                        ul = document.createElement('ul');
+                        ul.classList.add('checkbox-list');
+                        ul.appendChild(li);
+                        range.deleteContents();
+                        range.insertNode(ul);
+                    }
+                    const newRange = document.createRange();
+                    newRange.setStart(span.firstChild, span.firstChild.length);
+                    newRange.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                }
+            } else {
+                 // Si ya estamos en una lista de checkboxes, añadir un nuevo elemento de lista
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    let currentLi = range.commonAncestorContainer.closest('li');
+
+                    if (currentLi && currentLi.parentNode.classList.contains('checkbox-list')) {
+                        const newLi = document.createElement('li');
+                        const input = document.createElement('input');
+                        input.type = 'checkbox';
+                        const span = document.createElement('span');
+                        span.textContent = 'Nueva tarea'; 
+
+                        newLi.appendChild(input);
+                        newLi.appendChild(span);
+                        
+                        currentLi.parentNode.insertBefore(newLi, currentLi.nextSibling);
+
+                        const newRange = document.createRange();
+                        newRange.setStart(span.firstChild, span.firstChild.length);
+                        newRange.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(newRange);
+
+                    } else {
+                        document.execCommand('insertUnorderedList'); 
+                        const newlyInsertedUl = editor.querySelector('ul:not(.checkbox-list)'); 
+                        if(newlyInsertedUl){
+                            newlyInsertedUl.classList.add('checkbox-list');
+                            const firstLi = newlyInsertedUl.querySelector('li');
+                            if(firstLi){
+                                const originalContent = firstLi.innerHTML;
+                                firstLi.innerHTML = ''; 
+                                const input = document.createElement('input');
+                                input.type = 'checkbox';
+                                const span = document.createElement('span');
+                                span.innerHTML = originalContent; 
+
+                                firstLi.appendChild(input);
+                                firstLi.appendChild(span);
+                                
+                                const newRange = document.createRange();
+                                newRange.setStart(span.firstChild, span.firstChild.length);
+                                newRange.collapse(true);
+                                selection.removeAllRanges();
+                                selection.addRange(newRange);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
 
         // Función para actualizar el campo oculto con el contenido HTML del editor
         function updateHiddenDescription() {
@@ -223,7 +462,69 @@
             const body = document.body;
             // El color se pasa desde Flask en el template
             body.style.backgroundColor = '{{ pastel_color | safe }}';
+
+            // Asegura que el contenido existente de la nota se cargue en el editor
+            const editorContent = document.getElementById('descriptionEditor');
+            const hiddenDescription = document.getElementById('hiddenDescription');
+            if (hiddenDescription.value) {
+                editorContent.innerHTML = hiddenDescription.value;
+            } else {
+                // Si hiddenDescription.value está vacío al cargar (ej. primera vez editando una nota sin contenido de Quill),
+                // asegúrate de que el editor muestre el contenido del campo de texto de WTForms.
+                // Esto es importante porque WTForms populúa el textarea, no el div contenteditable.
+                editorContent.innerHTML = `{{ form.descripcion.data | safe }}`;
+            }
+
+            // Inicializar checkboxes en el editor
+            initializeCheckboxesInEditor();
         });
+
+        // Función para inicializar los checkboxes en el editor
+        // Cuando se carga el contenido en el editor, asegurarnos de que los checkboxes sean interactivos
+        function initializeCheckboxesInEditor() {
+            const editor = document.getElementById('descriptionEditor');
+            const checkboxes = editor.querySelectorAll('.checkbox-list input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                // Habilitar el checkbox para que sea interactivo
+                checkbox.disabled = false;
+
+                // Añadir un listener para manejar el tachado del texto
+                checkbox.addEventListener('change', function() {
+                    // Verifica si el siguiente elemento hermano es un span o un s
+                    let textElement = this.nextElementSibling;
+                    if (textElement && textElement.tagName === 'SPAN') {
+                        if (this.checked) {
+                            // Si se marca, tachar el texto
+                            const sElement = document.createElement('s');
+                            sElement.innerHTML = textElement.innerHTML;
+                            textElement.replaceWith(sElement);
+                        }
+                    } else if (textElement && textElement.tagName === 'S') {
+                        if (!this.checked) {
+                            // Si se desmarca, quitar el tachado
+                            const spanElement = document.createElement('span');
+                            spanElement.innerHTML = textElement.innerHTML;
+                            spanElement.contentEditable = 'true'; // Asegurar que sea editable
+                            textElement.replaceWith(spanElement);
+                        }
+                    }
+                    // Actualizar el campo oculto después de un cambio en el checkbox
+                    updateHiddenDescription();
+                });
+
+                // Establecer el estado inicial del checkbox basándose en el tachado
+                // Si el siguiente elemento hermano es '<s>', significa que estaba tachado
+                const textElement = checkbox.nextElementSibling;
+                if (textElement && textElement.tagName === 'S') {
+                    checkbox.checked = true;
+                }
+                
+                // Asegurar que el elemento de texto sea contenteditable si es un span
+                if (textElement && textElement.tagName === 'SPAN') {
+                    textElement.contentEditable = 'true';
+                }
+            });
+        }
     </script>
 </div>
 {% endblock %}

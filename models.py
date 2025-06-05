@@ -159,15 +159,15 @@ class ArticuloInventario(db.Model):
 # Nuevo modelo para Notas
 class Nota(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False) # ¡CORREGIDO AQUÍ!
+    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False) 
     titulo = db.Column(db.String(200), nullable=False)
     descripcion = db.Column(db.Text, nullable=False)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
-    # Puedes agregar campos para la alineación si quieres almacenarlos en la DB,
-    # pero para un editor WYSIWYG, la alineación se maneja en el HTML/CSS/JS.
-    # Por simplicidad, lo manejaremos en el frontend y la descripción guardará el HTML.
-    # Por ejemplo:
-    # alineacion = db.Column(db.String(20), default='left') # 'left', 'right', 'center', 'justify'
+    
+    # ¡CORRECCIÓN CRÍTICA AQUÍ!
+    # Define la relación para que 'Nota' pueda acceder al objeto 'User' a través de 'nota.usuario'
+    # El backref 'notas' creará una colección 'usuario.notas' para acceder a las notas de un usuario.
+    usuario = db.relationship('User', backref='notas', lazy=True) 
 
     def __repr__(self):
         return f'<Nota {self.titulo}>'

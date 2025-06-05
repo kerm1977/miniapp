@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- html2canvas para exportar a JPG -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <!-- SweetAlert2 para mensajes de exportación -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -34,88 +36,253 @@
             align-items: center;
         }
         .note-full-content {
-            line-height: 1.8;
-            color: #444;
-            padding: 1rem 0;
-            border-top: 1px solid #eee;
-            margin-top: 1rem;
-        }
-        .back-btn {
-            background-color: #6c757d; /* Gris */
-            color: white;
-            padding: 0.6rem 1.2rem;
+            padding: 1rem;
+            border: 1px solid #e0e0e0;
             border-radius: 8px;
-            font-weight: 600;
-            transition: background-color 0.2s ease-in-out;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 1.5rem;
+            background-color: #f9f9f9;
+            min-height: 200px; /* Para que sea visible incluso si no hay contenido */
+            line-height: 1.6;
+            color: #333;
+            /* Asegura que el contenido HTML se renderice correctamente */
         }
-        .back-btn:hover {
-            background-color: #5a6268;
+        .note-full-content img {
+            max-width: 100%;
+            height: auto;
+            display: block; /* Eliminar espacio extra debajo de la imagen */
+            margin: 0.5rem auto; /* Centrar imágenes */
+            border-radius: 4px;
         }
-        .export-buttons {
-            margin-top: 1.5rem;
+        .note-full-content a {
+            color: #2196F3;
+            text-decoration: underline;
+        }
+        .note-full-content blockquote {
+            border-left: 4px solid #ccc;
+            margin-left: 0;
+            padding-left: 1em;
+            color: #666;
+            font-style: italic;
+        }
+        .note-full-content pre {
+            background-color: #eee;
+            padding: 1em;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .note-full-content code {
+            font-family: monospace;
+            background-color: #eee;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .note-meta {
+            font-size: 0.875rem;
+            color: #718096;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+            text-align: right; /* Alinea la meta-información a la derecha */
+        }
+        .action-buttons {
             display: flex;
+            justify-content: flex-end; /* Alinea los botones a la derecha */
             gap: 1rem;
-            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+        .action-buttons .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .action-buttons .btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            background-color: #4CAF50; /* Verde */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+        .btn-edit {
+            background-color: #2196F3; /* Azul */
+            color: white;
+        }
+        .btn-edit:hover {
+            background-color: #1976D2;
+        }
+        .btn-delete {
+            background-color: #F44336; /* Rojo */
+            color: white;
+        }
+        .btn-delete:hover {
+            background-color: #D32F2F;
         }
         .export-btn-pdf {
-            background-color: #dc3545; /* Rojo de Bootstrap */
+            background-color: #FF9800; /* Naranja para PDF */
             color: white;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: background-color 0.2s ease-in-out;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
         }
         .export-btn-pdf:hover {
-            background-color: #c82333;
+            background-color: #FB8C00;
         }
         .export-btn-jpg {
-            background-color: #ffc107; /* Amarillo de Bootstrap */
-            color: #212529;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: background-color 0.2s ease-in-out;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
+            background-color: #9C27B0; /* Morado para JPG */
+            color: white;
         }
         .export-btn-jpg:hover {
-            background-color: #e0a800;
+            background-color: #8E24AA;
         }
+        /* Estilos para listas de tareas con checkboxes */
+        .checkbox-list {
+            list-style: none; /* Elimina los marcadores de lista por defecto */
+            padding-left: 0;
+        }
+        .checkbox-list li {
+            display: flex;
+            align-items: flex-start; /* Alinea el contenido con la parte superior del checkbox */
+            margin-bottom: 5px; /* Espacio entre items */
+            position: relative; /* Para posicionar el pseudo-elemento del checkbox */
+            padding-left: 25px; /* Espacio para el checkbox personalizado */
+        }
+        .checkbox-list li input[type="checkbox"] {
+            position: absolute;
+            left: 0;
+            top: 2px; /* Ajuste vertical para alinear con el texto */
+            margin: 0; /* Eliminar márgenes por defecto */
+            width: 18px; /* Tamaño del checkbox */
+            height: 18px; /* Tamaño del checkbox */
+            /* Esconder el checkbox nativo y usar un pseudo-elemento para el diseño */
+            opacity: 0;
+            cursor: default; /* El cursor debe ser predeterminado ya que no son interactivos */
+            z-index: 1; /* Para que el clic funcione sobre el pseudo-elemento */
+        }
+
+        /* Estilo para el cuadrado del checkbox personalizado */
+        .checkbox-list li input[type="checkbox"] + span::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 2px;
+            width: 18px;
+            height: 18px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background-color: #fff;
+            box-sizing: border-box;
+            cursor: default; /* El cursor debe ser predeterminado ya que no son interactivos */
+        }
+
+        /* Estilo para la marca de verificación cuando está marcado */
+        .checkbox-list li input[type="checkbox"]:checked + span::before {
+            background-color: #4CAF50; /* Color de fondo cuando está marcado */
+            border-color: #4CAF50;
+        }
+
+        .checkbox-list li input[type="checkbox"]:checked + span::after {
+            content: '\2713'; /* Tick mark */
+            position: absolute;
+            left: 2px;
+            top: 0px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .checkbox-list li span {
+            flex-grow: 1;
+            /* Permitir que el span de texto se seleccione y se copie */
+            user-select: text; 
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+        }
+        
+        .checkbox-list li s {
+            text-decoration: line-through;
+            color: #888; /* Color para el texto tachado */
+        }
+        
+        /* Estilos para Quill.js - para asegurar que el contenido se vea como en el editor */
+        .ql-align-left { text-align: left; }
+        .ql-align-center { text-align: center; }
+        .ql-align-right { text-align: right; }
+        .ql-align-justify { text-align: justify; }
+        .ql-size-small { font-size: 0.75em; }
+        .ql-size-large { font-size: 1.5em; }
+        .ql-size-huge { font-size: 2.5em; }
+        .ql-font-serif { font-family: serif; }
+        .ql-font-monospace { font-family: monospace; }
+        .ql-bubble .ql-tooltip.ql-flip { left: auto; }
     </style>
 {% endblock %}
 
 {% block content %}
     <div class="container">
         <div class="header">
-            <h1 class="text-3xl font-bold text-gray-800">{{ nota.titulo }}</h1>
-            <p class="text-gray-500 text-sm">Creada el: {{ nota.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</p>
+            <h1 class="text-3xl font-bold text-gray-800">Detalle de Nota</h1>
+            <a href="{{ url_for('notas.ver_notas') }}" class="btn-primary">
+                <i class="fas fa-arrow-alt-circle-left mr-2"></i>Volver a Notas
+            </a>
         </div>
 
-        <div class="note-full-content" id="note-full-content-{{ nota.id }}">
-            {% if nota.descripcion %}
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-2">{{ nota.titulo }}</h2>
+            <p class="note-meta">Creada por: {{ nota.usuario.username }} el {{ nota.fecha_creacion.strftime('%d/%m/%Y a las %H:%M') }}</p>
+            
+            <div class="note-full-content" id="note-full-content-{{ nota.id }}">
                 {{ nota.descripcion | safe }}
-            {% else %}
-                <p class="text-center text-gray-600">Esta nota no tiene contenido.</p>
-            {% endif %}
-        </div>
+            </div>
 
-        <div class="flex justify-between items-center mt-6">
-            <a href="{{ url_for('notas.ver_notas') }}" class="back-btn">Volver a Notas</a>
-            <div class="export-buttons">
-                <a href="{{ url_for('notas.exportar_nota_pdf', id=nota.id) }}" class="export-btn-pdf" target="_blank">Exportar PDF</a>
-                <button type="button" class="export-btn-jpg" onclick="exportToJpg('note-full-content-{{ nota.id }}', '{{ nota.titulo }}')">Exportar JPG</button>
+            <div class="action-buttons">
+                <a href="{{ url_for('notas.editar_nota', nota_id=nota.id) }}" class="btn btn-edit">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                <form action="{{ url_for('notas.eliminar_nota', nota_id=nota.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta nota?');" style="display:inline;">
+                    {# CORRECCIÓN: Aquí también se usa csrf_token sin paréntesis #}
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}"> 
+                    <button type="submit" class="btn btn-delete">
+                        <i class="fas fa-trash-alt"></i> Eliminar
+                    </button>
+                </form>
+                <a href="{{ url_for('notas.exportar_pdf', nota_id=nota.id) }}" class="btn export-btn-pdf" target="_blank">
+                    <i class="fas fa-file-pdf"></i> Exportar PDF
+                </a>
+                <button type="button" class="btn export-btn-jpg" onclick="exportToJpg('note-full-content-{{ nota.id }}', '{{ nota.titulo }}')">
+                    <i class="fas fa-file-image"></i> Exportar JPG
+                </button>
             </div>
         </div>
     </div>
 
     <script>
+        // Función para inicializar los checkboxes al cargar la página
+        function initializeCheckboxesDisplay() {
+            // Seleccionar todas las descripciones de las notas
+            const noteContents = document.querySelectorAll('.note-full-content');
+            
+            noteContents.forEach(contentDiv => {
+                const checkboxes = contentDiv.querySelectorAll('.checkbox-list input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    // Deshabilitar el checkbox para que no se pueda interactuar
+                    checkbox.disabled = true;
+
+                    // Determinar si el checkbox debe estar marcado basándose en el tachado
+                    // Si el siguiente elemento hermano es una etiqueta '<s>', el texto está tachado.
+                    const textElement = checkbox.nextElementSibling;
+                    if (textElement && textElement.tagName === 'S') {
+                        checkbox.checked = true;
+                    }
+                });
+            });
+        }
+
         // Función para exportar a JPG
         function exportToJpg(elementId, title) {
             const element = document.getElementById(elementId);
@@ -130,9 +297,13 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡JPG Exportado!',
+                    text: 'La nota se ha exportado como JPG correctamente.'
+                });
             }).catch(error => {
                 console.error("Error al generar JPG:", error);
-                // Usar SweetAlert2 en lugar de alert()
                 Swal.fire({
                     icon: 'error',
                     title: 'Error al exportar JPG',
@@ -140,5 +311,12 @@
                 });
             });
         }
+
+        // Llama a la función al cargar el DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            const body = document.body;
+            body.style.backgroundColor = '{{ pastel_color | safe }}';
+            initializeCheckboxesDisplay(); // Asegúrate de que los checkboxes se muestren correctamente
+        });
     </script>
 {% endblock %}
