@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup # Importar BeautifulSoup para parsear HTML
 from models import db, Nota, User # ¡CORRECCIÓN AQUÍ: Agregado 'User'!
 from flask_wtf.csrf import generate_csrf
 from reportlab.lib.units import inch
+from flask import send_file
 
 notas_bp = Blueprint('notas', __name__, template_folder='templates')
 
@@ -180,7 +181,7 @@ def exportar_pdf(nota_id):
 
     # Ahora ReportLab puede usar el HTML transformado para renderizar la descripción.
     # El `allowXML=1` es crucial para que ReportLab interprete las etiquetas HTML.
-    story.append(Paragraph(cleaned_description, styles['NotaDescription'], encoding='utf-8', allowXML=1))
+    story.append(Paragraph(cleaned_description, styles['NotaDescription'], encoding='utf-8'))
 
     doc.build(story)
     buffer.seek(0)
