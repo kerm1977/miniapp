@@ -1,16 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
     <title>Editar Nota</title>
-    <!-- Enlace a Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fuente Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome para iconos de editor -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- SweetAlert2 para mensajes de exportación -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-     
+
         .cards{
             max-width: 960px;
             margin: 2rem auto;
@@ -131,15 +127,15 @@
             width: 18px; /* Tamaño del checkbox */
             height: 18px; /* Tamaño del checkbox */
             /* Se hace visible el checkbox nativo para que sea interactivo */
-            opacity: 1; 
-            cursor: pointer; 
-            z-index: 1; 
+            opacity: 1;
+            cursor: pointer;
+            z-index: 1;
         }
 
         .checkbox-list li span {
             flex-grow: 1;
             /* Permitir que el span de texto se seleccione y se copie */
-            user-select: text; 
+            user-select: text;
             -webkit-user-select: text;
             -moz-user-select: text;
             -ms-user-select: text;
@@ -149,7 +145,7 @@
             text-decoration: line-through;
             color: #888; /* Color para el texto tachado */
         }
-        
+
         /* Estilos de alineación (para compatibilidad con Quill.js) */
         .ql-align-left { text-align: left; }
         .ql-align-center { text-align: center; }
@@ -192,9 +188,9 @@
             </a>
         </div>
 
-        <form method="POST">
+        <form method="POST" action="{{ url_for('notas.editar_nota', nota_id=nota.id) }}">
             {# CORRECCIÓN: Aquí también se usa csrf_token sin paréntesis #}
-            <input type="hidden" name="csrf_token" value="{{ csrf_token }}"> 
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <div class="form-group">
                 <label for="titulo">Título</label>
                 {{ form.titulo(class_="w-full p-2 border border-gray-300 rounded-md", id="titulo") }}
@@ -209,25 +205,25 @@
                         <button type="button" onclick="formatDoc('strikeThrough')"><i class="fas fa-strikethrough"></i></button>
                         <button type="button" onclick="formatDoc('subscript')"><i class="fas fa-subscript"></i></button> {# Subscript #}
                         <button type="button" onclick="formatDoc('superscript')"><i class="fas fa-superscript"></i></button> {# Superscript #}
-                        
+
                         <button type="button" onclick="formatDoc('insertOrderedList')"><i class="fas fa-list-ol"></i></button>
                         <button type="button" onclick="formatDoc('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
                         <button type="button" onclick="formatDoc('outdent')"><i class="fas fa-outdent"></i></button>
                         <button type="button" onclick="formatDoc('indent')"><i class="fas fa-indent"></i></button>
-                        
+
                         <button type="button" onclick="formatDoc('justifyLeft')"><i class="fas fa-align-left"></i></button>
                         <button type="button" onclick="formatDoc('justifyCenter')"><i class="fas fa-align-center"></i></button>
                         <button type="button" onclick="formatDoc('justifyRight')"><i class="fas fa-align-right"></i></button>
                         <button type="button" onclick="formatDoc('justifyFull')"><i class="fas fa-align-justify"></i></button>
-                        
+
                         <button type="button" onclick="insertLink()"><i class="fas fa-link"></i></button> {# createLink #}
                         <button type="button" onclick="formatDoc('unlink')"><i class="fas fa-unlink"></i></button>
                         <button type="button" onclick="insertImage()"><i class="fas fa-image"></i></button> {# insertImage #}
-                        
+
                         <button type="button" onclick="formatDoc('undo')"><i class="fas fa-undo"></i></button> {# Undo #}
                         <button type="button" onclick="formatDoc('redo')"><i class="fas fa-redo"></i></button> {# Redo #}
                         <button type="button" onclick="formatDoc('removeFormat')"><i class="fas fa-remove-format"></i></button>
-                        
+
                         {# Selectores para FontName y FontSize #}
                         <select onchange="formatDoc('fontName', this.value);">
                             <option value="">Fuente</option>
@@ -249,30 +245,29 @@
                             <option value="6">Enorme</option>
                             <option value="7">Máximo</option>
                         </select>
-                        
+
                         {# Botones para ForeColor y BackColor #}
                         <button type="button" onclick="applyColor('foreColor')"><i class="fas fa-palette"></i> Color Texto</button>
                         <button type="button" onclick="applyColor('backColor')"><i class="fas fa-fill-drip"></i> Color Fondo</button>
-                        
+
                         {# Botones para Headers (H1, H2, H3) #}
                         <button type="button" onclick="formatDoc('formatBlock', 'h1')">H1</button>
                         <button type="button" onclick="formatDoc('formatBlock', 'h2')">H2</button>
                         <button type="button" onclick="formatDoc('formatBlock', 'h3')">H3</button>
-                        
+
                         {# Botón para insertar checkbox #}
                         <button type="button" onclick="insertCheckboxList();"><i class="fas fa-check-square"></i> Lista de Tareas</button>
-                        
+
                         {# Botones para Insertar HTML y Texto (requieren prompts adicionales) #}
                         <button type="button" onclick="insertHtml()"><i class="fas fa-code"></i> HTML</button> {# insertHTML #}
                         <button type="button" onclick="insertText()"><i class="fas fa-font"></i> Texto</button> {# insertText #}
-                        
+
                         {# Botón para Select All #}
                         <button type="button" onclick="formatDoc('selectAll')"><i class="fas fa-mouse-pointer"></i> Seleccionar Todo</button> {# selectAll #}
                     </div>
                     <div class="editor-content" id="descriptionEditor" contenteditable="true">
                         {{ nota.descripcion | safe }}
                     </div>
-                    <!-- Campo oculto para enviar el contenido HTML al servidor -->
                     <textarea name="descripcion" id="hiddenDescription" style="display:none;"></textarea>
                 </div>
             </div>
@@ -384,11 +379,11 @@
                         const input = document.createElement('input');
                         input.type = 'checkbox';
                         const span = document.createElement('span');
-                        span.textContent = 'Nueva tarea'; 
+                        span.textContent = 'Nueva tarea';
 
                         newLi.appendChild(input);
                         newLi.appendChild(span);
-                        
+
                         currentLi.parentNode.insertBefore(newLi, currentLi.nextSibling);
 
                         const newRange = document.createRange();
@@ -398,22 +393,22 @@
                         selection.addRange(newRange);
 
                     } else {
-                        document.execCommand('insertUnorderedList'); 
-                        const newlyInsertedUl = editor.querySelector('ul:not(.checkbox-list)'); 
+                        document.execCommand('insertUnorderedList');
+                        const newlyInsertedUl = editor.querySelector('ul:not(.checkbox-list)');
                         if(newlyInsertedUl){
                             newlyInsertedUl.classList.add('checkbox-list');
                             const firstLi = newlyInsertedUl.querySelector('li');
                             if(firstLi){
                                 const originalContent = firstLi.innerHTML;
-                                firstLi.innerHTML = ''; 
+                                firstLi.innerHTML = '';
                                 const input = document.createElement('input');
                                 input.type = 'checkbox';
                                 const span = document.createElement('span');
-                                span.innerHTML = originalContent; 
+                                span.innerHTML = originalContent;
 
                                 firstLi.appendChild(input);
                                 firstLi.appendChild(span);
-                                
+
                                 const newRange = document.createRange();
                                 newRange.setStart(span.firstChild, span.firstChild.length);
                                 newRange.collapse(true);
@@ -518,7 +513,7 @@
                 if (textElement && textElement.tagName === 'S') {
                     checkbox.checked = true;
                 }
-                
+
                 // Asegurar que el elemento de texto sea contenteditable si es un span
                 if (textElement && textElement.tagName === 'SPAN') {
                     textElement.contentEditable = 'true';

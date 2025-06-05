@@ -2,15 +2,10 @@
 
 {% block head %}
     <title>Detalle de Nota: {{ nota.titulo }}</title>
-    <!-- Enlace a Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fuente Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- html2canvas para exportar a JPG -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <!-- SweetAlert2 para mensajes de exportación -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
@@ -198,17 +193,17 @@
         .checkbox-list li span {
             flex-grow: 1;
             /* Permitir que el span de texto se seleccione y se copie */
-            user-select: text; 
+            user-select: text;
             -webkit-user-select: text;
             -moz-user-select: text;
             -ms-user-select: text;
         }
-        
+
         .checkbox-list li s {
             text-decoration: line-through;
             color: #888; /* Color para el texto tachado */
         }
-        
+
         /* Estilos para Quill.js - para asegurar que el contenido se vea como en el editor */
         .ql-align-left { text-align: left; }
         .ql-align-center { text-align: center; }
@@ -235,7 +230,7 @@
         <div class="bg-white p-6 rounded-lg shadow-md mb-6">
             <h2 class="text-2xl font-semibold text-gray-900 mb-2">{{ nota.titulo }}</h2>
             <p class="note-meta">Creada por: {{ nota.usuario.username }} el {{ nota.fecha_creacion.strftime('%d/%m/%Y a las %H:%M') }}</p>
-            
+
             <div class="note-full-content" id="note-full-content-{{ nota.id }}">
                 {{ nota.descripcion | safe }}
             </div>
@@ -246,7 +241,7 @@
                 </a>
                 <form action="{{ url_for('notas.eliminar_nota', nota_id=nota.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta nota?');" style="display:inline;">
                     {# CORRECCIÓN: Aquí también se usa csrf_token sin paréntesis #}
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}"> 
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <button type="submit" class="btn btn-delete">
                         <i class="fas fa-trash-alt"></i> Eliminar
                     </button>
@@ -266,7 +261,7 @@
         function initializeCheckboxesDisplay() {
             // Seleccionar todas las descripciones de las notas
             const noteContents = document.querySelectorAll('.note-full-content');
-            
+
             noteContents.forEach(contentDiv => {
                 const checkboxes = contentDiv.querySelectorAll('.checkbox-list input[type="checkbox"]');
                 checkboxes.forEach(checkbox => {

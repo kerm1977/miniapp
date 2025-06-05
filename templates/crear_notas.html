@@ -1,11 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
     <title>Crear Nueva Nota</title>
-    <!-- Enlace a Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fuente Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome para iconos de editor -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
@@ -273,9 +270,7 @@
                         <button type="button" onclick="formatDoc('selectAll')"><i class="fas fa-mouse-pointer"></i> Seleccionar Todo</button> {# selectAll #}
                     </div>
                     <div class="editor-content" id="descriptionEditor" contenteditable="true">
-                        <!-- El contenido inicial puede estar vacío o con un placeholder -->
-                    </div>
-                    <!-- Campo oculto para enviar el contenido HTML al servidor -->
+                        </div>
                     <textarea name="descripcion" id="hiddenDescription" style="display:none;"></textarea>
                 </div>
             </div>
