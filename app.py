@@ -44,6 +44,9 @@ from rifas import rifas_bp, configure_rifas_uploads # CAMBIO CLAVE AQUÍ: Import
 # Importar el blueprint de notas
 from notas import notas_bp # Importa el blueprint que creamos
 
+# Importar el blueprint del reproductor multimedia
+from player import player_bp # <-- Importar el blueprint del reproductor
+
 
 app = Flask(__name__)
 
@@ -52,6 +55,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# Nuevas extensiones permitidas para el reproductor multimedia
+app.config['ALLOWED_MEDIA_EXTENSIONS'] = {'mp3', 'mp4', 'wma', 'wmv', 'jpg', 'jpeg', 'png', 'pdf'} # <-- Nuevas extensiones para multimedia
+
 
 
 # Asegurarse de que la carpeta de subidas exista
@@ -81,6 +87,8 @@ app.register_blueprint(pagos_bp)
 app.register_blueprint(inventario_bp)
 app.register_blueprint(rifas_bp, url_prefix='/rifas') # CAMBIO CLAVE AQUÍ
 app.register_blueprint(notas_bp)
+app.register_blueprint(player_bp, url_prefix='/player') # <-- Registrar el blueprint del reproductor
+
 
 
 

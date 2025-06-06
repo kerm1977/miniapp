@@ -48,6 +48,12 @@
                 <i class="fa-solid fa-note-sticky"></i> {# Icono de nota adhesiva para notas #}
             </a>
         </div>
+        {# Nuevo botón para Archivos Multimedia #}
+        <div class="magic-nav-button">
+            <a href="{{ url_for('player.ver_archivos') }}"> {# Enlace para la lista de archivos multimedia #}
+                <i class="fa-solid fa-file-audio"></i> {# Icono de archivo de audio, puedes cambiarlo según tu preferencia #}
+            </a>
+        </div>
         <div class="magic-nav-button">
             {% if current_user.is_authenticated %}
                 <a href="#" style="pointer-events: none; opacity: 0.2;">

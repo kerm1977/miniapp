@@ -171,3 +171,18 @@ class Nota(db.Model):
 
     def __repr__(self):
         return f'<Nota {self.titulo}>'
+
+# --- Nuevo Modelo para Archivos Multimedia ---
+class ArchivoMultimedia(db.Model):
+    __tablename__ = 'archivos_multimedia'
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    nombre_archivo = db.Column(db.String(255), nullable=False)
+    ruta_archivo = db.Column(db.String(500), nullable=False)
+    tipo_archivo = db.Column(db.String(50), nullable=False) # 'audio', 'video', 'imagen', 'pdf'
+    fecha_subida = db.Column(db.DateTime, default=datetime.utcnow)
+
+    usuario = db.relationship('User', backref=db.backref('archivos_multimedia', lazy=True))
+
+    def __repr__(self):
+        return f'<ArchivoMultimedia {self.nombre_archivo}>'
