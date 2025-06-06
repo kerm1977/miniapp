@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>{{ titulo }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4 md:p-8">
+    <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">{{ titulo }}</h1>
+
+    <div class="mb-6 text-center">
+        <a href="{{ url_for('player.ver_archivos') }}" class="btn bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+            <i class="fas fa-arrow-left mr-2"></i> Volver a Categorías
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="my-4">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} p-3 rounded-md text-center text-white mb-2
+                                {% if category == 'success' %} bg-green-500
+                                {% elif category == 'danger' %} bg-red-500
+                                {% elif category == 'warning' %} bg-yellow-500
+                                {% else %} bg-gray-500 {% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="bg-white shadow-xl rounded-lg p-6">
+        {% if archivos %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {% for archivo in archivos %}
+                <div class="border rounded-lg overflow-hidden shadow-md flex flex-col h-full transform transition duration-200 hover:scale-105">
+                    <div class="p-4 flex-grow">
+                        <h3 class="text-xl font-semibold mb-2 text-gray-700 truncate" title="{{ archivo.nombre_archivo }}">
+                            {{ loop.index }}. {{ archivo.nombre_archivo }} {# Enumeración #}
+                        </h3>
+                        <p class="text-sm text-gray-500 mb-2">Tipo: <span class="font-medium">{{ archivo.tipo_archivo.capitalize() }}</span></p>
+                        <p class="text-sm text-gray-500">Subido: {{ archivo.fecha_subida.strftime('%d-%m-%Y %H:%M') }}</p>
+                    </div>
+                    <div class="p-4 bg-gray-50 border-t flex flex-wrap justify-center items-center gap-2">
+                        {% if archivo.tipo_archivo in ['audio', 'video', 'imagen'] %}
+                            <a href="{{ url_for('player.play_media', id=archivo.id) }}" target="_blank" class="btn btn-sm btn-info bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-full flex items-center">
+                                <i class="fas fa-play mr-1"></i> Reproducir/Ver
+                            </a>
+                        {% elif archivo.tipo_archivo == 'pdf' %}
+                            <a href="{{ url_for('player.abrir_pdf', id=archivo.id) }}" target="_blank" class="btn btn-sm btn-info bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-full flex items-center">
+                                <i class="fas fa-file-pdf mr-1"></i> Abrir PDF
+                            </a>
+                        {% else %}
+                            <span class="text-gray-500 text-sm">No reproducible/visible</span>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('player.editar_archivo', id=archivo.id) }}" class="btn btn-sm btn-warning bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded-full flex items-center">
+                            <i class="fas fa-edit mr-1"></i> Editar
+                        </a>
+                        <form id="deleteForm-{{ archivo.id }}" action="{{ url_for('player.borrar_archivo', id=archivo.id) }}" method="POST" class="inline">
+                            <input type="hidden" name="csrf_token" value="{{ generate_csrf() }}"/>
+                            <button type="button" onclick="confirmDelete('{{ archivo.id }}', '{{ archivo.nombre_archivo }}')" class="btn btn-sm btn-danger bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-full flex items-center">
+                                <i class="fas fa-trash-alt mr-1"></i> Borrar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center text-gray-600 text-lg">No tienes archivos en esta categoría aún.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function confirmDelete(fileId, fileName) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: `¡No podrás revertir la eliminación de "${fileName}"!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, ¡bórralo!',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('deleteForm-' + fileId).submit();
+            }
+        });
+    }
+</script>
+{% endblock %}

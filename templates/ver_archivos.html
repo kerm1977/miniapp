@@ -4,17 +4,104 @@
 <title>Mis Archivos Multimedia</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+    /* Estilo para los botones redondos de categoría */
+    .category-button {
+        width: 100px; /* Ancho fijo para hacerlos cuadrados */
+        height: 100px; /* Alto fijo para hacerlos cuadrados */
+        border-radius: 50%; /* Esto los hace redondos */
+        display: flex;
+        flex-direction: column; /* Icono y texto apilados */
+        justify-content: center; /* Centra verticalmente */
+        align-items: center; /* Centra horizontalmente */
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+        text-decoration: none; /* Asegura que no tenga subrayado */
+        padding: 0; /* Aseguramos que no haya padding que afecte el centrado */
+        line-height: 1; /* Ayuda a que el icono y el texto estén juntos */
+        /* Aseguramos que el contenido esté centrado verticalmente */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .icons_archivos{
+        margin-top: 2px;
+    }
+
+    .category-button:hover {
+        transform: translateY(-3px) scale(1.05); /* Pequeño levantamiento y agrandamiento al pasar el mouse */
+        text-decoration: none; /* Asegura que no tenga subrayado */
+    }
+    .category-button i {
+        margin-bottom: 0.1rem; /* Reducido para un centrado más compacto */
+        line-height: 1; /* Asegura que el icono no tenga espacio vertical extra */
+        display: block; /* Asegura que el icono sea un bloque para centrar mejor */
+        width: 100%; /* Ocupa el ancho completo para centrado de texto */
+    }
+    .category-button span {
+        font-size: 0.875rem; /* text-sm de Tailwind */
+        font-weight: 600; /* font-semibold de Tailwind */
+        color: white; /* El texto sigue siendo blanco para contraste con el botón */
+        line-height: 1.2; /* Ajustado ligeramente para el texto */
+        padding: 0; /* Aseguramos que no haya padding que afecte el centrado */
+        display: block; /* Asegura que el span sea un bloque para centrar mejor */
+        width: 100%; /* Ocupa el ancho completo para centrado de texto */
+    }
+
+    /* Ajustes para el contenedor de los botones de categoría (Bootstrap) */
+    .category-buttons-container {
+        display: flex;
+        flex-wrap: wrap; /* Permite que los elementos se envuelvan a la siguiente línea */
+        justify-content: center; /* Centra los botones horizontalmente */
+        gap: 1.5rem; /* Espacio entre los botones, equivalente a g-4 en Bootstrap */
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container mx-auto p-4 md:p-8">
     <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Mis Archivos Multimedia</h1>
 
-    <div class="mb-6 text-center">
-        <a href="{{ url_for('player.subir_archivo') }}" class="btn btn-primary bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+    <div class="mb-8 text-center">
+        <a href="{{ url_for('player.subir_archivo') }}" class="btn btn-primary bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center mx-auto" style="width: auto;">
             <i class="fas fa-upload mr-2"></i> Subir Nuevo Archivo
         </a>
     </div>
+
+    {# Contenedor para los botones de categoría con clases de Bootstrap #}
+    <div class="container my-5"> {# Usamos container de Bootstrap para centrado y padding #}
+        <div class="row justify-content-center g-4"> {# row y justify-content-center para centrado horizontal, g-4 para gap #}
+            <div class="col-auto"> {# col-auto para que la columna se ajuste al contenido #}
+                <a href="{{ url_for('player.archivos_detail', tipo='video') }}" class="category-button bg-green-300 hover:bg-green-400">
+                    <i class="icons_archivos fas fa-video fa-2x text-green-800"></i>
+                <!--     <spans>Videos</span> -->
+                </a>
+            </div>
+            <div class="col-auto">
+                <a href="{{ url_for('player.archivos_detail', tipo='audio') }}" class="category-button bg-purple-300 hover:bg-purple-400">
+                    <i class="icons_archivos fas fa-music fa-2x text-purple-800"></i>
+                   <!--  <spans>Música</span> -->
+                </a>
+            </div>
+            <div class="col-auto">
+                <a href="{{ url_for('player.archivos_detail', tipo='documentos') }}" class="category-button bg-orange-300 hover:bg-orange-400">
+                    <i class="icons_archivos fas fa-file-alt fa-2x text-orange-800"></i>
+                   <!--  <spans>Documentos</span> -->
+                </a>
+            </div>
+            <div class="col-auto">
+                <a href="{{ url_for('player.archivos_detail', tipo='imagen') }}" class="category-button bg-indigo-300 hover:bg-indigo-400">
+                    <i class="icons_archivos fas fa-image fa-2x text-indigo-800"></i>
+                <!--     <spans>Imágenes</span> -->
+                </a>
+            </div>
+        </div>
+    </div>
+    {# Fin del contenedor de los botones de categoría #}
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -33,46 +120,7 @@
     {% endwith %}
 
     <div class="bg-white shadow-xl rounded-lg p-6">
-        {% if archivos %}
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {% for archivo in archivos %}
-                <div class="border rounded-lg overflow-hidden shadow-md flex flex-col h-full transform transition duration-200 hover:scale-105">
-                    <div class="p-4 flex-grow">
-                        <h3 class="text-xl font-semibold mb-2 text-gray-700 truncate" title="{{ archivo.nombre_archivo }}">
-                            {{ archivo.nombre_archivo }}
-                        </h3>
-                        <p class="text-sm text-gray-500 mb-2">Tipo: <span class="font-medium">{{ archivo.tipo_archivo.capitalize() }}</span></p>
-                        <p class="text-sm text-gray-500">Subido: {{ archivo.fecha_subida.strftime('%d-%m-%Y %H:%M') }}</p>
-                    </div>
-                    <div class="p-4 bg-gray-50 border-t flex flex-wrap justify-center items-center gap-2">
-                        {% if archivo.tipo_archivo in ['audio', 'video', 'imagen'] %}
-                            <a href="{{ url_for('player.play_media', id=archivo.id) }}" target="_blank" class="btn btn-sm btn-info bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-full flex items-center">
-                                <i class="fas fa-play mr-1"></i> Reproducir/Ver
-                            </a>
-                        {% elif archivo.tipo_archivo == 'pdf' %}
-                            <a href="{{ url_for('player.abrir_pdf', id=archivo.id) }}" target="_blank" class="btn btn-sm btn-info bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-full flex items-center">
-                                <i class="fas fa-file-pdf mr-1"></i> Abrir PDF
-                            </a>
-                        {% else %}
-                            <span class="text-gray-500 text-sm">No reproducible/visible</span>
-                        {% endif %}
-                        
-                        <a href="{{ url_for('player.editar_archivo', id=archivo.id) }}" class="btn btn-sm btn-warning bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded-full flex items-center">
-                            <i class="fas fa-edit mr-1"></i> Editar
-                        </a>
-                        <form action="{{ url_for('player.borrar_archivo', id=archivo.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres borrar este archivo? Esta acción es irreversible.');" class="inline">
-                            <input type="hidden" name="csrf_token" value="{{ generate_csrf() }}"/> {# CAMBIO AQUÍ: Usar generate_csrf() #}
-                            <button type="submit" class="btn btn-sm btn-danger bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-full flex items-center">
-                                <i class="fas fa-trash-alt mr-1"></i> Borrar
-                            </button>
-                        </form>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p class="text-center text-gray-600 text-lg">No tienes archivos multimedia subidos aún.</p>
-        {% endif %}
+        <p class="text-center text-gray-600 text-lg">Selecciona una categoría para ver los archivos o sube uno nuevo.</p>
     </div>
 </div>
 {% endblock %}

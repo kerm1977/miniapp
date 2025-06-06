@@ -14,23 +14,6 @@ from flask_wtf.csrf import generate_csrf # <-- Importar generate_csrf
 # Creamos un Blueprint para el reproductor multimedia
 player_bp = Blueprint('player', __name__, template_folder='templates')
 
-# --- Modelo para Archivos Multimedia (esto debería ir en models.py, pero lo incluyo aquí para referencia completa) ---
-# Se asume que este modelo será añadido a models.py
-# class ArchivoMultimedia(db.Model):
-#     __tablename__ = 'archivos_multimedia'
-#     id = db.Column(db.Integer, primary_key=True)
-#     usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-#     nombre_archivo = db.Column(db.String(255), nullable=False)
-#     ruta_archivo = db.Column(db.String(500), nullable=False)
-#     tipo_archivo = db.Column(db.String(50), nullable=False) # 'audio', 'video', 'imagen', 'pdf'
-#     fecha_subida = db.Column(db.DateTime, default=datetime.utcnow)
-#
-#     usuario = db.relationship('User', backref=db.backref('archivos_multimedia', lazy=True))
-#
-#     def __repr__(self):
-#         return f'<ArchivoMultimedia {self.nombre_archivo}>'
-
-
 # --- Formularios ---
 class SubirArchivoForm(FlaskForm):
     """
@@ -70,9 +53,8 @@ def ver_archivos():
     """
     Muestra una lista de todos los archivos multimedia subidos por el usuario actual.
     """
-    archivos = ArchivoMultimedia.query.filter_by(usuario_id=current_user.id).order_by(ArchivoMultimedia.fecha_subida.desc()).all()
-    # Pasa generate_csrf al contexto de la plantilla para el token CSRF
-    return render_template('ver_archivos.html', archivos=archivos, generate_csrf=generate_csrf)
+    # No necesitamos pasar 'archivos' aquí, ya que solo mostraremos los botones de categoría.
+    return render_template('ver_archivos.html', generate_csrf=generate_csrf)
 
 @player_bp.route('/subir_archivo', methods=['GET', 'POST'])
 @login_required
@@ -110,6 +92,8 @@ def subir_archivo():
                     tipo = 'imagen'
                 elif file_extension == 'pdf':
                     tipo = 'pdf'
+                # Considerar añadir 'txt' si lo necesitas en el futuro, pero no estaba en allowed_file inicialmente.
+                # Para documentos, podrías agrupar pdf y txt si los permites.
                 else:
                     tipo = 'desconocido'
 
@@ -122,6 +106,7 @@ def subir_archivo():
                 db.session.add(nuevo_archivo)
                 db.session.commit()
                 flash('¡Archivo subido exitosamente!', 'success')
+                # Redirigir a la vista general o a la vista detallada según el tipo subido
                 return redirect(url_for('player.ver_archivos'))
             except Exception as e:
                 db.session.rollback()
@@ -210,3 +195,28 @@ def abrir_pdf(id):
     file_path = os.path.join(current_app.root_path, 'static', archivo.ruta_archivo)
     return send_file(file_path, mimetype='application/pdf', as_attachment=False)
 
+@player_bp.route('/archivos_detail/<string:tipo>')
+@login_required
+def archivos_detail(tipo):
+    """
+    Muestra una lista de archivos multimedia filtrados por tipo.
+    """
+    if tipo == 'documentos':
+        # Agrupa PDF y otros tipos de documentos si los incluyes en allowed_file y el modelo.
+        # Por ahora, solo PDFs. Si añades TXT, deberás actualizar `allowed_file` y la lógica de `subir_archivo`.
+        archivos = ArchivoMultimedia.query.filter_by(usuario_id=current_user.id, tipo_archivo='pdf').order_by(ArchivoMultimedia.fecha_subida.desc()).all()
+        titulo = 'Mis Documentos'
+    elif tipo == 'audio':
+        archivos = ArchivoMultimedia.query.filter_by(usuario_id=current_user.id, tipo_archivo='audio').order_by(ArchivoMultimedia.fecha_subida.desc()).all()
+        titulo = 'Mi Música'
+    elif tipo == 'video':
+        archivos = ArchivoMultimedia.query.filter_by(usuario_id=current_user.id, tipo_archivo='video').order_by(ArchivoMultimedia.fecha_subida.desc()).all()
+        titulo = 'Mis Videos'
+    elif tipo == 'imagen':
+        archivos = ArchivoMultimedia.query.filter_by(usuario_id=current_user.id, tipo_archivo='imagen').order_by(ArchivoMultimedia.fecha_subida.desc()).all()
+        titulo = 'Mis Imágenes'
+    else:
+        flash('Tipo de archivo no válido.', 'danger')
+        return redirect(url_for('player.ver_archivos'))
+    
+    return render_template('archivos_detail.html', archivos=archivos, titulo=titulo, generate_csrf=generate_csrf)
