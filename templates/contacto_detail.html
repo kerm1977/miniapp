@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+{% block title %}Detalle del Contacto{% endblock %}
+{% block content %}
+<style>
+    .detail-container {
+        font-family: Arial, sans-serif;
+        color: #333;
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    }
+
+    .detail-container h1 {
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 2.5rem;
+        color: #2c3e50;
+    }
+
+    .detail-item {
+        margin-bottom: 1rem;
+        padding: 0.75rem 1rem;
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 0.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .detail-item strong {
+        font-size: 1.1rem;
+        color: #007bff;
+        flex: 0 0 150px; /* Ancho fijo para las etiquetas */
+        margin-right: 1rem;
+    }
+
+    .detail-item span {
+        flex: 1; /* El valor ocupa el resto del espacio */
+        font-size: 1.1rem;
+    }
+
+    .detail-item img {
+        max-width: 150px;
+        height: auto;
+        border-radius: 0.5rem;
+        margin-top: 0.5rem;
+        border: 1px solid #ddd;
+    }
+
+    .button-group {
+        display: flex;
+        flex-wrap: wrap; /* Permite que los botones se envuelvan en pantallas pequeñas */
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .button-group .btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+    }
+
+    .button-group .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+    }
+
+    .button-group .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+
+    .button-group .btn-warning {
+        background-color: #ffc107;
+        color: #212529;
+        border: none;
+    }
+
+    .button-group .btn-warning:hover {
+        background-color: #e0a800;
+    }
+
+    .button-group .btn-danger {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+    }
+
+    .button-group .btn-danger:hover {
+        background-color: #c82333;
+    }
+    
+    /* Estilos para los nuevos botones de exportación */
+    .button-group .btn-info {
+        background-color: #17a2b8;
+        color: white;
+        border: none;
+    }
+    .button-group .btn-info:hover {
+        background-color: #138496;
+    }
+    .button-group .btn-success {
+        background-color: #28a745;
+        color: white;
+        border: none;
+    }
+    .button-group .btn-success:hover {
+        background-color: #218838;
+    }
+    .button-group .btn-primary { /* vCard */
+        background-color: #007bff;
+        color: white;
+        border: none;
+    }
+    .button-group .btn-primary:hover {
+        background-color: #0069d9;
+    }
+
+</style>
+
+<div class="detail-container">
+    {% if contacto %}
+        <h1>Detalle del Contacto</h1>
+        <div class="detail-item">
+            <strong>Nombre Completo:</strong> <span>{{ contacto.nombre }} {{ contacto.primer_apellido or '' }} {{ contacto.segundo_apellido or '' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Empresa:</strong> <span>{{ contacto.empresa or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Puesto:</strong> <span>{{ contacto.puesto or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Teléfono Principal:</strong> <span>{{ contacto.telefono_principal or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Teléfono Secundario:</strong> <span>{{ contacto.telefono_secundario or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Email Principal:</strong> <span>{{ contacto.email_principal or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Email Secundario:</strong> <span>{{ contacto.email_secundario or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Dirección:</strong> <span>{{ contacto.direccion or '-' }}, {{ contacto.ciudad or '-' }}, {{ contacto.provincia or '-' }}, {{ contacto.codigo_postal or '-' }}, {{ contacto.pais or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Fecha de Nacimiento:</strong> <span>{{ contacto.fecha_nacimiento.strftime('%Y-%m-%d') if contacto.fecha_nacimiento else '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Red Social:</strong> <span>{{ contacto.red_social or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Sitio Web:</strong> <span>{{ contacto.sitio_web or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Relación:</strong> <span>{{ contacto.relacion or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Método de Contacto Preferido:</strong> <span>{{ contacto.metodo_contacto_preferido or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Fuente del Contacto:</strong> <span>{{ contacto.fuente_contacto or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Intereses:</strong> <span>{{ contacto.intereses or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Historial de Interacción:</strong> <span>{{ contacto.historial_interaccion or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Próxima Interacción:</strong> <span>{{ contacto.proxima_interaccion.strftime('%Y-%m-%d %H:%M:%S') if contacto.proxima_interaccion else '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Etiquetas:</strong> <span>{{ contacto.etiquetas or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Grupo:</strong> <span>{{ contacto.grupo or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Preferencias de Comunicación:</strong> <span>{{ contacto.preferencias_comunicacion or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Consentimiento de Datos:</strong> <span>{{ 'Sí' if contacto.consentimiento_datos else 'No' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Notas:</strong> <span>{{ contacto.nota or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Género:</strong> <span>{{ contacto.genero or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Organización:</strong> <span>{{ contacto.organizacion or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Departamento:</strong> <span>{{ contacto.departamento or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Rol:</strong> <span>{{ contacto.rol or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Fax:</strong> <span>{{ contacto.fax or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Móvil:</strong> <span>{{ contacto.movil or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Páginas Web:</strong> <span>{{ contacto.paginas_web or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Apodo:</strong> <span>{{ contacto.apodo or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Hijos:</strong> <span>{{ contacto.hijos or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Cargos:</strong> <span>{{ contacto.cargos or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Cónyuge:</strong> <span>{{ contacto.conyuge or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Aniversario:</strong> <span>{{ contacto.aniversario.strftime('%Y-%m-%d') if contacto.aniversario else '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Tipo de Dirección:</strong> <span>{{ contacto.tipo_direccion or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Dirección de Mapa:</strong> <span>{{ contacto.direccion_mapa or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Capacidad de Persona:</strong> <span>{{ contacto.capacidad_persona or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Participación:</strong> <span>{{ contacto.participacion or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Avatar:</strong>
+            {% if contacto.avatar_path %}
+                <img src="{{ url_for('static', filename='uploads/' + contacto.avatar_path) }}" alt="Avatar">
+            {% else %}
+                <span>-</span>
+            {% endif %}
+        </div>
+        <div class="detail-item">
+            <strong>Fecha de Ingreso:</strong> <span>{{ contacto.fecha_ingreso.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+        </div>
+
+        <div class="button-group">
+            <a href="{{ url_for('listar_contacto') }}" class="btn btn-secondary">Volver a la lista</a>
+            <a href="{{ url_for('editar_contacto', id=contacto.id) }}" class="btn btn-warning">Editar Contacto</a>
+            <form action="{{ url_for('borrar_contacto', id=contacto.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Estás seguro que deseas borrar este contacto?');">
+                {# CAMBIO CRÍTICO: Usar generate_csrf() ya que es lo que se pasa desde app.py #}
+                <input type="hidden" name="csrf_token" value="{{ generate_csrf() }}">
+                <button type="submit" class="btn btn-danger">Borrar Contacto</button>
+            </form>
+
+            {# Botones de Exportación #}
+            <a href="{{ url_for('exportar_contacto_pdf', id=contacto.id) }}" class="btn btn-info">Exportar a PDF</a>
+            <a href="{{ url_for('exportar_contacto_vcard', id=contacto.id) }}" class="btn btn-primary">Exportar a vCard</a>
+            <a href="{{ url_for('exportar_contacto_excel', id=contacto.id) }}" class="btn btn-success">Exportar a Excel</a>
+            <a href="{{ url_for('exportar_contacto_jpg', id=contacto.id) }}" class="btn btn-dark">Exportar a JPG</a> {# Opcional, ver explicación #}
+        </div>
+    {% else %}
+        <p>No se encontró el contacto.</p>
+    {% endif %}
+</div>
+{% endblock %}

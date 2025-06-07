@@ -67,73 +67,34 @@
   margin-bottom: 1.5rem;
 }
 
-.contactos-container .contacts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+/* Estilos para la lista de texto plano */
+.contact-list {
+  list-style: none; /* Elimina los puntos de la lista */
+  padding: 0;
 }
 
-.contactos-container .contact-card {
-  display: flex;
-  flex-direction: column;
+.contact-list-item {
   background-color: #f8f9fa;
   border: 1px solid #e0e0e0;
   border-radius: 0.5rem;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.071);
-}
-
-.contactos-container .contact-card .card-body {
   padding: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Alinea el contenido a la izquierda */
 }
 
-.contactos-container .contact-card .card-title {
-  margin-bottom: 0.75rem;
-  font-size: 1.25rem;
-  color: #2c3e50;
-}
-
-.contactos-container .contact-card .card-text {
-  font-size: 0.9rem;
-  line-height: 1.5;
+.contact-list-item p {
   margin-bottom: 0.5rem;
-  color: #495057;
-  /* Nuevas propiedades para controlar el desbordamiento del texto */
-  overflow: hidden;         /* Oculta el texto que se desborda del contenedor */
-  text-overflow: ellipsis;  /* Muestra puntos suspensivos (...) para indicar texto oculto */
-  word-wrap: break-word;    /* Permite que las palabras se dividan y pasen a la siguiente línea */
+  font-size: 1.1rem;
+  color: #333;
 }
 
-.contactos-container .contact-card .card-text strong {
-  font-weight: bold;
-  color: #2c3e50;
+.contact-list-item .view-more-button {
+  margin-top: 0.5rem; /* Espacio entre el texto y el botón */
+  align-self: flex-end; /* Alinea el botón a la derecha */
 }
 
-.contactos-container .contact-card .card-text a {
-  color: #007bff;
-  text-decoration: none;
-}
-
-.contactos-container .contact-card .card-text a:hover {
-  text-decoration: underline;
-}
-
-.contactos-container .contact-card img {
-  vertical-align: middle;
-  margin-left: 0.25rem;
-  border-radius: 50%;
-}
-
-.contactos-container .contact-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.contactos-container .action-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
 
 .contactos-container .floating-button {
   position: fixed;
@@ -159,65 +120,7 @@
   color: white;
 }
 
-.contactos-container .modal-dialog {
-  max-width: 400px;
-  margin: 1.75rem auto;
-}
-
-.contactos-container .modal-content {
-  border-radius: 0.3rem;
-}
-
-.contactos-container .modal-header {
-  border-bottom: 1px solid #dee2e6;
-  padding: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-top-left-radius: 0.3rem;
-  border-top-right-radius: 0.3rem;
-}
-
-.contactos-container .modal-title {
-  margin-bottom: 0;
-  line-height: 1.5;
-  font-size: 1rem;
-}
-
-.contactos-container .btn-close {
-  padding: 0.5rem 0.5rem;
-  margin: -0.5rem -0.5rem -0.5rem auto;
-  font-size: 1rem;
-  background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath fill-rule='evenodd' d='M15.854 2.146a.5.5 0 0 1 0 .708L8.707 8l7.147 7.146a.5.5 0 0 1-.708.708L8 8.707l-7.146 7.147a.5.5 0 0 1-.708-.708L7.293 8 0.146 0.854a.5.5 0 0 1 .708-.708L8 7.293l7.146-7.147a.5.5 0 0 1 .708 0z'/%3e%3c/svg%3e") center/1em auto no-repeat;
-  border: 0;
-  border-radius: 0.25rem;
-  opacity: .5;
-}
-
-.contactos-container .btn-close:hover {
-  opacity: .75;
-}
-
-.contactos-container .modal-body {
-  padding: 1rem;
-}
-
-.contactos-container .modal-footer {
-  display: flex;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 0.75rem;
-  border-top: 1px solid #dee2e6;
-  border-bottom-right-radius: 0.3rem;
-}
-
-.contactos-container .modal-footer>* {
-  margin: 0.25rem;
-}
-
-/* Estilos para el botón de borrado con SweetAlert2 */
+/* Estilos para el botón de borrado con SweetAlert2 (mantengo por si se usa en otro lado o en el futuro) */
 .borrar-contacto-btn-swal {
     background-color: #dc3545 !important;
     color: white !important;
@@ -282,60 +185,26 @@
       <a href="{{ url_for('listar_contacto') }}" class="btn btn-outline-secondary mt-2">Limpiar Búsqueda</a>
     </div>
 
-    <div class="contacts-grid mt-4">
+    <ul class="contact-list mt-4">
       {% if contactos %}
         {% for contacto in contactos %}
-          <div class="contact-card border rounded-4" style="border-width: 0.5px; border-color: #ccc;">
-            <div class="card-body">
-              <h5 class="card-title">{{ contacto.nombre | title }} {% if contacto.primer_apellido %}{{ contacto.primer_apellido | title }}{% endif %} {% if contacto.segundo_apellido %}{{ contacto.segundo_apellido | title }}{% endif %}</h5>
-              <p class="card-text">
-                <strong>Teléfono:</strong>
-                {% if contacto.telefono and not contacto.telefono.startswith('2') %}
-                  <a href="https://wa.me/506{{ contacto.telefono }}">{{ contacto.telefono }}</a>
-                {% else %}
-                  {{ contacto.telefono }}
-                {% endif %}
-                <br>
-                {% if contacto.movil %}<strong>Móvil:</strong> {{ contacto.movil }}<br>{% endif %}
-                {% if contacto.email %}<strong>Email:</strong> {{ contacto.email }}<br>{% endif %}
-                {% if contacto.direccion %}<strong>Dirección:</strong> {{ contacto.direccion }}<br>{% endif %}
-                {% if contacto.tipo_actividad %}<strong>Actividad:</strong> {{ contacto.tipo_actividad }}<br>{% endif %}
-                {% if contacto.nota %}<strong>Nota:</strong> {{ contacto.nota }}<br>{% endif %}
-                {% if contacto.direccion_mapa %}<strong>Dirección Mapa:</strong> {{ contacto.direccion_mapa }}<br>{% endif %}
-                {% if contacto.capacidad_persona %}<strong>Capacidad:</strong> {{ contacto.capacidad_persona }}<br>{% endif %}
-                {% if contacto.participacion %}<strong>Participación:</strong> {{ contacto.participacion }}<br>{% endif %}
-                {% if contacto.empresa %}<strong>Empresa:</strong> {{ contacto.empresa }}<br>{% endif %}
-                {% if contacto.sitio_web %}<strong>Sitio Web:</strong> <a href="{{ contacto.sitio_web }}" target="_blank">{{ contacto.sitio_web }}</a><br>{% endif %}
-                <strong>Avatar:</strong>
-                {% if contacto.avatar_path %}
-                  <img src="{{ url_for('static', filename='images/' + contacto.avatar_path.split('/')[-1]) }}" alt="Avatar" style="width: 50px; height: 50px; border-radius: 50%;">
-                {% else %}
-                  -
-                {% endif %}
-                <br>
-                <strong>Fecha Ingreso:</strong> {{ contacto.fecha_ingreso.strftime('%Y-%m-%d %H:%M:%S') }}<br>
-              </p>
-              <hr>
-              <div class="contact-actions">
-                <div class="action-buttons">
-                  <a href="{{ url_for('editar_contacto', id=contacto.id) }}" class="btn btn-sm btn-warning">Editar</a>
-                  <a href="{{ url_for('exportar_vcard', contacto_id=contacto.id) }}" class="btn btn-sm btn-info">vCard</a>
-                </div>
-                <div>
-                  <button type="button" class="btn btn-sm btn-danger borrar-contacto-btn-swal"
-                          data-contacto-id="{{ contacto.id }}"
-                          data-contacto-nombre="{{ contacto.nombre }}">
-                    <i class="fas fa-trash-alt"></i> Borrar
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <li class="contact-list-item" data-search-terms="{{ (contacto.nombre + ' ' + (contacto.primer_apellido or '') + ' ' + (contacto.telefono or '') + ' ' + (contacto.segundo_apellido or '') + ' ' + (contacto.movil or '') + ' ' + (contacto.email or '') + ' ' + (contacto.direccion or '') + ' ' + (contacto.tipo_actividad or '') + ' ' + (contacto.nota or '') + ' ' + (contacto.direccion_mapa or '') + ' ' + (contacto.empresa or '') + ' ' + (contacto.sitio_web or '') + ' ' + (contacto.capacidad_persona or '') + ' ' + (contacto.participacion or '')).lower() }}">
+            <p><strong>Nombre:</strong> {{ contacto.nombre | title }} {% if contacto.primer_apellido %}{{ contacto.primer_apellido | title }}{% endif %}</p>
+            <p><strong>Apellido:</strong> {% if contacto.primer_apellido %}{{ contacto.primer_apellido | title }}{% endif %}</p>
+            <p><strong>Teléfono:</strong>
+              {% if contacto.telefono and not contacto.telefono.startswith('2') %}
+                <a href="https://wa.me/506{{ contacto.telefono }}">{{ contacto.telefono }}</a>
+              {% else %}
+                {{ contacto.telefono }}
+              {% endif %}
+            </p>
+            <a href="{{ url_for('contacto_detalle', id=contacto.id) }}" class="btn btn-sm btn-primary view-more-button">Ver más</a> {# MODIFICADO PARA ENLAZAR AL NUEVO DETALLE #}
+          </li>
         {% endfor %}
       {% else %}
         <p>No tienes contactos en tu agenda.</p>
       {% endif %}
-    </div>
+    </ul>
 
     <a href="{{ url_for('crear_contacto') }}" class="floating-button">
       <i class="fas fa-plus"></i>
@@ -344,62 +213,57 @@
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         const searchInput = document.getElementById('searchInput');
-        const contactCards = document.querySelectorAll('.contact-card');
-        const botonesBorrar = document.querySelectorAll('.borrar-contacto-btn-swal');
+        const contactListItems = document.querySelectorAll('.contact-list-item');
+        // No hay botones de borrar directos en esta vista simplificada, por lo que se comenta la siguiente línea
+        // const botonesBorrar = document.querySelectorAll('.borrar-contacto-btn-swal'); 
 
         searchInput.addEventListener('input', function() {
           const searchTerm = searchInput.value.toLowerCase();
 
-          contactCards.forEach(card => {
-            let cardMatch = false;
-            const textElements = card.querySelectorAll('h5, p, strong, a');
-
-            textElements.forEach(element => {
-              if (element.textContent.toLowerCase().includes(searchTerm)) {
-                cardMatch = true;
-              }
-            });
-
-            if (cardMatch) {
-              card.style.display = '';
+          contactListItems.forEach(item => {
+            const searchTerms = item.dataset.searchTerms; // Usamos el atributo data-search-terms
+            if (searchTerms.includes(searchTerm)) {
+              item.style.display = '';
             } else {
-              card.style.display = 'none';
+              item.style.display = 'none';
             }
           });
         });
 
-        botonesBorrar.forEach(boton => {
-          boton.addEventListener('click', function() {
-            const contactoId = this.dataset.contactoId;
-            const contactoNombre = this.dataset.contactoNombre;
+        // Este bloque de código para borrar contactos se mantiene por si decides reintroducir la funcionalidad en el futuro,
+        // pero no está directamente accesible en la interfaz actual.
+        // botonesBorrar.forEach(boton => {
+        //   boton.addEventListener('click', function() {
+        //     const contactoId = this.dataset.contactoId;
+        //     const contactoNombre = this.dataset.contactoNombre;
 
-            Swal.fire({
-              title: '¿Estás seguro?',
-              text: `¿Deseas borrar a ${contactoNombre}?`,
-              icon: 'warning',
-              showCancelButton: true,
-              confirmButtonColor: '#dc3545',
-              cancelButtonColor: '#6c757d',
-              confirmButtonText: 'Sí, borrar',
-              cancelButtonText: 'Cancelar'
-            }).then((result) => {
-              if (result.isConfirmed) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `/borrar_contacto/${contactoId}`;
+        //     Swal.fire({
+        //       title: '¿Estás seguro?',
+        //       text: `¿Deseas borrar a ${contactoNombre}?`,
+        //       icon: 'warning',
+        //       showCancelButton: true,
+        //       confirmButtonColor: '#dc3545',
+        //       cancelButtonColor: '#6c757d',
+        //       confirmButtonText: 'Sí, borrar',
+        //       cancelButtonText: 'Cancelar'
+        //     }).then((result) => {
+        //       if (result.isConfirmed) {
+        //         const form = document.createElement('form');
+        //         form.method = 'POST';
+        //         form.action = `/borrar_contacto/${contactoId}`;
 
-                const csrfTokenInput = document.createElement('input');
-                csrfTokenInput.type = 'hidden';
-                csrfTokenInput.name = 'csrf_token';
-                csrfTokenInput.value = "{{ csrf_token }}";
+        //         const csrfTokenInput = document.createElement('input');
+        //         csrfTokenInput.type = 'hidden';
+        //         csrfTokenInput.name = 'csrf_token';
+        //         csrfTokenInput.value = "{{ csrf_token }}";
 
-                form.appendChild(csrfTokenInput);
-                document.body.appendChild(form);
-                form.submit();
-              }
-            });
-          });
-        });
+        //         form.appendChild(csrfTokenInput);
+        //         document.body.appendChild(form);
+        //         form.submit();
+        //       }
+        //     });
+        //   });
+        // });
       });
     </script>
   </div>

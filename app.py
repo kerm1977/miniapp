@@ -592,6 +592,13 @@ def listar_contacto():
     contactos = Contacto.query.filter_by(usuario_id=current_user.id).order_by(Contacto.nombre, Contacto.primer_apellido, Contacto.segundo_apellido).all()
     return render_template('listar_contacto.html', contactos=contactos, form_busqueda=form_busqueda)
 
+# NUEVA RUTA PARA VER DETALLE DEL CONTACTO
+@app.route('/contacto_detalle/<int:id>')
+@login_required
+def contacto_detalle(id):
+    contacto = Contacto.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+    return render_template('contacto_detail.html', contacto=contacto, generate_csrf=generate_csrf)
+
 @app.route('/crear_contacto', methods=['GET', 'POST'])
 @login_required
 def crear_contacto():
@@ -935,36 +942,6 @@ def handle_single_event(id):
 
         db.session.commit()
         return jsonify({'message': f'Evento con ID {id} actualizado exitosamente', 'event': event.to_dict()}), 200
-
-@app.route('/api/events/<int:id>', methods=['PUT'])
-def update_event(id):
-    event = db.session.get(Event, id)
-    if event:
-        data = request.get_json()
-        date_str = data.get('date')
-        time_str = data.get('time')
-        title = data.get('title')
-        description = data.get('description')
-
-        if date_str:
-            try:
-                event.date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            except ValueError:
-                return jsonify({'error': 'Formato de fecha inválido (YYYY-MM-DD)'}), 400
-        if time_str:
-            try:
-                event.time = datetime.strptime(time_str, '%H:%M').time()
-            except ValueError:
-                return jsonify({'error': 'Formato de hora inválido (HH:MM)'}), 400
-        elif 'time' in data and data['time'] is None:
-            event.time = None
-        if title:
-            event.title = title
-        if description is not None:
-            event.description = description
-
-        db.session.commit()
-        return jsonify({'message': f'Evento con ID {id} actualizado exitosamente', 'event': event.to_dict()}), 200
     else:
         return jsonify({'error': f'Evento con ID {id} no encontrado'}), 404
 
@@ -1214,7 +1191,7 @@ def exportar_evento_pdf(id):
     return send_file(buffer, as_attachment=True, download_name=filename, mimetype='application/pdf')
 
 
-# --- Ruta para Ver Facturas --- 
+# --- Rutas para Facturas --- 
 @app.route('/ver_facturas')
 @login_required
 def ver_facturas():
@@ -1381,6 +1358,399 @@ def borrar_factura(id):
 def detalle_evento(id):
     evento = Evento.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
     return render_template('detalle_evento.html', evento=evento, generate_csrf=generate_csrf)
+
+# --- Rutas de Exportación para contacto_detail.html ---
+
+@app.route('/exportar_contacto_pdf/<int:id>')
+@login_required
+def exportar_contacto_pdf(id):
+    contacto = Contacto.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+
+    # Estilos personalizados: Se modifican los estilos existentes en lugar de añadir nuevos
+    styles['Title'].alignment = TA_CENTER
+    styles['Title'].fontSize = 24
+    styles['Title'].spaceAfter = 20
+    styles['Title'].fontName = 'Helvetica-Bold'
+
+    # Modificar 'Heading2' si existe, o crearlo si no existe (aunque ReportLab lo tiene por defecto)
+    if 'Heading2' in styles:
+        styles['Heading2'].fontSize = 14
+        styles['Heading2'].spaceBefore = 12
+        styles['Heading2'].spaceAfter = 6
+        styles['Heading2'].fontName = 'Helvetica-Bold'
+        styles['Heading2'].textColor = colors.HexColor('#007bff')
+    else:
+        # Esto es un fallback, pero ReportLab suele tener 'Heading2' por defecto
+        styles.add(ParagraphStyle(name='Heading2', fontSize=14, spaceBefore=12, spaceAfter=6, fontName='Helvetica-Bold', textColor=colors.HexColor('#007bff')))
+
+    # Modificar 'BodyText' si existe, o crearlo si no existe
+    if 'BodyText' in styles:
+        styles['BodyText'].fontSize = 10
+        styles['BodyText'].spaceAfter = 5
+    else:
+        styles.add(ParagraphStyle(name='BodyText', fontSize=10, spaceAfter=5))
+
+    styles.add(ParagraphStyle(name='Label', fontSize=10, fontName='Helvetica-Bold', textColor=colors.HexColor('#333333')))
+    styles.add(ParagraphStyle(name='Value', fontSize=10, fontName='Helvetica'))
+
+    story = []
+
+    story.append(Paragraph(f"Detalle del Contacto: {contacto.nombre} {contacto.primer_apellido or ''}", styles['Title']))
+    story.append(Spacer(1, 0.2 * inch))
+
+    # Información general
+    story.append(Paragraph("Información General", styles['Heading2']))
+    
+    # Usar una tabla para organizar la información de forma más estructurada
+    data = [
+        [Paragraph("<b>Nombre:</b>", styles['Label']), Paragraph(contacto.nombre, styles['Value'])],
+        [Paragraph("<b>Primer Apellido:</b>", styles['Label']), Paragraph(contacto.primer_apellido or '-', styles['Value'])],
+        [Paragraph("<b>Segundo Apellido:</b>", styles['Label']), Paragraph(contacto.segundo_apellido or '-', styles['Value'])],
+        [Paragraph("<b>Empresa:</b>", styles['Label']), Paragraph(contacto.empresa or '-', styles['Value'])],
+        # 'Puesto' no está en ContactoForm, así que se usa getattr
+        [Paragraph("<b>Puesto:</b>", styles['Label']), Paragraph(getattr(contacto, 'puesto', '-') or '-', styles['Value'])],
+    ]
+    table_style = TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f0f0f0')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#000000')),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    ])
+    
+    # Función auxiliar para añadir filas a la tabla si el dato existe
+    # ¡DEFINICIÓN MOVIDA AQUÍ PARA ASEGURAR EL ALCANCE CORRECTO!
+    def add_row_if_exists(label, value):
+        # Usar getattr para acceder a atributos que pueden no existir
+        # y proporcionar un valor predeterminado si no existen
+        attr_value = getattr(contacto, value, None)
+        if attr_value is not None and attr_value != '': # También considera cadenas vacías como no existentes
+            # Formatear fechas si son objetos date o datetime
+            if isinstance(attr_value, (date, datetime)):
+                if label == "Fecha de Nacimiento" or label == "Aniversario":
+                    data.append([Paragraph(f"<b>{label}:</b>", styles['Label']), Paragraph(attr_value.strftime('%Y-%m-%d'), styles['Value'])])
+                elif label == "Próxima Interacción" or label == "Fecha de Ingreso":
+                    data.append([Paragraph(f"<b>{label}:</b>", styles['Label']), Paragraph(attr_value.strftime('%Y-%m-%d %H:%M:%S'), styles['Value'])])
+            elif isinstance(attr_value, bool):
+                data.append([Paragraph(f"<b>{label}:</b>", styles['Label']), Paragraph("Sí" if attr_value else "No", styles['Value'])])
+            else:
+                data.append([Paragraph(f"<b>{label}:</b>", styles['Label']), Paragraph(str(attr_value), styles['Value'])])
+        else:
+            data.append([Paragraph(f"<b>{label}:</b>", styles['Label']), Paragraph('-', styles['Value'])])
+
+
+    add_row_if_exists("Teléfono", 'telefono')
+    add_row_if_exists("Móvil", 'movil')
+    add_row_if_exists("Email", 'email')
+    # Campos que se asume que no están en el Contacto actual, se usarán con getattr
+    add_row_if_exists("Teléfono Principal (no en el modelo)", 'telefono_principal') 
+    add_row_if_exists("Teléfono Secundario (no en el modelo)", 'telefono_secundario')
+    add_row_if_exists("Email Principal (no en el modelo)", 'email_principal')
+    add_row_if_exists("Email Secundario (no en el modelo)", 'email_secundario')
+    add_row_if_exists("Dirección", 'direccion')
+    add_row_if_exists("Ciudad", 'ciudad') # Ahora usando getattr
+    add_row_if_exists("Provincia", 'provincia') # Ahora usando getattr
+    add_row_if_exists("Código Postal", 'codigo_postal') # Ahora usando getattr
+    add_row_if_exists("País", 'pais') # Ahora usando getattr
+    add_row_if_exists("Fecha de Nacimiento", 'fecha_nacimiento') # Ahora usando getattr
+    add_row_if_exists("Red Social", 'red_social') # Ahora usando getattr
+    add_row_if_exists("Sitio Web", 'sitio_web')
+    add_row_if_exists("Relación", 'relacion') # Ahora usando getattr
+    add_row_if_exists("Método de Contacto Preferido", 'metodo_contacto_preferido') # Ahora usando getattr
+    add_row_if_exists("Fuente del Contacto", 'fuente_contacto') # Ahora usando getattr
+    add_row_if_exists("Intereses", 'intereses') # Ahora usando getattr
+    add_row_if_exists("Historial de Interacción", 'historial_interaccion') # Ahora usando getattr
+    add_row_if_exists("Próxima Interacción", 'proxima_interaccion') # Ahora usando getattr
+    add_row_if_exists("Etiquetas", 'etiquetas') # Ahora usando getattr
+    add_row_if_exists("Grupo", 'grupo') # Ahora usando getattr
+    add_row_if_exists("Preferencias de Comunicación", 'preferencias_comunicacion') # Ahora usando getattr
+    add_row_if_exists("Consentimiento de Datos", 'consentimiento_datos') # Ahora usando getattr
+    add_row_if_exists("Notas", 'nota')
+    add_row_if_exists("Género", 'genero') # Ahora usando getattr
+    add_row_if_exists("Organización", 'organizacion') # Ahora usando getattr
+    add_row_if_exists("Departamento", 'departamento') # Ahora usando getattr
+    add_row_if_exists("Rol", 'rol') # Ahora usando getattr
+    add_row_if_exists("Fax", 'fax') # Ahora usando getattr
+    add_row_if_exists("Páginas Web", 'paginas_web') # Ahora usando getattr
+    add_row_if_exists("Apodo", 'apodo') # Ahora usando getattr
+    add_row_if_exists("Hijos", 'hijos') # Ahora usando getattr
+    add_row_if_exists("Cargos", 'cargos') # Ahora usando getattr
+    add_row_if_exists("Cónyuge", 'conyuge') # Ahora usando getattr
+    add_row_if_exists("Aniversario", 'aniversario') # Ahora usando getattr
+    add_row_if_exists("Tipo de Dirección", 'tipo_direccion') # Ahora usando getattr
+    add_row_if_exists("Dirección de Mapa", 'direccion_mapa')
+    add_row_if_exists("Capacidad de Persona", 'capacidad_persona')
+    add_row_if_exists("Participación", 'participacion')
+    add_row_if_exists("Fecha de Ingreso", 'fecha_ingreso')
+    add_row_if_exists("Tipo de Actividad", 'tipo_actividad')
+
+
+    # Si hay avatar, añadirlo
+    if contacto.avatar_path:
+        avatar_full_path = os.path.join(app.config['UPLOAD_FOLDER'], os.path.basename(contacto.avatar_path))
+
+        if os.path.exists(avatar_full_path):
+            try:
+                img = Image(avatar_full_path)
+                img_width = 1.5 * inch
+                img_height = img_width * (img.drawHeight / img.drawWidth) # Mantener la proporción
+                img.drawWidth = img_width
+                img.drawHeight = img_height
+                data.append([Paragraph("<b>Avatar:</b>", styles['Label']), img])
+            except Exception as e:
+                print(f"Error al cargar la imagen para PDF: {e}")
+                data.append([Paragraph("<b>Avatar:</b>", styles['Label']), Paragraph("Error al cargar avatar", styles['Value'])])
+        else:
+            data.append([Paragraph("<b>Avatar:</b>", styles['Label']), Paragraph("No disponible", styles['Value'])])
+    else:
+        data.append([Paragraph("<b>Avatar:</b>", styles['Label']), Paragraph("No hay avatar", styles['Value'])])
+
+
+    table = Table(data, colWidths=[2 * inch, 5 * inch]) # Ancho de columnas para las etiquetas y valores
+    table.setStyle(table_style)
+    story.append(table)
+
+    doc.build(story)
+    buffer.seek(0)
+    
+    return send_file(buffer, as_attachment=True, download_name=f'contacto_{contacto.id}.pdf', mimetype='application/pdf')
+
+@app.route('/exportar_contacto_vcard/<int:id>')
+@login_required
+def exportar_contacto_vcard(id):
+    contacto = Contacto.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+
+    vcard = vobject.vCard()
+    
+    # Nombre y apellidos
+    vcard.add('n')
+    vcard.n.value = vobject.vcard.Name(
+        family=contacto.primer_apellido or '', 
+        given=contacto.nombre or '', 
+        additional=contacto.segundo_apellido or ''
+    )
+
+    vcard.add('fn')
+    vcard.fn.value = f"{contacto.nombre} {contacto.primer_apellido or ''} {contacto.segundo_apellido or ''}".strip()
+
+    # Teléfonos - Usando los campos existentes en ContactoForm
+    if contacto.telefono:
+        tel = vcard.add('tel')
+        tel.type = 'HOME,VOICE' # Asignado a HOME,VOICE ya que es el principal general
+        tel.value = contacto.telefono
+    if contacto.movil:
+        tel = vcard.add('tel')
+        tel.type = 'CELL'
+        tel.value = contacto.movil
+
+    # Emails - Usando el campo existente en ContactoForm
+    if contacto.email:
+        email = vcard.add('email')
+        email.type = 'INTERNET'
+        email.value = contacto.email
+
+    # Dirección
+    # Usar getattr para campos opcionales del modelo de Contacto que pueden no existir
+    if contacto.direccion or getattr(contacto, 'ciudad', None) or getattr(contacto, 'provincia', None) or \
+       getattr(contacto, 'codigo_postal', None) or getattr(contacto, 'pais', None):
+        vcard.add('adr')
+        vcard.adr.value = vobject.vcard.Address(
+            street=contacto.direccion or '',
+            city=getattr(contacto, 'ciudad', '') or '',
+            region=getattr(contacto, 'provincia', '') or '',
+            code=getattr(contacto, 'codigo_postal', '') or '',
+            country=getattr(contacto, 'pais', '') or ''
+        )
+
+    # Organización y Sitio Web
+    if contacto.empresa:
+        vcard.add('org')
+        vcard.org.value = [contacto.empresa]
+    if contacto.sitio_web:
+        vcard.add('url')
+        vcard.url.value = contacto.sitio_web
+
+    # Campos adicionales con X-PROPERTY para campos personalizados
+    if contacto.capacidad_persona:
+        vcard.add('X-CAPACIDAD-PERSONA').value = contacto.capacidad_persona
+    if contacto.participacion:
+        vcard.add('X-PARTICIPACION').value = contacto.participacion
+    if contacto.tipo_actividad:
+        vcard.add('X-TIPO-ACTIVIDAD').value = contacto.tipo_actividad
+    if contacto.nota:
+        vcard.add('NOTE').value = contacto.nota
+    if contacto.direccion_mapa:
+        vcard.add('X-DIRECCION-MAPA').value = contacto.direccion_mapa
+
+
+    # Avatar
+    if contacto.avatar_path:
+        # Asumo que contacto.avatar_path es el nombre del archivo en UPLOAD_FOLDER
+        avatar_full_path = os.path.join(app.config['UPLOAD_FOLDER'], os.path.basename(contacto.avatar_path))
+        if os.path.exists(avatar_full_path):
+            try:
+                with open(avatar_full_path, 'rb') as f:
+                    image_data = f.read()
+                
+                mime_type, _ = mimetypes.guess_type(avatar_full_path)
+                if not mime_type:
+                    mime_type = 'application/octet-stream' # Fallback
+                
+                vcard.add('photo')
+                vcard.photo.value = base64.b64encode(image_data).decode('utf-8')
+                vcard.photo.type_param = mime_type.split('/')[-1].upper() # Ej: 'JPEG', 'PNG'
+                vcard.photo.encoding_param = 'B' # Base64 encoding
+            except Exception as e:
+                print(f"Error al añadir avatar a vCard: {e}") # Para depuración
+    
+    # Serializa la vCard
+    vcard_content = vcard.serialize()
+    filename = f'{contacto.nombre}_{contacto.primer_apellido}.vcf'.replace(' ', '_').replace('__','_').lower()
+    buffer = BytesIO(vcard_content.encode('utf-8'))
+    
+    return send_file(buffer, as_attachment=True, download_name=filename, mimetype='text/vcard')
+
+@app.route('/exportar_contacto_excel/<int:id>')
+@login_required
+def exportar_contacto_excel(id):
+    contacto = Contacto.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+
+    # Preparar los datos en un diccionario para DataFrame
+    data = {
+        'Campo': [],
+        'Valor': []
+    }
+
+    # Función auxiliar para añadir datos al diccionario
+    def add_data(label, value):
+        # Usar getattr para acceder a atributos que pueden no existir
+        # y proporcionar un valor predeterminado si no existen
+        attr_value = getattr(contacto, value, None)
+        data['Campo'].append(label)
+        if attr_value is not None and attr_value != '':
+            # Formatear fechas si son objetos date o datetime
+            if isinstance(attr_value, (date, datetime)):
+                # Verifica si el atributo es 'fecha_ingreso' para incluir la hora
+                if value == 'fecha_ingreso':
+                    data['Valor'].append(attr_value.strftime('%Y-%m-%d %H:%M:%S'))
+                else: # Para otras fechas como 'fecha_nacimiento', solo la fecha
+                    data['Valor'].append(attr_value.strftime('%Y-%m-%d'))
+            elif isinstance(attr_value, bool):
+                data['Valor'].append("Sí" if attr_value else "No")
+            else:
+                data['Valor'].append(str(attr_value))
+        else:
+            data['Valor'].append('-')
+
+    add_data("Nombre", 'nombre')
+    add_data("Primer Apellido", 'primer_apellido')
+    add_data("Segundo Apellido", 'segundo_apellido')
+    add_data("Empresa", 'empresa')
+    add_data("Puesto", 'puesto') # Ahora usando getattr
+    add_data("Teléfono", 'telefono') # Usando el campo 'telefono' existente
+    add_data("Móvil", 'movil')
+    add_data("Email", 'email') # Usando el campo 'email' existente
+    add_data("Dirección", 'direccion')
+    add_data("Ciudad", 'ciudad') # Ahora usando getattr
+    add_data("Provincia", 'provincia') # Ahora usando getattr
+    add_data("Código Postal", 'codigo_postal') # Ahora usando getattr
+    add_data("País", 'pais') # Ahora usando getattr
+    add_data("Fecha de Nacimiento", 'fecha_nacimiento') # Ahora usando getattr
+    add_data("Red Social", 'red_social') # Ahora usando getattr
+    add_data("Sitio Web", 'sitio_web')
+    add_data("Relación", 'relacion') # Ahora usando getattr
+    add_data("Método de Contacto Preferido", 'metodo_contacto_preferido') # Ahora usando getattr
+    add_data("Fuente del Contacto", 'fuente_contacto') # Ahora usando getattr
+    add_data("Intereses", 'intereses') # Ahora usando getattr
+    add_data("Historial de Interacción", 'historial_interaccion') # Ahora usando getattr
+    add_data("Próxima Interacción", 'proxima_interaccion') # Ahora usando getattr
+    add_data("Etiquetas", 'etiquetas') # Ahora usando getattr
+    add_data("Grupo", 'grupo') # Ahora usando getattr
+    add_data("Preferencias de Comunicación", 'preferencias_comunicacion') # Ahora usando getattr
+    add_data("Consentimiento de Datos", 'consentimiento_datos') # Ahora usando getattr
+    add_data("Notas", 'nota')
+    add_data("Género", 'genero') # Ahora usando getattr
+    add_data("Organización", 'organizacion') # Ahora usando getattr
+    add_data("Departamento", 'departamento') # Ahora usando getattr
+    add_data("Rol", 'rol') # Ahora usando getattr
+    add_data("Fax", 'fax') # Ahora usando getattr
+    add_data("Páginas Web", 'paginas_web') # Ahora usando getattr
+    add_data("Apodo", 'apodo') # Ahora usando getattr
+    add_data("Hijos", 'hijos') # Ahora usando getattr
+    add_data("Cargos", 'cargos') # Ahora usando getattr
+    add_data("Cónyuge", 'conyuge') # Ahora usando getattr
+    add_data("Aniversario", 'aniversario') # Ahora usando getattr
+    add_data("Tipo de Dirección", 'tipo_direccion') # Ahora usando getattr
+    add_data("Dirección de Mapa", 'direccion_mapa')
+    add_data("Avatar", 'avatar_path') # Solo la ruta del archivo
+    add_data("Capacidad de Persona", 'capacidad_persona')
+    add_data("Participación", 'participacion')
+    add_data("Fecha de Ingreso", 'fecha_ingreso')
+    add_data("Tipo de Actividad", 'tipo_actividad')
+
+    df = pd.DataFrame(data)
+
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='openpyxl')
+    df.to_excel(writer, index=False, sheet_name='Detalle Contacto')
+    writer.close()
+    output.seek(0)
+
+    return send_file(output, as_attachment=True, download_name=f'contacto_{contacto.id}.xlsx', mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+@app.route('/exportar_contacto_jpg/<int:id>')
+@login_required
+def exportar_contacto_jpg(id):
+    # Nota: La conversión de HTML a JPG en el servidor es compleja y requiere herramientas externas.
+    # Una forma común es usar wkhtmltoimage o Selenium con un navegador headless.
+    # Dado que no se proporcionan esas dependencias aquí, la forma más sencilla es:
+    # 1. Generar el PDF y luego convertirlo a JPG usando una librería Python (ej. PyMuPDF, Pillow + Ghostscript)
+    #    Pero estas tienen dependencias externas.
+    # 2. Recomendar al usuario imprimir a PDF desde el navegador y luego usar un convertidor online.
+
+    # Implementación de ejemplo si tuvieras una forma de generar la imagen del HTML
+    # Esto es solo un placeholder, no funcionará sin librerías adicionales.
+
+    # Opción 1: Simplemente redirigir a una página que el usuario pueda imprimir a PDF
+    # y luego convertir (menos automatizado)
+    flash('Para exportar a JPG, por favor, imprime esta página a PDF desde tu navegador y luego usa una herramienta de conversión de PDF a JPG.', 'info')
+    return redirect(url_for('contacto_detalle', id=id)) # Asegúrate de que esta URL sea la correcta
+
+    # Opción 2: (Más compleja) Generar un PDF primero y luego intentar convertirlo a JPG
+    # Esto requeriría PyMuPDF o Pillow con Ghostscript u otra herramienta.
+    # from PIL import Image
+    # import fitz # PyMuPDF
+
+    # pdf_buffer = BytesIO()
+    # # Lógica para generar el PDF (similar a exportar_contacto_pdf)
+    # contacto = Contacto.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+    # doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
+    # styles = getSampleStyleSheet()
+    # # ... (código de generación de PDF aquí, copiar de exportar_contacto_pdf)
+    # doc.build(story) # story debería estar definido
+    # pdf_buffer.seek(0)
+
+    # # Convertir el PDF a JPG
+    # doc_pdf = fitz.open(stream=pdf_buffer.read(), filetype="pdf")
+    # page = doc_pdf.load_page(0)  # load page number 0 (first page)
+    # pix = page.get_pixmap()
+    # img_buffer = BytesIO()
+    # img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+    # img.save(img_buffer, "JPEG")
+    # img_buffer.seek(0)
+    # doc_pdf.close()
+
+    # return send_file(img_buffer, as_attachment=True, download_name=f'contacto_{contacto.id}.jpg', mimetype='image/jpeg')
+
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
