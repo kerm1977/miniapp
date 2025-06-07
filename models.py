@@ -186,3 +186,33 @@ class ArchivoMultimedia(db.Model):
 
     def __repr__(self):
         return f'<ArchivoMultimedia {self.nombre_archivo}>'
+
+# --- Nuevo Modelo para Gestor de Proyectos ---
+class GestorProyecto(db.Model):
+    __tablename__ = 'gestor_proyectos'
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    nombre_proyecto = db.Column(db.String(255), nullable=False)
+    imagen_proyecto = db.Column(db.String(255), nullable=True) # Ruta del archivo de imagen
+    propuesta_por = db.Column(db.String(100), nullable=False) # Kenneth, Jenny, Invitado
+    nombre_invitado = db.Column(db.String(255), nullable=True) # Solo si propuesta_por es 'Invitado'
+    provincia = db.Column(db.String(100), nullable=False)
+    canton = db.Column(db.String(100), nullable=False)
+    fecha_actividad_propuesta = db.Column(db.Date, nullable=False)
+    dificultad = db.Column(db.String(100), nullable=False)
+    acompanantes = db.Column(db.Text, nullable=True) # Almacenar IDs de contactos como JSON/CSV
+    transporte = db.Column(db.String(50), nullable=False)
+    transporte_adicional = db.Column(db.String(50), nullable=True) # No aplica, Acuatico, Aereo
+    precio_entrada = db.Column(db.Numeric(10, 2), nullable=True)
+    nombre_lugar = db.Column(db.String(255), nullable=False)
+    contacto_lugar = db.Column(db.String(255), nullable=True)
+    telefono_lugar = db.Column(db.String(20), nullable=True)
+    tipo_terreno = db.Column(db.String(100), nullable=False)
+    mas_tipo_terreno = db.Column(db.Boolean, default=False)
+    notas_adicionales = db.Column(db.Text, nullable=True)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+
+    usuario = db.relationship('User', backref=db.backref('gestor_proyectos', lazy=True))
+
+    def __repr__(self):
+        return f'<GestorProyecto {self.nombre_proyecto}>'

@@ -54,6 +54,12 @@
                 <i class="fa-solid fa-file-audio"></i> {# Icono de archivo de audio, puedes cambiarlo según tu preferencia #}
             </a>
         </div>
+        {# Nuevo botón para Gestor de Proyectos #}
+        <div class="magic-nav-button">
+            <a href="{{ url_for('gestor.ver_proyectos') }}"> {# Enlace para la lista de proyectos #}
+                <i class="fa-solid fa-list-check"></i> {# Icono de lista de verificación, puedes cambiarlo #}
+            </a>
+        </div>
         <div class="magic-nav-button">
             {% if current_user.is_authenticated %}
                 <a href="#" style="pointer-events: none; opacity: 0.2;">

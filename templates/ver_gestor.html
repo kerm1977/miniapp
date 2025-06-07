@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Lista de Proyectos</title>
+<style>
+    body {
+        background-color: #f8f9fa;
+        color: #333;
+    }
+    .container {
+        margin-top: 30px;
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+    h1 {
+        color: #007bff;
+        margin-bottom: 25px;
+        text-align: center;
+        font-weight: 600;
+    }
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        padding: 8px 15px;
+        font-size: 0.9rem;
+        border-radius: 5px;
+        transition: background-color 0.2s ease;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        padding: 8px 15px;
+        font-size: 0.9rem;
+        border-radius: 5px;
+        transition: background-color 0.2s ease;
+    }
+    .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
+    .btn-info {
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+        padding: 8px 15px;
+        font-size: 0.9rem;
+        border-radius: 5px;
+        transition: background-color 0.2s ease;
+    }
+    .btn-info:hover {
+        background-color: #138496;
+        border-color: #117a8b;
+    }
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        padding: 8px 15px;
+        font-size: 0.9rem;
+        border-radius: 5px;
+        transition: background-color 0.2s ease;
+    }
+    .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+    }
+    .alert {
+        margin-top: 20px;
+        border-radius: 5px;
+    }
+    .project-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 20px;
+    }
+    .project-card img {
+        max-width: 150px;
+        max-height: 150px;
+        border-radius: 5px;
+        object-fit: cover;
+        flex-shrink: 0; /* Previene que la imagen se encoja */
+    }
+    .project-details {
+        flex-grow: 1;
+    }
+    .project-details h3 {
+        color: #007bff;
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 1.5rem;
+    }
+    .project-details p {
+        margin-bottom: 5px;
+        font-size: 0.95rem;
+    }
+    .project-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+    .no-projects {
+        text-align: center;
+        color: #6c757d;
+        margin-top: 50px;
+        font-size: 1.1rem;
+    }
+    .action-buttons-container {
+        display: flex;
+        justify-content: flex-end; /* Alinea el botón a la derecha */
+        margin-bottom: 20px;
+    }
+    @media (max-width: 768px) {
+        .project-card {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .project-actions {
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            margin-top: 15px;
+        }
+        .project-actions .btn {
+            width: auto;
+            flex-grow: 1;
+        }
+        .project-card img {
+            max-width: 100%; /* La imagen puede ocupar todo el ancho en móvil */
+            height: auto;
+            margin-bottom: 15px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Mis Proyectos</h1>
+    <div class="action-buttons-container">
+        <a href="{{ url_for('gestor.crear_proyecto') }}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Crear Nuevo Proyecto
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% if proyectos %}
+        {% for proyecto in proyectos %}
+            <div class="project-card">
+                {% if proyecto.imagen_proyecto %}
+                    <img src="{{ url_for('static', filename='uploads/proyectos/' + proyecto.imagen_proyecto) }}" alt="Imagen del proyecto {{ proyecto.nombre_proyecto }}">
+                {% else %}
+                    <img src="https://placehold.co/150x150/cccccc/333333?text=Sin+Imagen" alt="Sin imagen disponible">
+                {% endif %}
+                <div class="project-details">
+                    <h3>{{ proyecto.nombre_proyecto }}</h3>
+                    <p><strong>Propuesta Por:</strong> {{ proyecto.propuesta_por }}
+                        {% if proyecto.nombre_invitado %}({{ proyecto.nombre_invitado }}){% endif %}
+                    </p>
+                    <p><strong>Ubicación:</strong> {{ proyecto.canton }}, {{ proyecto.provincia }}</p>
+                    <p><strong>Fecha Propuesta:</strong> {{ proyecto.fecha_actividad_propuesta.strftime('%d/%m/%Y') }}</p>
+                    <p><strong>Dificultad:</strong> {{ proyecto.dificultad }}</p>
+                    <p><strong>Acompañantes:</strong>
+                        {% if proyecto.acompanantes_nombres %}
+                            {{ proyecto.acompanantes_nombres | map(attribute='nombre') | join(', ') }}
+                        {% else %}
+                            Ninguno
+                        {% endif %}
+                    </p>
+                    <p><strong>Lugar:</strong> {{ proyecto.nombre_lugar }}</p>
+                    <p><strong>Precio Entrada:</strong> ₡{{ "%.2f" | format(proyecto.precio_entrada) if proyecto.precio_entrada is not none else 'N/A' }}</p>
+                    <p class="text-muted"><i>Creado: {{ proyecto.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</i></p>
+                </div>
+                <div class="project-actions">
+                    <a href="{{ url_for('gestor.detalle_proyecto', id=proyecto.id) }}" class="btn btn-info">
+                        <i class="fas fa-eye"></i> Ver
+                    </a>
+                    <a href="{{ url_for('gestor.editar_proyecto', id=proyecto.id) }}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <form action="{{ url_for('gestor.borrar_proyecto', id=proyecto.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres borrar este proyecto?');">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt"></i> Borrar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="no-projects">No hay proyectos registrados aún. ¡Crea uno nuevo para empezar!</p>
+    {% endif %}
+</div>
+{% endblock %}

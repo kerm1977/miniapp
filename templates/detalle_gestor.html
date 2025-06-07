@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Detalle del Proyecto: {{ proyecto.nombre_proyecto }}</title>
+<style>
+    body {
+        background-color: #f8f9fa;
+        color: #333;
+    }
+    .container {
+        margin-top: 30px;
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+    h1 {
+        color: #007bff;
+        margin-bottom: 25px;
+        text-align: center;
+        font-weight: 600;
+    }
+    .project-detail-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 25px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .project-detail-card h2 {
+        color: #343a40;
+        margin-bottom: 20px;
+        font-size: 1.8rem;
+        text-align: center;
+    }
+    .detail-item {
+        margin-bottom: 15px;
+        font-size: 1.05rem;
+        line-height: 1.6;
+    }
+    .detail-item strong {
+        color: #007bff;
+        display: inline-block;
+        min-width: 180px; /* Para alinear etiquetas */
+    }
+    .detail-item span {
+        color: #555;
+    }
+    .project-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .action-buttons {
+        margin-top: 30px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+    .btn {
+        padding: 10px 20px;
+        font-size: 1rem;
+        border-radius: 5px;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+    .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
+    .btn-info {
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+    }
+    .btn-info:hover {
+        background-color: #138496;
+        border-color: #117a8b;
+    }
+    .btn-warning {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: #212529;
+    }
+    .btn-warning:hover {
+        background-color: #e0a800;
+        border-color: #d39e00;
+    }
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+    .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+    }
+    .btn-light {
+        background-color: #f8f9fa;
+        border-color: #f8f9fa;
+        color: #212529;
+    }
+    .btn-light:hover {
+        background-color: #e2e6ea;
+        border-color: #dae0e5;
+    }
+    .notes-section {
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+    .notes-section p {
+        background-color: #f2f2f2;
+        padding: 15px;
+        border-radius: 5px;
+        font-style: italic;
+        color: #495057;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Detalle del Proyecto</h1>
+    <div class="project-detail-card">
+        <h2>{{ proyecto.nombre_proyecto }}</h2>
+
+        {% if proyecto.imagen_proyecto %}
+            <img src="{{ url_for('static', filename='uploads/proyectos/' + proyecto.imagen_proyecto) }}" alt="Imagen del proyecto {{ proyecto.nombre_proyecto }}" class="project-image">
+        {% else %}
+            <img src="https://placehold.co/400x250/cccccc/333333?text=Sin+Imagen+Disponible" alt="Sin imagen disponible" class="project-image">
+        {% endif %}
+
+        <div class="detail-item">
+            <strong>Propuesta Por:</strong> <span>{{ proyecto.propuesta_por }}
+                {% if proyecto.nombre_invitado %}({{ proyecto.nombre_invitado }}){% endif %}
+            </span>
+        </div>
+        <div class="detail-item">
+            <strong>Ubicación:</strong> <span>{{ proyecto.canton }}, {{ proyecto.provincia }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Fecha de Actividad:</strong> <span>{{ proyecto.fecha_actividad_propuesta.strftime('%d/%m/%Y') }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Dificultad:</strong> <span>{{ proyecto.dificultad }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Acompañantes:</strong>
+            <span>
+                {% if acompanantes_data %}
+                    {{ acompanantes_data | join(', ') }}
+                {% else %}
+                    Ninguno
+                {% endif %}
+            </span>
+        </div>
+        <div class="detail-item">
+            <strong>Transporte:</strong> <span>{{ proyecto.transporte }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Transporte Adicional:</strong> <span>{{ proyecto.transporte_adicional }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Precio Entrada:</strong> <span>₡{{ "%.2f" | format(proyecto.precio_entrada) if proyecto.precio_entrada is not none else 'N/A' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Nombre del Lugar:</strong> <span>{{ proyecto.nombre_lugar }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Contacto del Lugar:</strong> <span>{{ proyecto.contacto_lugar or 'N/A' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Teléfono del Lugar:</strong> <span>{{ proyecto.telefono_lugar or 'N/A' }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Tipo de Terreno:</strong> <span>{{ proyecto.tipo_terreno }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Más Tipos de Terreno:</strong> <span>{{ 'Sí' if proyecto.mas_tipo_terreno else 'No' }}</span>
+        </div>
+
+        {% if proyecto.notas_adicionales %}
+            <div class="notes-section">
+                <strong>Notas Adicionales:</strong>
+                <p>{{ proyecto.notas_adicionales }}</p>
+            </div>
+        {% endif %}
+
+        <div class="detail-item text-muted text-end mt-4">
+            <i>Fecha de Creación: {{ proyecto.fecha_creacion.strftime('%d/%m/%Y %H:%M:%S') }}</i>
+        </div>
+
+        <div class="action-buttons">
+            <a href="{{ url_for('gestor.editar_proyecto', id=proyecto.id) }}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Editar Proyecto
+            </a>
+            <form action="{{ url_for('gestor.borrar_proyecto', id=proyecto.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres borrar este proyecto?');">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash-alt"></i> Borrar Proyecto
+                </button>
+            </form>
+            <a href="{{ url_for('gestor.ver_proyectos') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver a la Lista
+            </a>
+            <a href="{{ url_for('gestor.exportar_proyecto_pdf', id=proyecto.id) }}" class="btn btn-info">
+                <i class="fas fa-file-pdf"></i> Exportar PDF
+            </a>
+            <a href="{{ url_for('gestor.exportar_proyecto_jpg', id=proyecto.id) }}" class="btn btn-warning">
+                <i class="fas fa-file-image"></i> Exportar JPG
+            </a>
+            <a href="{{ url_for('gestor.exportar_proyecto_txt', id=proyecto.id) }}" class="btn btn-light">
+                <i class="fas fa-file-alt"></i> Exportar TXT
+            </a>
+            <a href="{{ url_for('gestor.enviar_proyecto_whatsapp', id=proyecto.id) }}" class="btn btn-success" target="_blank">
+                <i class="fab fa-whatsapp"></i> Enviar por WhatsApp
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

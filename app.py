@@ -30,7 +30,7 @@ from reportlab.lib import colors
 
 
 # Importar db y los modelos desde models.py
-from models import db, User, Contacto, Event, Factura, Evento, Nota
+from models import db, User, Contacto, Event, Factura, Evento, Nota, GestorProyecto # <-- Importar GestorProyecto
 
 #Importar Funciones del Invetarios
 from inventario import inventario_bp
@@ -47,6 +47,8 @@ from notas import notas_bp # Importa el blueprint que creamos
 # Importar el blueprint del reproductor multimedia
 from player import player_bp # <-- Importar el blueprint del reproductor
 
+# Importar el blueprint del gestor de proyectos y su función de configuración
+from gestor import gestor_bp, configure_gestor_uploads # <-- IMPORTAR EL GESTOR DE PROYECTOS
 
 app = Flask(__name__)
 
@@ -88,7 +90,7 @@ app.register_blueprint(inventario_bp)
 app.register_blueprint(rifas_bp, url_prefix='/rifas') # CAMBIO CLAVE AQUÍ
 app.register_blueprint(notas_bp)
 app.register_blueprint(player_bp, url_prefix='/player') # <-- Registrar el blueprint del reproductor
-
+app.register_blueprint(gestor_bp, url_prefix='/proyectos') # <-- REGISTRAR EL BLUEPRINT DEL GESTOR DE PROYECTOS
 
 
 

@@ -1,0 +1,401 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Editar Proyecto</title>
+<style>
+    body {
+        background-color: #f8f9fa;
+        color: #333;
+    }
+    .container {
+        margin-top: 30px;
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+    h1 {
+        color: #007bff;
+        margin-bottom: 25px;
+        text-align: center;
+        font-weight: 600;
+    }
+    .form-group label {
+        font-weight: 500;
+        margin-bottom: 8px;
+        display: block;
+    }
+    .form-control, .form-select {
+        border-radius: 5px;
+        border: 1px solid #ced4da;
+        padding: 10px 15px;
+        font-size: 1rem;
+        width: 100%;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        padding: 10px 20px;
+        font-size: 1.1rem;
+        border-radius: 5px;
+        transition: background-color 0.2s ease;
+        display: block;
+        width: 100%;
+        margin-top: 20px;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        padding: 10px 20px;
+        font-size: 1.1rem;
+        border-radius: 5px;
+        transition: background-color 0.2s ease;
+        display: block;
+        width: 100%;
+        margin-top: 10px;
+    }
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+    .alert {
+        margin-top: 20px;
+        border-radius: 5px;
+    }
+    .current-image {
+        max-width: 200px;
+        height: auto;
+        margin-top: 10px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        padding: 5px;
+        display: block;
+    }
+    .form-check {
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+    .form-check-input {
+        margin-top: 0.3em;
+    }
+    .form-check-label {
+        margin-left: 0.5em;
+        vertical-align: middle;
+    }
+    /* Estilos para el select multiple */
+    select[multiple] {
+        height: auto; /* Permite que el select se ajuste a la cantidad de opciones */
+        min-height: 150px; /* Altura mínima para que sea fácil de usar */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Editar Proyecto: {{ proyecto.nombre_proyecto }}</h1>
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        <div class="form-group mb-3">
+            {{ form.nombre_proyecto.label(class="form-label") }}
+            {{ form.nombre_proyecto(class="form-control") }}
+            {% if form.nombre_proyecto.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.nombre_proyecto.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.imagen_proyecto.label(class="form-label") }}
+            {% if proyecto.imagen_proyecto %}
+                <img src="{{ url_for('static', filename='uploads/proyectos/' + proyecto.imagen_proyecto) }}" alt="Imagen actual del proyecto" class="current-image">
+                <p class="text-muted mt-1">Imagen actual. Sube una nueva para reemplazarla.</p>
+            {% else %}
+                <p class="text-muted mt-1">No hay imagen cargada para este proyecto.</p>
+            {% endif %}
+            {{ form.imagen_proyecto(class="form-control") }}
+            {% if form.imagen_proyecto.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.imagen_proyecto.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.propuesta_por.label(class="form-label") }}
+            {{ form.propuesta_por(class="form-select") }}
+            {% if form.propuesta_por.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.propuesta_por.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3" id="nombre_invitado_group" style="display: none;">
+            {{ form.nombre_invitado.label(class="form-label") }}
+            {{ form.nombre_invitado(class="form-control") }}
+            {% if form.nombre_invitado.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.nombre_invitado.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.provincia.label(class="form-label") }}
+            {{ form.provincia(class="form-select", id="provincia-select") }}
+            {% if form.provincia.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.provincia.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.canton.label(class="form-label") }}
+            {{ form.canton(class="form-select", id="canton-select") }}
+            {% if form.canton.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.canton.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.fecha_actividad_propuesta.label(class="form-label") }}
+            {{ form.fecha_actividad_propuesta(class="form-control", type="date") }}
+            {% if form.fecha_actividad_propuesta.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.fecha_actividad_propuesta.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.dificultad.label(class="form-label") }}
+            {{ form.dificultad(class="form-select") }}
+            {% if form.dificultad.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.dificultad.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.acompanantes.label(class="form-label") }}
+            {{ form.acompanantes(class="form-select") }}
+            {% if form.acompanantes.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.acompanantes.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.transporte.label(class="form-label") }}
+            {{ form.transporte(class="form-select") }}
+            {% if form.transporte.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.transporte.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.transporte_adicional.label(class="form-label") }}
+            {{ form.transporte_adicional(class="form-select") }}
+            {% if form.transporte_adicional.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.transporte_adicional.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.precio_entrada.label(class="form-label") }}
+            {{ form.precio_entrada(class="form-control") }}
+            {% if form.precio_entrada.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.precio_entrada.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.nombre_lugar.label(class="form-label") }}
+            {{ form.nombre_lugar(class="form-control") }}
+            {% if form.nombre_lugar.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.nombre_lugar.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.contacto_lugar.label(class="form-label") }}
+            {{ form.contacto_lugar(class="form-control") }}
+            {% if form.contacto_lugar.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.contacto_lugar.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.telefono_lugar.label(class="form-label") }}
+            {{ form.telefono_lugar(class="form-control") }}
+            {% if form.telefono_lugar.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.telefono_lugar.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.tipo_terreno.label(class="form-label") }}
+            {{ form.tipo_terreno(class="form-select") }}
+            {% if form.tipo_terreno.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.tipo_terreno.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group form-check mb-3">
+            {{ form.mas_tipo_terreno(class="form-check-input") }}
+            {{ form.mas_tipo_terreno.label(class="form-check-label") }}
+            {% if form.mas_tipo_terreno.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.mas_tipo_terreno.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.notas_adicionales.label(class="form-label") }}
+            {{ form.notas_adicionales(class="form-control", rows="5") }}
+            {% if form.notas_adicionales.errors %}
+                <div class="alert alert-danger mt-2">
+                    {% for error in form.notas_adicionales.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        {{ form.submit(class="btn btn-primary") }}
+        <a href="{{ url_for('gestor.ver_proyectos') }}" class="btn btn-secondary mt-3">Cancelar</a>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const provinciaSelect = document.getElementById('provincia-select');
+        const cantonSelect = document.getElementById('canton-select');
+        const propuestaPorSelect = document.getElementById('propuesta_por');
+        const nombreInvitadoGroup = document.getElementById('nombre_invitado_group');
+        const acompanantesSelect = document.getElementById('acompanantes'); // Obtener el select de acompañantes
+
+        // Dato inicial del proyecto para cantón y acompañantes
+        const initialProvincia = "{{ proyecto.provincia }}";
+        const initialCanton = "{{ proyecto.canton }}";
+        const initialAcompanantes = {{ proyecto.acompanantes | safe }}; // Asume que esto es un JSON string
+
+
+        // Función para actualizar los cantones
+        function updateCantones(selectedProvincia, initialCantonValue) {
+            fetch(`/proyectos/get_cantones/${selectedProvincia}`)
+                .then(response => response.json())
+                .then(data => {
+                    cantonSelect.innerHTML = ''; // Limpiar opciones actuales
+                    data.forEach(canton => {
+                        const option = document.createElement('option');
+                        option.value = canton[0];
+                        option.textContent = canton[1];
+                        cantonSelect.appendChild(option);
+                    });
+                    // Seleccionar el cantón inicial después de cargar las opciones
+                    if (initialCantonValue) {
+                        cantonSelect.value = initialCantonValue;
+                    }
+                })
+                .catch(error => console.error('Error al cargar cantones:', error));
+        }
+
+        // Función para mostrar/ocultar el campo "Nombre del Invitado"
+        function toggleNombreInvitado() {
+            if (propuestaPorSelect.value === 'Invitado') {
+                nombreInvitadoGroup.style.display = 'block';
+            } else {
+                nombreInvitadoGroup.style.display = 'none';
+                // Opcional: limpiar el campo cuando se oculta, si no se quiere mantener el valor
+                // document.getElementById('nombre_invitado').value = ''; 
+            }
+        }
+
+        // Event Listeners
+        provinciaSelect.addEventListener('change', function() {
+            updateCantones(this.value, null); // No pasar initialCantonValue en cambio manual
+        });
+        propuestaPorSelect.addEventListener('change', toggleNombreInvitado);
+
+        // Inicializar al cargar la página
+        // 1. Cargar cantones con la provincia inicial del proyecto
+        updateCantones(initialProvincia, initialCanton);
+        
+        // 2. Ajustar visibilidad del campo de invitado
+        toggleNombreInvitado();
+
+        // 3. Seleccionar acompañantes preexistentes
+        if (acompanantesSelect && initialAcompanantes.length > 0) {
+            Array.from(acompanantesSelect.options).forEach(option => {
+                if (initialAcompanantes.includes(parseInt(option.value))) {
+                    option.selected = true;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
