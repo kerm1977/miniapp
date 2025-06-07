@@ -6,9 +6,6 @@ from flask_wtf.csrf import generate_csrf
 from flask_wtf.file import FileField, FileAllowed
 from werkzeug.utils import secure_filename
 import os
-from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin, LoginManager, login_user, logout_user, login_required, current_user
 from datetime import datetime, date, time
 from flask_migrate import Migrate
 import io
@@ -26,11 +23,12 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.lib import colors
-
-
+from PIL import Image as PILImage # Importar Pillow para convertir a JPG
+import fitz # Importar PyMuPDF para manejar PDFs (necesario para convertir a JPG)
+from flask_login import UserMixin, LoginManager, login_user, logout_user, login_required, current_user # Importar LoginManager
 
 # Importar db y los modelos desde models.py
-from models import db, User, Contacto, Event, Factura, Evento, Nota, GestorProyecto # <-- Importar GestorProyecto
+from models import db, User, Contacto, Factura, Event, Evento, GestorProyecto # Asegúrate de que Factura y Evento estén importados
 
 #Importar Funciones del Invetarios
 from inventario import inventario_bp
@@ -59,7 +57,6 @@ UPLOAD_FOLDER = os.path.join('static', 'uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # Nuevas extensiones permitidas para el reproductor multimedia
 app.config['ALLOWED_MEDIA_EXTENSIONS'] = {'mp3', 'mp4', 'wma', 'wmv', 'jpg', 'jpeg', 'png', 'pdf'} # <-- Nuevas extensiones para multimedia
-
 
 
 # Asegurarse de que la carpeta de subidas exista
@@ -93,10 +90,10 @@ app.register_blueprint(player_bp, url_prefix='/player') # <-- Registrar el bluep
 app.register_blueprint(gestor_bp, url_prefix='/proyectos') # <-- REGISTRAR EL BLUEPRINT DEL GESTOR DE PROYECTOS
 
 
-
 # CAMBIO CLAVE AQUÍ: Llama a la función de configuración de la carpeta de subida de rifas
 with app.app_context(): # Es buena práctica llamar a esto dentro de un contexto de aplicación
     configure_rifas_uploads(app)
+    configure_gestor_uploads(app) # <-- LLAMAR LA FUNCIÓN DE CONFIGURACIÓN DEL GESTOR DE PROYECTOS
 
 
 # FORMS
@@ -1071,7 +1068,7 @@ def exportar_evento_pdf(id):
     # --- Estilos personalizados para la factura ---
     styles.add(ParagraphStyle(name='CompanyHeader', fontSize=12, leading=14, alignment=TA_CENTER, spaceAfter=6))
     styles.add(ParagraphStyle(name='InvoiceTitle', fontSize=28, leading=32, alignment=TA_CENTER, spaceAfter=20, fontName='Helvetica-Bold'))
-    styles.add(ParagraphStyle(name='SectionHeader', fontSize=14, leading=16, spaceBefore=12, spaceAfter=6, fontName='Helvetica-Bold'))
+    styles.add(ParagraphStyle(name='SectionHeader', fontSize=14, leading=16, spaceBefore=12, spaceAfter=6, fontName='Helvetica-Bold', textColor=colors.HexColor('#007bff')))
     styles.add(ParagraphStyle(name='DetailText', fontSize=10, leading=12, spaceAfter=3))
     styles.add(ParagraphStyle(name='TableBodyText', fontSize=10, leading=12, alignment=TA_LEFT))
     styles.add(ParagraphStyle(name='TableTotalText', fontSize=12, leading=14, alignment=TA_RIGHT, fontName='Helvetica-Bold'))
@@ -1475,7 +1472,7 @@ def exportar_contacto_pdf(id):
     add_row_if_exists("Grupo", 'grupo') # Ahora usando getattr
     add_row_if_exists("Preferencias de Comunicación", 'preferencias_comunicacion') # Ahora usando getattr
     add_row_if_exists("Consentimiento de Datos", 'consentimiento_datos') # Ahora usando getattr
-    add_row_if_exists("Notas", 'nota')
+    # add_data("Notas", 'nota') # Ya se añadió en el original como add_row_if_exists
     add_row_if_exists("Género", 'genero') # Ahora usando getattr
     add_row_if_exists("Organización", 'organizacion') # Ahora usando getattr
     add_row_if_exists("Departamento", 'departamento') # Ahora usando getattr
@@ -1493,6 +1490,12 @@ def exportar_contacto_pdf(id):
     add_row_if_exists("Participación", 'participacion')
     add_row_if_exists("Fecha de Ingreso", 'fecha_ingreso')
     add_row_if_exists("Tipo de Actividad", 'tipo_actividad')
+    
+    # Asegúrate de que 'add_data' esté definida o usa 'add_row_if_exists'
+    # Esta función se usó en el código original para campos que no eran 'getattr'
+    # La he renombrado a 'add_row_if_exists' para unificar el comportamiento
+    # y manejar los casos donde el valor puede ser None o cadena vacía.
+    add_row_if_exists("Notas", 'nota')
 
 
     # Si hay avatar, añadirlo
@@ -1751,6 +1754,331 @@ def exportar_contacto_jpg(id):
     # doc_pdf.close()
 
     # return send_file(img_buffer, as_attachment=True, download_name=f'contacto_{contacto.id}.jpg', mimetype='image/jpeg')
+
+# --- Nuevas Rutas de Exportación para Facturas ---
+@app.route('/exportar_factura_pdf/<int:id>')
+@login_required
+def exportar_factura_pdf(id):
+    factura = Factura.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+
+    # Estilos personalizados para la factura
+    styles.add(ParagraphStyle(name='CompanyHeader', fontSize=12, leading=14, alignment=TA_CENTER, spaceAfter=6))
+    styles.add(ParagraphStyle(name='InvoiceTitle', fontSize=28, leading=32, alignment=TA_CENTER, spaceAfter=20, fontName='Helvetica-Bold'))
+    styles.add(ParagraphStyle(name='SectionHeader', fontSize=14, leading=16, spaceBefore=12, spaceAfter=6, fontName='Helvetica-Bold', textColor=colors.HexColor('#007bff')))
+    styles.add(ParagraphStyle(name='DetailText', fontSize=10, leading=12, spaceAfter=3))
+    styles.add(ParagraphStyle(name='TableBodyText', fontSize=10, leading=12, alignment=TA_LEFT))
+    styles.add(ParagraphStyle(name='TableTotalText', fontSize=12, leading=14, alignment=TA_RIGHT, fontName='Helvetica-Bold'))
+    styles.add(ParagraphStyle(name='FooterText', fontSize=9, leading=10, alignment=TA_CENTER, spaceBefore=20))
+
+    story = []
+
+    # --- Encabezado de la Empresa (Placeholder) ---
+    story.append(Paragraph("<b>La Tribu Hiking</b>", styles['CompanyHeader']))
+    story.append(Paragraph("Dirección: San Diego, La Unión, Cartago, Costa Rica", styles['CompanyHeader']))
+    story.append(Paragraph("Teléfono: +506-86227500 | Email: lthikingcr@gmail.com", styles['CompanyHeader']))
+    story.append(Spacer(1, 0.4 * inch))
+
+    # --- Título de la Factura/Cotización ---
+    title_text = "FACTURA" if factura.interes == 'Factura' else "COTIZACIÓN"
+    story.append(Paragraph(title_text, styles['InvoiceTitle']))
+    story.append(Spacer(1, 0.3 * inch))
+
+    # --- Detalles de la Factura y del Cliente ---
+    invoice_details_data = [
+        [Paragraph(f"<b>Número de {title_text}:</b> {factura.numero_factura}", styles['DetailText']),
+         Paragraph(f"<b>Fecha de Creación:</b> {factura.fecha_registro.strftime('%d-%m-%Y %H:%M')}", styles['DetailText'])],
+        [Paragraph(f"<b>Fecha de Emisión:</b> {factura.fecha_emision.strftime('%d-%m-%Y')}", styles['DetailText']),
+         Paragraph(f"<b>Realizado por:</b> {factura.realizado_por}", styles['DetailText'])],
+        [Paragraph(f"<b>Cliente:</b> {factura.cliente.nombre} {factura.cliente.primer_apellido or ''} {factura.cliente.segundo_apellido or ''}", styles['DetailText']),
+         Paragraph(f"<b>Teléfono Cliente:</b> {factura.cliente.movil or factura.cliente.telefono or 'N/A'}", styles['DetailText'])],
+        [Paragraph(f"<b>Email Cliente:</b> {factura.cliente.email or 'N/A'}", styles['DetailText']),
+         Paragraph(f"<b>SINPE:</b> {factura.sinpe}", styles['DetailText'])],
+    ]
+    invoice_details_table = Table(invoice_details_data, colWidths=[4 * inch, 3 * inch])
+    invoice_details_table.setStyle(TableStyle([
+        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+    ]))
+    story.append(invoice_details_table)
+    story.append(Spacer(1, 0.3 * inch))
+
+    # --- Descripción y Conceptos ---
+    story.append(Paragraph("Detalles de Conceptos", styles['SectionHeader']))
+    
+    table_data = []
+    table_data.append([
+        Paragraph("<b>Concepto</b>", styles['SectionHeader']),
+        Paragraph("<b>Monto</b>", styles['SectionHeader'])
+    ])
+
+    # Descripción principal
+    if factura.descripcion:
+        table_data.append([
+            Paragraph(f"Descripción General: {factura.descripcion}", styles['TableBodyText']),
+            Paragraph("N/A", styles['TableBodyText']) # No hay monto directo para la descripción general
+        ])
+
+    # Detalles de actividad si existen
+    if factura.tipo_actividad or factura.nombre_actividad_etapa or factura.costo_actividad:
+        concept_detail = f"Tipo de Actividad: {factura.tipo_actividad}"
+        if factura.nombre_actividad_etapa:
+            concept_detail += f" - {factura.nombre_actividad_etapa}"
+        
+        costo = float(factura.costo_actividad) if factura.costo_actividad is not None else 0.00
+        table_data.append([
+            Paragraph(concept_detail, styles['TableBodyText']),
+            Paragraph(f"₡{costo:,.2f}", styles['TableBodyText'])
+        ])
+
+    # Otras descripciones si existen
+    if factura.otras_descripcion:
+        table_data.append([
+            Paragraph(f"Otras Descripciones: {factura.otras_descripcion}", styles['TableBodyText']),
+            Paragraph("N/A", styles['TableBodyText'])
+        ])
+
+    # Monto total facturado como un ítem de la tabla
+    monto_total_float = float(factura.monto_total) if factura.monto_total is not None else 0.00
+    impuesto_monto_float = float(factura.impuesto_monto) if factura.impuesto_monto is not None else 0.00
+    
+    subtotal_calculado = monto_total_float - impuesto_monto_float
+
+    table_data.append([
+        Paragraph("Subtotal del servicio/producto:", styles['TableTotalText']),
+        Paragraph(f"₡{subtotal_calculado:,.2f}", styles['TableTotalText'])
+    ])
+    table_data.append([
+        Paragraph("Monto de Impuesto:", styles['TableTotalText']),
+        Paragraph(f"₡{impuesto_monto_float:,.2f}", styles['TableTotalText'])
+    ])
+
+
+    col_widths_concepts = [5.5 * inch, 2 * inch]
+    concepts_table = Table(table_data, colWidths=col_widths_concepts)
+    concepts_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#E0E0E0')),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.black),
+        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0,0), (-1,0), 12),
+        ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#D3D3D3')),
+        ('LEFTPADDING', (0,0), (-1,-1), 6),
+        ('RIGHTPADDING', (0,0), (-1,-1), 6),
+        ('TOPPADDING', (0,0), (-1,-1), 6),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('SPAN', (0, -2), (0, -1)), # Span "Subtotal" y "Monto de Impuesto"
+    ]))
+    story.append(concepts_table)
+    story.append(Spacer(1, 0.2 * inch))
+
+    # --- Total Final ---
+    total_final_data = [
+        [Paragraph("TOTAL (con Impuestos):", styles['TableTotalText']), Paragraph(f"₡{monto_total_float:,.2f}", styles['TableTotalText'])]
+    ]
+    total_final_table = Table(total_final_data, colWidths=[5.5 * inch, 2 * inch])
+    total_final_table.setStyle(TableStyle([
+        ('ALIGN', (0,0), (-1,-1), 'RIGHT'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#D3D3D3')),
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#F0F0F0')),
+    ]))
+    story.append(total_final_table)
+    story.append(Spacer(1, 0.5 * inch))
+
+    # --- Información de Pago ---
+    story.append(Paragraph("<b>Información de Pago:</b>", styles['SectionHeader']))
+    story.append(Paragraph(f"SINPE Móvil: {factura.sinpe}", styles['DetailText']))
+    story.append(Spacer(1, 0.5 * inch))
+
+    # --- Pie de Página ---
+    story.append(Paragraph("<i>¡Gracias por tu preferencia!</i>", styles['FooterText']))
+    story.append(Paragraph(f"{title_text} generada el: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['FooterText']))
+
+    doc.build(story)
+    buffer.seek(0)
+    
+    filename = f"{title_text.lower()}_{factura.numero_factura}.pdf"
+    return send_file(buffer, as_attachment=True, download_name=filename, mimetype='application/pdf')
+
+
+@app.route('/exportar_factura_jpg/<int:id>')
+@login_required
+def exportar_factura_jpg(id):
+    factura = Factura.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+
+    # Primero, generar el PDF en memoria (lógica similar a exportar_factura_pdf)
+    pdf_buffer = BytesIO()
+    doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+
+    # Estilos personalizados para la factura (duplicados para independencia)
+    styles.add(ParagraphStyle(name='CompanyHeader', fontSize=12, leading=14, alignment=TA_CENTER, spaceAfter=6))
+    styles.add(ParagraphStyle(name='InvoiceTitle', fontSize=28, leading=32, alignment=TA_CENTER, spaceAfter=20, fontName='Helvetica-Bold'))
+    styles.add(ParagraphStyle(name='SectionHeader', fontSize=14, leading=16, spaceBefore=12, spaceAfter=6, fontName='Helvetica-Bold', textColor=colors.HexColor('#007bff')))
+    styles.add(ParagraphStyle(name='DetailText', fontSize=10, leading=12, spaceAfter=3))
+    styles.add(ParagraphStyle(name='TableBodyText', fontSize=10, leading=12, alignment=TA_LEFT))
+    styles.add(ParagraphStyle(name='TableTotalText', fontSize=12, leading=14, alignment=TA_RIGHT, fontName='Helvetica-Bold'))
+    styles.add(ParagraphStyle(name='FooterText', fontSize=9, leading=10, alignment=TA_CENTER, spaceBefore=20))
+
+    story = []
+
+    # --- Encabezado de la Empresa (Placeholder) ---
+    story.append(Paragraph("<b>La Tribu Hiking</b>", styles['CompanyHeader']))
+    story.append(Paragraph("Dirección: San Diego, La Unión, Cartago, Costa Rica", styles['CompanyHeader']))
+    story.append(Paragraph("Teléfono: +506-86227500 | Email: lthikingcr@gmail.com", styles['CompanyHeader']))
+    story.append(Spacer(1, 0.4 * inch))
+
+    # --- Título de la Factura/Cotización ---
+    title_text = "FACTURA" if factura.interes == 'Factura' else "COTIZACIÓN"
+    story.append(Paragraph(title_text, styles['InvoiceTitle']))
+    story.append(Spacer(1, 0.3 * inch))
+
+    # --- Detalles de la Factura y del Cliente ---
+    invoice_details_data = [
+        [Paragraph(f"<b>Número de {title_text}:</b> {factura.numero_factura}", styles['DetailText']),
+         Paragraph(f"<b>Fecha de Creación:</b> {factura.fecha_registro.strftime('%d-%m-%Y %H:%M')}", styles['DetailText'])],
+        [Paragraph(f"<b>Fecha de Emisión:</b> {factura.fecha_emision.strftime('%d-%m-%Y')}", styles['DetailText']),
+         Paragraph(f"<b>Realizado por:</b> {factura.realizado_por}", styles['DetailText'])],
+        [Paragraph(f"<b>Cliente:</b> {factura.cliente.nombre} {factura.cliente.primer_apellido or ''} {factura.cliente.segundo_apellido or ''}", styles['DetailText']),
+         Paragraph(f"<b>Teléfono Cliente:</b> {factura.cliente.movil or factura.cliente.telefono or 'N/A'}", styles['DetailText'])],
+        [Paragraph(f"<b>Email Cliente:</b> {factura.cliente.email or 'N/A'}", styles['DetailText']),
+         Paragraph(f"<b>SINPE:</b> {factura.sinpe}", styles['DetailText'])],
+    ]
+    invoice_details_table = Table(invoice_details_data, colWidths=[4 * inch, 3 * inch])
+    invoice_details_table.setStyle(TableStyle([
+        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+    ]))
+    story.append(invoice_details_table)
+    story.append(Spacer(1, 0.3 * inch))
+
+    # --- Descripción y Conceptos ---
+    story.append(Paragraph("Detalles de Conceptos", styles['SectionHeader']))
+    
+    table_data = []
+    table_data.append([
+        Paragraph("<b>Concepto</b>", styles['SectionHeader']),
+        Paragraph("<b>Monto</b>", styles['SectionHeader'])
+    ])
+
+    # Descripción principal
+    if factura.descripcion:
+        table_data.append([
+            Paragraph(f"Descripción General: {factura.descripcion}", styles['TableBodyText']),
+            Paragraph("N/A", styles['TableBodyText'])
+        ])
+
+    # Detalles de actividad si existen
+    if factura.tipo_actividad or factura.nombre_actividad_etapa or factura.costo_actividad:
+        concept_detail = f"Tipo de Actividad: {factura.tipo_actividad}"
+        if factura.nombre_actividad_etapa:
+            concept_detail += f" - {factura.nombre_actividad_etapa}"
+        
+        costo = float(factura.costo_actividad) if factura.costo_actividad is not None else 0.00
+        table_data.append([
+            Paragraph(concept_detail, styles['TableBodyText']),
+            Paragraph(f"₡{costo:,.2f}", styles['TableBodyText'])
+        ])
+
+    # Otras descripciones si existen
+    if factura.otras_descripcion:
+        table_data.append([
+            Paragraph(f"Otras Descripciones: {factura.otras_descripcion}", styles['TableBodyText']),
+            Paragraph("N/A", styles['TableBodyText'])
+        ])
+
+    # Monto total facturado como un ítem de la tabla
+    monto_total_float = float(factura.monto_total) if factura.monto_total is not None else 0.00
+    impuesto_monto_float = float(factura.impuesto_monto) if factura.impuesto_monto is not None else 0.00
+    
+    subtotal_calculado = monto_total_float - impuesto_monto_float
+
+    table_data.append([
+        Paragraph("Subtotal del servicio/producto:", styles['TableTotalText']),
+        Paragraph(f"₡{subtotal_calculado:,.2f}", styles['TableTotalText'])
+    ])
+    table_data.append([
+        Paragraph("Monto de Impuesto:", styles['TableTotalText']),
+        Paragraph(f"₡{impuesto_monto_float:,.2f}", styles['TableTotalText'])
+    ])
+
+    col_widths_concepts = [5.5 * inch, 2 * inch]
+    concepts_table = Table(table_data, colWidths=col_widths_concepts)
+    concepts_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#E0E0E0')),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.black),
+        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0,0), (-1,0), 12),
+        ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#D3D3D3')),
+        ('LEFTPADDING', (0,0), (-1,-1), 6),
+        ('RIGHTPADDING', (0,0), (-1,-1), 6),
+        ('TOPPADDING', (0,0), (-1,-1), 6),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('SPAN', (0, -2), (0, -1)), # Span "Subtotal" y "Monto de Impuesto"
+    ]))
+    story.append(concepts_table)
+    story.append(Spacer(1, 0.2 * inch))
+
+    # --- Total Final ---
+    total_final_data = [
+        [Paragraph("TOTAL (con Impuestos):", styles['TableTotalText']), Paragraph(f"₡{monto_total_float:,.2f}", styles['TableTotalText'])]
+    ]
+    total_final_table = Table(total_final_data, colWidths=[5.5 * inch, 2 * inch])
+    total_final_table.setStyle(TableStyle([
+        ('ALIGN', (0,0), (-1,-1), 'RIGHT'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#D3D3D3')),
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#F0F0F0')),
+    ]))
+    story.append(total_final_table)
+    story.append(Spacer(1, 0.5 * inch))
+
+    # --- Información de Pago ---
+    story.append(Paragraph("<b>Información de Pago:</b>", styles['SectionHeader']))
+    story.append(Paragraph(f"SINPE Móvil: {factura.sinpe}", styles['DetailText']))
+    story.append(Spacer(1, 0.5 * inch))
+
+    # --- Pie de Página ---
+    story.append(Paragraph("<i>¡Gracias por tu preferencia!</i>", styles['FooterText']))
+    story.append(Paragraph(f"{title_text} generada el: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['FooterText']))
+
+    doc.build(story)
+    pdf_buffer.seek(0)
+
+    # Convertir el PDF a JPG usando PyMuPDF y Pillow
+    try:
+        doc_pdf = fitz.open(stream=pdf_buffer.read(), filetype="pdf")
+        page = doc_pdf.load_page(0)  # Cargar la primera página
+        
+        # Aumentar la resolución para mejor calidad JPG (ej. 2x)
+        zoom = 2
+        mat = fitz.Matrix(zoom, zoom)
+        pix = page.get_pixmap(matrix=mat)
+        
+        img_buffer = BytesIO()
+        # 'RGB' para asegurar compatibilidad con JPG, ya que pixmap puede ser RGBA
+        img = PILImage.frombytes("RGB", [pix.width, pix.height], pix.samples) 
+        img.save(img_buffer, "JPEG", quality=90) # Ajustar calidad si es necesario
+        img_buffer.seek(0)
+        doc_pdf.close()
+        
+        filename = f"{title_text.lower()}_{factura.numero_factura}.jpg"
+        return send_file(img_buffer, as_attachment=True, download_name=filename, mimetype='image/jpeg')
+    except Exception as e:
+        flash(f"Error al convertir PDF a JPG: {e}. Asegúrese de tener PyMuPDF (fitz) y Pillow instalados.", "danger")
+        print(f"Error al convertir PDF a JPG: {e}")
+        return redirect(url_for('ver_detalle_factura', id=id))
 
 
 if __name__ == '__main__':

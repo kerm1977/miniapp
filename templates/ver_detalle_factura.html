@@ -7,7 +7,7 @@
     /* Estilos para impresión (Opcional, pero recomendado) */
     @media print {
         /* Oculta los botones y otros elementos no deseados al imprimir */
-        .btn, .navbar, .container .text-center.mt-4, .top-right, .footer {
+        .btn, .navbar, .container .text-center.mt-4, .top-right, .footer, .action-buttons {
             display: none !important;
         }
         /* Ajusta márgenes para impresión */
@@ -327,7 +327,7 @@
                 <td>Monto Total Facturado</td>
                 <td>₡{{ "%.2f" | format(factura.monto_total | float) }}</td>
             </tr>
-            
+             
             <tr class="item">
                 <td>Monto de Impuesto</td>
                 <td>₡{{ "%.2f" | format(factura.impuesto_monto | float) if factura.impuesto_monto is not none else '0.00' }}</td>
@@ -358,6 +358,8 @@
         </button>
         <a href="{{ url_for('ver_facturas') }}" class="btn btn-info rounded-pill">Volver a Facturas</a>
         <button type="button" class="btn btn-primary rounded-pill" onclick="window.print()">Imprimir Factura</button>
+        <a href="{{ url_for('exportar_factura_pdf', id=factura.id) }}" class="btn btn-primary rounded-pill mt-2">Exportar a PDF</a>
+        <a href="{{ url_for('exportar_factura_jpg', id=factura.id) }}" class="btn btn-primary rounded-pill mt-2">Exportar a JPG</a>
     </div>
 </div>
 
