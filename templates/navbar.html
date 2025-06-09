@@ -60,6 +60,12 @@
                 <i class="fa-solid fa-list-check"></i> {# Icono de lista de verificación, puedes cambiarlo #}
             </a>
         </div>
+        {# Nuevo botón para Info (CRUD solicitado) #}
+        <div class="magic-nav-button">
+            <a href="{{ url_for('info.ver_info') }}"> {# Enlace para la lista de información #}
+                <i class="fa-solid fa-info-circle"></i> {# Icono de información #}
+            </a>
+        </div>
         <div class="magic-nav-button">
             {% if current_user.is_authenticated %}
                 <a href="#" style="pointer-events: none; opacity: 0.2;">

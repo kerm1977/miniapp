@@ -28,7 +28,7 @@ import fitz # Importar PyMuPDF para manejar PDFs (necesario para convertir a JPG
 from flask_login import UserMixin, LoginManager, login_user, logout_user, login_required, current_user # Importar LoginManager
 
 # Importar db y los modelos desde models.py
-from models import db, User, Contacto, Factura, Event, Evento, GestorProyecto # Asegúrate de que Factura y Evento estén importados
+from models import db, User, Contacto, Factura, Event, Evento, GestorProyecto, Info # Asegúrate de que Factura y Evento estén importados
 
 #Importar Funciones del Invetarios
 from inventario import inventario_bp
@@ -47,6 +47,11 @@ from player import player_bp # <-- Importar el blueprint del reproductor
 
 # Importar el blueprint del gestor de proyectos y su función de configuración
 from gestor import gestor_bp, configure_gestor_uploads # <-- IMPORTAR EL GESTOR DE PROYECTOS
+
+# Importar el blueprint de info
+from info import info_bp # Importa el blueprint de info para el nuevo CRUD
+
+
 
 app = Flask(__name__)
 
@@ -88,6 +93,7 @@ app.register_blueprint(rifas_bp, url_prefix='/rifas') # CAMBIO CLAVE AQUÍ
 app.register_blueprint(notas_bp)
 app.register_blueprint(player_bp, url_prefix='/player') # <-- Registrar el blueprint del reproductor
 app.register_blueprint(gestor_bp, url_prefix='/proyectos') # <-- REGISTRAR EL BLUEPRINT DEL GESTOR DE PROYECTOS
+app.register_blueprint(info_bp, url_prefix='/info') # REGISTRAR EL BLUEPRINT DE INFO
 
 
 # CAMBIO CLAVE AQUÍ: Llama a la función de configuración de la carpeta de subida de rifas

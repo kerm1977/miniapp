@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% block content %}
+    <title>{{ info_item.titulo }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .header {
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .info-detail-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            width: 100%;
+        }
+        .info-detail-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+        .info-detail-content {
+            padding: 2rem;
+        }
+        .info-detail-title {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+        .info-detail-date {
+            font-size: 0.95rem;
+            color: #718096;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+        .info-detail-description {
+            line-height: 1.8;
+            color: #4a5568;
+            font-size: 1.05rem;
+        }
+        /* Estilos para el contenido HTML del editor */
+        .info-detail-description h1 { font-size: 2em; margin-bottom: 0.5em; font-weight: bold; }
+        .info-detail-description h2 { font-size: 1.5em; margin-bottom: 0.5em; font-weight: bold; }
+        .info-detail-description h3 { font-size: 1.17em; margin-bottom: 0.5em; font-weight: bold; }
+        .info-detail-description p { margin-bottom: 1em; }
+        .info-detail-description ul, .info-detail-description ol {
+            padding-left: 25px;
+            margin-bottom: 1em;
+        }
+        .info-detail-description ul { list-style-type: disc; }
+        .info-detail-description ol { list-style-type: decimal; }
+        .info-detail-description li { margin-bottom: 0.5em; }
+        .info-detail-description a { color: #3182ce; text-decoration: underline; }
+        .info-detail-description img { max-width: 100%; height: auto; border-radius: 6px; margin: 1em 0; }
+        .info-detail-description strong { font-weight: bold; }
+        .info-detail-description em { font-style: italic; }
+        .info-detail-description u { text-decoration: underline; }
+        .info-detail-description s { text-decoration: line-through; }
+        
+        /* Estilos específicos para la lista de tareas */
+        .info-detail-description ul.checkbox-list {
+            list-style: none; /* Eliminar el estilo de lista predeterminado */
+            padding-left: 0;
+        }
+        .info-detail-description ul.checkbox-list li {
+            display: flex;
+            align-items: flex-start; /* Alinea el texto con la parte superior del checkbox */
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 28px; /* Espacio para el checkbox */
+            font-size: 1rem;
+        }
+        .info-detail-description ul.checkbox-list li input[type="checkbox"] {
+            position: absolute;
+            left: 0;
+            top: 4px; /* Ajusta la posición vertical del checkbox */
+            margin: 0;
+            width: 20px;
+            height: 20px;
+            cursor: default; /* Hacer que no sea clickeable en la vista de detalle */
+            pointer-events: none; /* Deshabilitar eventos de puntero */
+            opacity: 1;
+            z-index: 1;
+        }
+        .info-detail-description ul.checkbox-list li s {
+            color: #888;
+            text-decoration: line-through;
+            flex-grow: 1;
+        }
+        .info-detail-description ul.checkbox-list li span {
+            flex-grow: 1;
+        }
+
+        .actions-bottom {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            justify-content: flex-end;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: white;
+        }
+        .btn-back {
+            background-color: #6c757d; /* Gris */
+        }
+        .btn-back:hover {
+            background-color: #5a6268;
+            transform: translateY(-1px);
+        }
+        .btn-edit {
+            background-color: #d69e2e; /* Naranja */
+        }
+        .btn-edit:hover {
+            background-color: #b7791f;
+            transform: translateY(-1px);
+        }
+        .btn-delete {
+            background-color: #e53e3e; /* Rojo */
+        }
+        .btn-delete:hover {
+            background-color: #c53030;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto p-4 md:p-8">
+        <div class="header">
+            <h1 class="text-3xl font-bold text-gray-800">Detalle de Información</h1>
+            <a href="{{ url_for('info.ver_info') }}" class="btn btn-back">
+                <i class="fas fa-arrow-alt-circle-left mr-2"></i>Volver a Información
+            </a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} p-3 rounded-md mb-2 {% if category == 'success' %}bg-green-100 text-green-800{% elif category == 'danger' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="info-detail-card">
+            {% if info_item.imagen_filename %}
+                <img src="{{ url_for('static', filename='uploads/' + info_item.imagen_filename) }}" alt="Imagen de {{ info_item.titulo }}" class="info-detail-image">
+            {% endif %}
+            <div class="info-detail-content">
+                <h2 class="info-detail-title">{{ info_item.titulo }}</h2>
+                <p class="info-detail-date">Creado el: {{ info_item.fecha_creacion.strftime('%d-%m-%Y %H:%M') }}</p>
+                <div class="info-detail-description">
+                    {{ info_item.contenido | safe }} {# Renderizar el HTML de forma segura #}
+                </div>
+            </div>
+        </div>
+
+        <div class="actions-bottom">
+            <a href="{{ url_for('info.editar_info', id=info_item.id) }}" class="btn btn-edit">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            <form action="{{ url_for('info.borrar_info', id=info_item.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres borrar esta información?');">
+                <input type="hidden" name="csrf_token" value="{{ generate_csrf() }}"> {# CAMBIO REALIZADO AQUÍ #}
+                <button type="submit" class="btn btn-delete">
+                    <i class="fas fa-trash-alt"></i> Borrar
+                </button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

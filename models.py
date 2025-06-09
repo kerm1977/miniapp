@@ -216,3 +216,18 @@ class GestorProyecto(db.Model):
 
     def __repr__(self):
         return f'<GestorProyecto {self.nombre_proyecto}>'
+
+# Nuevo Modelo para Info (CRUD solicitado)
+class Info(db.Model):
+    __tablename__ = 'info'
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    imagen_filename = db.Column(db.String(255), nullable=True) # Para la imagen a subir
+    titulo = db.Column(db.String(255), nullable=False)
+    contenido = db.Column(db.Text, nullable=False) # Para el editor de texto
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+
+    usuario = db.relationship('User', backref=db.backref('info_items', lazy=True))
+
+    def __repr__(self):
+        return f'<Info {self.titulo}>'

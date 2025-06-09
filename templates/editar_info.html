@@ -1,0 +1,484 @@
+{% extends 'base.html' %}
+{% block content %}
+    <title>Editar Información</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .header {
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="file"],
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            background-color: #fcfcfc;
+        }
+        .form-group input[type="text"]:focus,
+        .form-group input[type="file"]:focus,
+        .form-group textarea:focus {
+            border-color: #2196F3;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+        }
+        .btn-primary {
+            background-color: #2196F3; /* Azul para "Guardar Cambios" */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary:hover {
+            background-color: #1976D2;
+        }
+        .editor-container {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            background-color: #fcfcfc;
+        }
+        .toolbar {
+            background-color: #f0f0f0;
+            padding: 0.5rem;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .toolbar button {
+            background-color: #e0e0e0;
+            border: 1px solid #ccc;
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .toolbar button:hover {
+            background-color: #d0d0d0;
+        }
+        .toolbar select {
+            padding: 0.4rem 0.6rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #e0e0e0;
+            cursor: pointer;
+        }
+        .editor-content {
+            min-height: 250px;
+            padding: 1rem;
+            outline: none;
+            line-height: 1.6;
+            tab-size: 4;
+        }
+        .checkbox-list {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+        .checkbox-list li {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 5px;
+            position: relative;
+            padding-left: 25px;
+        }
+        .checkbox-list li input[type="checkbox"] {
+            position: absolute;
+            left: 0;
+            top: 2px;
+            margin: 0;
+            width: 18px;
+            height: 18px;
+            opacity: 1;
+            cursor: pointer;
+            z-index: 1;
+        }
+        .checkbox-list li span {
+            flex-grow: 1;
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+        }
+        .checkbox-list li s {
+            text-decoration: line-through;
+            color: #888;
+        }
+        .ql-align-left { text-align: left; }
+        .ql-align-center { text-align: center; }
+        .ql-align-right { text-align: right; }
+        .ql-align-justify { text-align: justify; }
+        .ql-size-small { font-size: 0.75em; }
+        .ql-size-large { font-size: 1.5em; }
+        .ql-size-huge { font-size: 2.5em; }
+        .ql-font-serif { font-family: serif; }
+        .ql-font-monospace { font-family: monospace; }
+        .ql-bubble .ql-tooltip.ql-flip { left: auto; }
+
+        .editor-content ul:not(.checkbox-list),
+        .editor-content ol {
+            padding-left: 20px;
+            margin-bottom: 10px;
+            list-style-position: outside;
+        }
+        .editor-content ul:not(.checkbox-list) {
+            list-style-type: disc;
+        }
+        .editor-content ol {
+            list-style-type: decimal;
+        }
+        .editor-content li:not(.checkbox-list li) {
+            margin-bottom: 5px;
+        }
+
+        #imagePreview {
+            margin-top: 1rem;
+            max-width: 200px;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto p-4 md:p-8">
+        <div class="header">
+            <h1 class="text-3xl font-bold text-gray-800">Editar Información</h1>
+            <a href="{{ url_for('info.ver_info') }}" class="btn-primary" style="background-color: #6c757d;">
+                <i class="fas fa-arrow-alt-circle-left mr-2"></i>Volver a Información
+            </a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} p-3 rounded-md mb-2 {% if category == 'success' %}bg-green-100 text-green-800{% elif category == 'danger' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" enctype="multipart/form-data" onsubmit="updateHiddenContent();">
+            <input type="hidden" name="csrf_token" value="{{ generate_csrf() }}">
+
+            <div class="form-group">
+                <label for="imagen">Imagen Actual / Subir Nueva</label>
+                {{ form.imagen(class_="w-full p-2 border border-gray-300 rounded-md", id="imagen", onchange="previewImage(event)") }}
+                {% if info_item.imagen_filename %}
+                    <img id="imagePreview" src="{{ url_for('static', filename='uploads/' + info_item.imagen_filename) }}" alt="Vista previa de la imagen actual">
+                {% else %}
+                    <img id="imagePreview" src="#" alt="Vista previa de la imagen" style="display:none;">
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="titulo">Título</label>
+                {{ form.titulo(class_="w-full p-2 border border-gray-300 rounded-md", id="titulo") }}
+            </div>
+
+            <div class="form-group">
+                <label for="descriptionEditor">Contenido</label>
+                <div class="editor-container">
+                    <div class="toolbar">
+                        <button type="button" onclick="formatDoc('bold')"><i class="fas fa-bold"></i></button>
+                        <button type="button" onclick="formatDoc('italic')"><i class="fas fa-italic"></i></button>
+                        <button type="button" onclick="formatDoc('underline')"><i class="fas fa-underline"></i></button>
+                        <button type="button" onclick="formatDoc('strikeThrough')"><i class="fas fa-strikethrough"></i></button>
+                        <button type="button" onclick="formatDoc('subscript')"><i class="fas fa-subscript"></i></button>
+                        <button type="button" onclick="formatDoc('superscript')"><i class="fas fa-superscript"></i></button>
+                        
+                        <button type="button" onclick="formatDoc('insertOrderedList')"><i class="fas fa-list-ol"></i></button>
+                        <button type="button" onclick="formatDoc('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
+                        <button type="button" onclick="formatDoc('outdent')"><i class="fas fa-outdent"></i></button>
+                        <button type="button" onclick="formatDoc('indent')"><i class="fas fa-indent"></i></button>
+                        
+                        <button type="button" onclick="formatDoc('justifyLeft')"><i class="fas fa-align-left"></i></button>
+                        <button type="button" onclick="formatDoc('justifyCenter')"><i class="fas fa-align-center"></i></button>
+                        <button type="button" onclick="formatDoc('justifyRight')"><i class="fas fa-align-right"></i></button>
+                        <button type="button" onclick="formatDoc('justifyFull')"><i class="fas fa-align-justify"></i></button>
+                        
+                        <button type="button" onclick="insertLink()"><i class="fas fa-link"></i></button>
+                        <button type="button" onclick="formatDoc('unlink')"><i class="fas fa-unlink"></i></button>
+                        <button type="button" onclick="insertImageEditor()"><i class="fas fa-image"></i></button>
+                        
+                        <button type="button" onclick="formatDoc('undo')"><i class="fas fa-undo"></i></button>
+                        <button type="button" onclick="formatDoc('redo')"><i class="fas fa-redo"></i></button>
+                        <button type="button" onclick="formatDoc('removeFormat')"><i class="fas fa-remove-format"></i></button>
+                        
+                        <select onchange="formatDoc('fontName', this.value);">
+                            <option value="">Fuente</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Verdana">Verdana</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Courier New">Courier New</option>
+                            <option value="serif">Serif</option>
+                            <option value="sans-serif" selected>Sans-serif</option>
+                            <option value="monospace">Monospace</option>
+                        </select>
+                        <select onchange="formatDoc('fontSize', this.value);">
+                            <option value="">Tamaño</option>
+                            <option value="1">Pequeño</option>
+                            <option value="2">Normal</option>
+                            <option value="3" selected>Medio</option>
+                            <option value="4">Grande</option>
+                            <option value="5">Muy Grande</option>
+                            <option value="6">Enorme</option>
+                            <option value="7">Máximo</option>
+                        </select>
+                        
+                        <button type="button" onclick="applyColor('foreColor')"><i class="fas fa-palette"></i> Color Texto</button>
+                        <button type="button" onclick="applyColor('backColor')"><i class="fas fa-fill-drip"></i> Color Fondo</button>
+                        
+                        <button type="button" onclick="formatDoc('formatBlock', 'h1')">H1</button>
+                        <button type="button" onclick="formatDoc('formatBlock', 'h2')">H2</button>
+                        <button type="button" onclick="formatDoc('formatBlock', 'h3')">H3</button>
+                        
+                        <button type="button" onclick="insertCheckboxList();"><i class="fas fa-check-square"></i> Lista de Tareas</button>
+                        
+                        <button type="button" onclick="insertHtml()"><i class="fas fa-code"></i> HTML</button>
+                        <button type="button" onclick="insertText()"><i class="fas fa-font"></i> Texto</button>
+                        
+                        <button type="button" onclick="formatDoc('selectAll')"><i class="fas fa-mouse-pointer"></i> Seleccionar Todo</button>
+                    </div>
+                    <div class="editor-content" id="descriptionEditor" contenteditable="true" tabindex="0"></div>
+                    <textarea name="contenido" id="hiddenContent" style="display:none;"></textarea>
+                </div>
+            </div>
+
+            <div class="flex justify-end mt-6">
+                <button type="submit" class="btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Función para previsualizar la imagen seleccionada
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function(){
+                const output = document.getElementById('imagePreview');
+                output.src = reader.result;
+                output.style.display = 'block';
+            };
+            if (event.target.files[0]) {
+                reader.readAsDataURL(event.target.files[0]);
+            } else {
+                // Si no se selecciona una nueva imagen, mantener la actual si existe
+                const currentImage = "{{ url_for('static', filename='uploads/' + info_item.imagen_filename) if info_item.imagen_filename else '#' }}";
+                if (currentImage !== '#') {
+                    document.getElementById('imagePreview').src = currentImage;
+                    document.getElementById('imagePreview').style.display = 'block';
+                } else {
+                    document.getElementById('imagePreview').style.display = 'none';
+                }
+            }
+        }
+
+        // Funciones del editor de texto
+        function formatDoc(command, value) {
+            document.execCommand(command, false, value);
+            document.getElementById('descriptionEditor').focus();
+        }
+
+        function applyColor(command) {
+            const color = prompt('Introduce el color (ej. #FF0000 o red):');
+            if (color) {
+                document.execCommand(command, false, color);
+            }
+            document.getElementById('descriptionEditor').focus();
+        }
+
+        function insertLink() {
+            const url = prompt("Introduce la URL del enlace:");
+            if (url) {
+                document.execCommand('createLink', false, url);
+            }
+            document.getElementById('descriptionEditor').focus();
+        }
+
+        function insertImageEditor() {
+            const imageUrl = prompt("Introduce la URL de la imagen:");
+            if (imageUrl) {
+                document.execCommand('insertImage', false, imageUrl);
+            }
+            document.getElementById('descriptionEditor').focus();
+        }
+
+        function insertHtml() {
+            const htmlContent = prompt("Introduce el código HTML:");
+            if (htmlContent) {
+                document.execCommand('insertHTML', false, htmlContent);
+            }
+            document.getElementById('descriptionEditor').focus();
+        }
+
+        function insertText() {
+            const textContent = prompt("Introduce el texto:");
+            if (textContent) {
+                document.execCommand('insertText', false, textContent);
+            }
+            document.getElementById('descriptionEditor').focus();
+        }
+
+        function insertCheckboxList() {
+            const editor = document.getElementById('descriptionEditor');
+            editor.focus();
+
+            let ul = editor.querySelector('.checkbox-list');
+            if (!ul) {
+                document.execCommand('insertUnorderedList');
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    const li = document.createElement('li');
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    const span = document.createElement('span');
+                    span.textContent = 'Nueva tarea';
+
+                    li.appendChild(input);
+                    li.appendChild(span);
+
+                    let currentUl = range.commonAncestorContainer.closest('.checkbox-list');
+                    if (currentUl) {
+                        currentUl.appendChild(li);
+                    } else {
+                        ul = document.createElement('ul');
+                        ul.classList.add('checkbox-list');
+                        ul.appendChild(li);
+                        range.deleteContents();
+                        range.insertNode(ul);
+                    }
+                    const newRange = document.createRange();
+                    newRange.setStart(span.firstChild, span.firstChild.length);
+                    newRange.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                }
+            } else {
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    let currentLi = range.commonAncestorContainer.closest('li');
+
+                    if (currentLi && currentLi.parentNode.classList.contains('checkbox-list')) {
+                        const newLi = document.createElement('li');
+                        const input = document.createElement('input');
+                        input.type = 'checkbox';
+                        const span = document.createElement('span');
+                        span.textContent = 'Nueva tarea';
+
+                        newLi.appendChild(input);
+                        newLi.appendChild(span);
+                        
+                        currentLi.parentNode.insertBefore(newLi, currentLi.nextSibling);
+
+                        const newRange = document.createRange();
+                        newRange.setStart(span.firstChild, span.firstChild.length);
+                        newRange.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(newRange);
+
+                    } else {
+                        document.execCommand('insertUnorderedList');
+                        const newlyInsertedUl = editor.querySelector('ul:not(.checkbox-list)');
+                        if(newlyInsertedUl){
+                            newlyInsertedUl.classList.add('checkbox-list');
+                            const firstLi = newlyInsertedUl.querySelector('li');
+                            if(firstLi){
+                                const originalContent = firstLi.innerHTML;
+                                firstLi.innerHTML = '';
+                                const input = document.createElement('input');
+                                input.type = 'checkbox';
+                                const span = document.createElement('span');
+                                span.innerHTML = originalContent;
+
+                                firstLi.appendChild(input);
+                                firstLi.appendChild(span);
+                                
+                                const newRange = document.createRange();
+                                newRange.setStart(span.firstChild, span.firstChild.length);
+                                newRange.collapse(true);
+                                selection.removeAllRanges();
+                                selection.addRange(newRange);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Función para actualizar el campo oculto con el contenido HTML del editor
+        function updateHiddenContent() {
+            const editorContent = document.getElementById('descriptionEditor').innerHTML;
+            document.getElementById('hiddenContent').value = editorContent;
+            // console.log("Contenido del editor guardado en campo oculto:", document.getElementById('hiddenContent').value); // Para depuración
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const editor = document.getElementById('descriptionEditor');
+            const hiddenContent = document.getElementById('hiddenContent');
+
+            // Cargar el contenido existente en ambos: el editor visible y el campo oculto
+            // Es importante asegurar que el contenido se escape correctamente para evitar problemas de HTML
+            const initialContent = "{{ info_item.contenido | escape | safe }}"; // Usar 'escape' y luego 'safe' para manejar comillas y HTML
+            editor.innerHTML = initialContent;
+            hiddenContent.value = initialContent; 
+            
+            // Asegurar que el editor sea editable y enfocarlo al cargar la página
+            editor.setAttribute('contenteditable', 'true');
+            editor.focus();
+
+            // Añadir un listener al evento 'input' para actualizar el campo oculto en tiempo real
+            editor.addEventListener('input', updateHiddenContent);
+
+
+            // Para la previsualización de la imagen existente
+            const imagePreview = document.getElementById('imagePreview');
+            {% if info_item.imagen_filename %}
+                imagePreview.src = "{{ url_for('static', filename='uploads/' + info_item.imagen_filename) }}";
+                imagePreview.style.display = 'block';
+            {% else %}
+                imagePreview.style.display = 'none';
+            {% endif %}
+
+            // Para mantener el color pastel aleatorio en cada carga de página (si aplica)
+            const body = document.body;
+            {% if pastel_color %}
+                body.style.backgroundColor = '{{ pastel_color | safe }}';
+            {% endif %}
+        });
+    </script>
+{% endblock %}
