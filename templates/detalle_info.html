@@ -140,6 +140,18 @@
             background-color: #c53030;
             transform: translateY(-1px);
         }
+        .btn-export-pdf {
+            background-color: #dc3545; /* Rojo de Bootstrap para PDF */
+        }
+        .btn-export-pdf:hover {
+            background-color: #c82333;
+        }
+        .btn-export-jpg {
+            background-color: #007bff; /* Azul de Bootstrap para JPG */
+        }
+        .btn-export-jpg:hover {
+            background-color: #0069d9;
+        }
     </style>
 </head>
 <body>
@@ -164,12 +176,14 @@
         {% endwith %}
 
         <div class="info-detail-card">
+            <div class="info-detail-content">
+                <h2 class="info-detail-title">{{ info_item.titulo }}</h2>
+            </div>
             {% if info_item.imagen_filename %}
                 <img src="{{ url_for('static', filename='uploads/' + info_item.imagen_filename) }}" alt="Imagen de {{ info_item.titulo }}" class="info-detail-image">
             {% endif %}
             <div class="info-detail-content">
-                <h2 class="info-detail-title">{{ info_item.titulo }}</h2>
-                <p class="info-detail-date">Creado el: {{ info_item.fecha_creacion.strftime('%d-%m-%Y %H:%M') }}</p>
+               <p class="info-detail-date">Creado el: {{ info_item.fecha_creacion.strftime('%d-%m-%Y %H:%M') }}</p>
                 <div class="info-detail-description">
                     {{ info_item.contenido | safe }} {# Renderizar el HTML de forma segura #}
                 </div>
@@ -179,6 +193,12 @@
         <div class="actions-bottom">
             <a href="{{ url_for('info.editar_info', id=info_item.id) }}" class="btn btn-edit">
                 <i class="fas fa-edit"></i> Editar
+            </a>
+            <a href="{{ url_for('info.exportar_pdf_info', id=info_item.id) }}" class="btn btn-export-pdf" target="_blank">
+                <i class="fas fa-file-pdf"></i> Exportar PDF
+            </a>
+            <a href="{{ url_for('info.exportar_jpg_info', id=info_item.id) }}" class="btn btn-export-jpg" target="_blank">
+                <i class="fas fa-file-image"></i> Exportar JPG
             </a>
             <form action="{{ url_for('info.borrar_info', id=info_item.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres borrar esta información?');">
                 <input type="hidden" name="csrf_token" value="{{ generate_csrf() }}"> {# CAMBIO REALIZADO AQUÍ #}
