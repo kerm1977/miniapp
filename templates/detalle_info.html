@@ -4,6 +4,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- SweetAlert2 CSS y JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         .header {
             border-bottom: 2px solid #e0e0e0;
@@ -187,9 +189,7 @@
                 <div class="info-detail-description">
                     {{ info_item.contenido | safe }} {# Renderizar el HTML de forma segura #}
                 </div>
-            </div>
-        </div>
-
+        <hr>        
         <div class="actions-bottom">
             <a href="{{ url_for('info.editar_info', id=info_item.id) }}" class="btn btn-edit">
                 <i class="fas fa-edit"></i> Editar
@@ -200,12 +200,36 @@
             <a href="{{ url_for('info.exportar_jpg_info', id=info_item.id) }}" class="btn btn-export-jpg" target="_blank">
                 <i class="fas fa-file-image"></i> Exportar JPG
             </a>
-            <form action="{{ url_for('info.borrar_info', id=info_item.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres borrar esta información?');">
-                <input type="hidden" name="csrf_token" value="{{ generate_csrf() }}"> {# CAMBIO REALIZADO AQUÍ #}
-                <button type="submit" class="btn btn-delete">
+            <form id="deleteForm-{{ info_item.id }}" action="{{ url_for('info.borrar_info', id=info_item.id) }}" method="POST" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ generate_csrf() }}">
+                <button type="button" class="btn btn-delete" onclick="confirmDelete('{{ info_item.id }}', '{{ info_item.titulo | e }}')">
                     <i class="fas fa-trash-alt"></i> Borrar
                 </button>
             </form>
         </div>
+            </div>
+
+        </div>
+
+       
     </div>
+
+    <script>
+        function confirmDelete(id, title) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: `¡No podrás revertir esto! Se borrará "${title}".`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, borrarlo',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(`deleteForm-${id}`).submit();
+                }
+            });
+        }
+    </script>
 {% endblock %}

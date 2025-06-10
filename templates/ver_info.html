@@ -1,11 +1,13 @@
 {% extends 'base.html' %}
-
 {% block content %}
     <title>Ver Información</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- SweetAlert2 CSS y JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        /* Mantén tus estilos existentes aquí, y añade los de los botones si son diferentes */
         .header {
             border-bottom: 2px solid #e0e0e0;
             padding-bottom: 1rem;
@@ -83,6 +85,23 @@
             background-color: #c53030;
             transform: translateY(-1px);
         }
+        .btn-add { /* Asegúrate de que este estilo esté definido si usas btn-add */
+            background-color: #28a745; /* Verde para "Agregar" */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        .btn-add:hover {
+            background-color: #218838;
+        }
         .no-info-message {
             text-align: center;
             color: #718096;
@@ -98,7 +117,7 @@
     <div class="container mx-auto p-4 md:p-8">
         <div class="header">
             <h1 class="text-3xl font-bold text-gray-800">Mi Información</h1>
-            <a href="{{ url_for('info.crear_info') }}" class="btn btn-view">
+            <a href="{{ url_for('info.crear_info') }}" class="btn btn-add"> {# Usando btn-add para el botón de nueva información #}
                 <i class="fas fa-plus-circle"></i> Nueva Información
             </a>
         </div>
@@ -107,9 +126,7 @@
             {% if messages %}
                 <div class="mb-4">
                     {% for category, message in messages %}
-                        <div class="alert alert-{{ category }} p-3 rounded-md mb-2 {% if category == 'success' %}bg-green-100 text-green-800{% elif category == 'danger' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
-                            {{ message }}
-                        </div>
+                        {# Se eliminó el div alert y se manejará con SweetAlert #}
                     {% endfor %}
                 </div>
             {% endif %}
@@ -119,14 +136,14 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for item in info_items %}
                     <div class="info-card">
-                        <h2 class="info-card-title">{{ item.titulo }}</h2>
+                        
                         {% if item.imagen_filename %}
                             <img src="{{ url_for('static', filename='uploads/' + item.imagen_filename) }}" alt="Imagen de {{ item.titulo }}" class="info-card-image">
                         {% else %}
                             <img src="https://placehold.co/600x200/cccccc/333333?text=Sin+Imagen" alt="Sin Imagen" class="info-card-image">
                         {% endif %}
                         <div class="info-card-content">
-                            
+                            <h2 class="info-card-title">{{ item.titulo }}</h2>
                             <p class="info-card-date">Creado el: {{ item.fecha_creacion.strftime('%d-%m-%Y %H:%M') }}</p>
                             {# Muestra un snippet del contenido si es necesario, o déjalo para la vista de detalle #}
                             {# <div class="text-gray-700 mb-4">{{ item.contenido | striptags | truncate(150) | safe }}</div> #}
@@ -138,9 +155,9 @@
                                 <a href="{{ url_for('info.editar_info', id=item.id) }}" class="btn btn-edit">
                                     <i class="fas fa-edit"></i> Editar
                                 </a>
-                                <form action="{{ url_for('info.borrar_info', id=item.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres borrar esta información?');">
-                                    <input type="hidden" name="csrf_token" value="{{ generate_csrf() }}"> {# CAMBIO AQUÍ #}
-                                    <button type="submit" class="btn btn-delete">
+                                <form id="deleteForm-{{ item.id }}" action="{{ url_for('info.borrar_info', id=item.id) }}" method="POST" style="display:inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ generate_csrf() }}">
+                                    <button type="button" class="btn btn-delete" onclick="confirmDelete('{{ item.id }}', '{{ item.titulo | e }}')">
                                         <i class="fas fa-trash-alt"></i> Borrar
                                     </button>
                                 </form>
@@ -155,5 +172,28 @@
                 <p>No hay información disponible. ¡Crea tu primera entrada de información!</p>
             </div>
         {% endif %}
+
+    <script>
+        // Función para confirmar la eliminación con SweetAlert
+        function confirmDelete(id, title) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: `¡No podrás revertir esto! Se borrará "${title}".`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, borrarlo',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(`deleteForm-${id}`).submit();
+                }
+            });
+        }
+    </script>
+
     </div>
+
+ 
 {% endblock %}
