@@ -273,7 +273,7 @@
                         <button type="button" onclick="formatDoc('selectAll')"><i class="fas fa-mouse-pointer"></i> Seleccionar Todo</button>
                     </div>
                     <div class="editor-content" id="descriptionEditor" contenteditable="true" tabindex="0"></div>
-                    <textarea name="contenido" id="hiddenContent" style="display:none;"></textarea>
+                    <textarea name="contenido" id="hiddenContent" style="display:none;">{{ info_item.contenido | safe }}</textarea> {# CAMBIO CLAVE AQUÍ: Usando | safe #}
                 </div>
             </div>
 
@@ -444,18 +444,16 @@
         function updateHiddenContent() {
             const editorContent = document.getElementById('descriptionEditor').innerHTML;
             document.getElementById('hiddenContent').value = editorContent;
-            // console.log("Contenido del editor guardado en campo oculto:", document.getElementById('hiddenContent').value); // Para depuración
+            console.log("DEBUG: Contenido del editor guardado en campo oculto:", document.getElementById('hiddenContent').value); // Para depuración
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             const editor = document.getElementById('descriptionEditor');
             const hiddenContent = document.getElementById('hiddenContent');
 
-            // Cargar el contenido existente en ambos: el editor visible y el campo oculto
-            // Es importante asegurar que el contenido se escape correctamente para evitar problemas de HTML
-            const initialContent = "{{ info_item.contenido | escape | safe }}"; // Usar 'escape' y luego 'safe' para manejar comillas y HTML
-            editor.innerHTML = initialContent;
-            hiddenContent.value = initialContent; 
+            // Cargar el contenido existente del campo oculto (que ya tiene el HTML sin escapar) en el editor visible
+            editor.innerHTML = hiddenContent.value; 
+            console.log("DEBUG: Contenido inicial del editor cargado:", editor.innerHTML); // Para depuración
             
             // Asegurar que el editor sea editable y enfocarlo al cargar la página
             editor.setAttribute('contenteditable', 'true');
@@ -463,6 +461,7 @@
 
             // Añadir un listener al evento 'input' para actualizar el campo oculto en tiempo real
             editor.addEventListener('input', updateHiddenContent);
+            console.log("DEBUG: Listener 'input' añadido al editor."); // Para depuración
 
 
             // Para la previsualización de la imagen existente
@@ -470,14 +469,17 @@
             {% if info_item.imagen_filename %}
                 imagePreview.src = "{{ url_for('static', filename='uploads/' + info_item.imagen_filename) }}";
                 imagePreview.style.display = 'block';
+                console.log("DEBUG: Vista previa de imagen cargada:", imagePreview.src); // Para depuración
             {% else %}
                 imagePreview.style.display = 'none';
+                console.log("DEBUG: No hay imagen para previsualizar."); // Para depuración
             {% endif %}
 
             // Para mantener el color pastel aleatorio en cada carga de página (si aplica)
             const body = document.body;
             {% if pastel_color %}
                 body.style.backgroundColor = '{{ pastel_color | safe }}';
+                console.log("DEBUG: Color de fondo aplicado:", '{{ pastel_color | safe }}'); // Para depuración
             {% endif %}
         });
     </script>
