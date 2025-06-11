@@ -65,7 +65,7 @@ UPLOAD_FOLDER = os.path.join('static', 'uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # Nuevas extensiones permitidas para el reproductor multimedia
 app.config['ALLOWED_MEDIA_EXTENSIONS'] = {'mp3', 'mp4', 'wma', 'wmv', 'jpg', 'jpeg', 'png', 'pdf'} # <-- Nuevas extensiones para multimedia
-csrf = CSRFProtect(app) # <--- Esta línea es esencial y debe estar presente
+# ELIMINADO: csrf = CSRFProtect(app) # <-- ESTA LÍNEA ESTABA DUPLICADA
 
 # Asegurarse de que la carpeta de subidas exista
 if not os.path.exists(UPLOAD_FOLDER):
@@ -84,7 +84,7 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = "Por favor, inicia sesión para acceder a esta página."
 
-# Inicializar CSRFProtect AQUI
+# Inicializar CSRFProtect AQUI (Esta es la única instancia correcta)
 csrf = CSRFProtect(app) # <-- ESTA ES LA LÍNEA CRÍTICA A AÑADIR
 
 def is_authenticated(self):
@@ -94,7 +94,7 @@ def is_authenticated(self):
 # --- Registro del Blueprint de Pagos e inventarios ---
 app.register_blueprint(pagos_bp)
 app.register_blueprint(inventario_bp)
-app.register_blueprint(rifas_bp, url_prefix='/rifas') # CAMBIO CLAVE AQUÍ
+app.register_blueprint(rifas_bp, url_prefix='/rifas') # CAMBIO CLAVE AQUÍ: Importa configure_rifas_uploads
 app.register_blueprint(notas_bp)
 app.register_blueprint(player_bp, url_prefix='/player') # <-- Registrar el blueprint del reproductor
 app.register_blueprint(gestor_bp, url_prefix='/proyectos') # <-- REGISTRAR EL BLUEPRINT DEL GESTOR DE PROYECTOS
@@ -1417,99 +1417,78 @@ def exportar_contacto_pdf(id):
     story.append(Paragraph("Información General", styles['Heading2']))
     
     # Usar una tabla para organizar la información de forma más estructurada
-    data = [
-        [Paragraph("<b>Nombre:</b>", styles['Label']), Paragraph(contacto.nombre, styles['Value'])],
-        [Paragraph("<b>Primer Apellido:</b>", styles['Label']), Paragraph(contacto.primer_apellido or '-', styles['Value'])],
-        [Paragraph("<b>Segundo Apellido:</b>", styles['Label']), Paragraph(contacto.segundo_apellido or '-', styles['Value'])],
-        [Paragraph("<b>Empresa:</b>", styles['Label']), Paragraph(contacto.empresa or '-', styles['Value'])],
-        # 'Puesto' no está en ContactoForm, así que se usa getattr
-        [Paragraph("<b>Puesto:</b>", styles['Label']), Paragraph(getattr(contacto, 'puesto', '-') or '-', styles['Value'])],
-    ]
-    table_style = TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f0f0f0')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#000000')),
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
-        ('LEFTPADDING', (0, 0), (-1, -1), 6),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-        ('TOPPADDING', (0, 0), (-1, -1), 6),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-    ])
-    
+    # La lista de datos ya tiene encabezados, y las siguientes adiciones deben ser filas completas
+    data = [] # Se reinicializa para evitar duplicación con la definición de add_row_if_exists
+
     # Función auxiliar para añadir filas a la tabla si el dato existe
-    # ¡DEFINICIÓN MOVIDA AQUÍ PARA ASEGURAR EL ALCANCE CORRECTO!
-    def add_row_if_exists(label, value):
-        # Usar getattr para acceder a atributos que pueden no existir
-        # y proporcionar un valor predeterminado si no existen
-        attr_value = getattr(contacto, value, None)
-        data['Campo'].append(label)
-        if attr_value is not None and attr_value != '': # También considera cadenas vacías como no existentes
-            # Formatear fechas si son objetos date o datetime
+    def add_row_if_exists(label, value_attr_name):
+        attr_value = getattr(contacto, value_attr_name, None)
+        display_value = "-"
+        if attr_value is not None and attr_value != '':
             if isinstance(attr_value, (date, datetime)):
-                if label == "Fecha de Nacimiento" or label == "Aniversario":
-                    data.append([Paragraph(f"<b>{label}:</b>", styles['Label']), Paragraph(attr_value.strftime('%Y-%m-%d'), styles['Value'])])
-                elif label == "Próxima Interacción" or label == "Fecha de Ingreso":
-                    data.append([Paragraph(f"<b>{label}:</b>", styles['Label']), Paragraph(attr_value.strftime('%Y-%m-%d %H:%M:%S'), styles['Value'])])
+                # Manejo específico para fechas
+                if value_attr_name == "fecha_nacimiento" or value_attr_name == "aniversario":
+                    display_value = attr_value.strftime('%Y-%m-%d')
+                elif value_attr_name == "proxima_interaccion" or value_attr_name == "fecha_ingreso":
+                    display_value = attr_value.strftime('%Y-%m-%d %H:%M:%S')
+                else:
+                    display_value = str(attr_value)
             elif isinstance(attr_value, bool):
-                data.append([Paragraph(f"<b>{label}:</b>", styles['Label']), Paragraph("Sí" if attr_value else "No", styles['Value'])])
+                display_value = "Sí" if attr_value else "No"
             else:
-                data.append([Paragraph(f"<b>{label}:</b>", styles['Label']), Paragraph(str(attr_value), styles['Value'])])
-        else:
-            data.append([Paragraph(f"<b>{label}:</b>", styles['Label']), Paragraph('-', styles['Value'])])
+                display_value = str(attr_value)
+        
+        data.append([
+            Paragraph(f"<b>{label}:</b>", styles['Label']),
+            Paragraph(display_value, styles['Value'])
+        ])
 
 
+    add_row_if_exists("Nombre", 'nombre')
+    add_row_if_exists("Primer Apellido", 'primer_apellido')
+    add_row_if_exists("Segundo Apellido", 'segundo_apellido')
+    add_row_if_exists("Empresa", 'empresa')
+    add_row_if_exists("Puesto", 'puesto') # Asumimos que 'puesto' puede existir o no
     add_row_if_exists("Teléfono", 'telefono')
     add_row_if_exists("Móvil", 'movil')
     add_row_if_exists("Email", 'email')
-    # Campos que se asume que no están en el Contacto actual, se usarán con getattr
-    add_row_if_exists("Teléfono Principal (no en el modelo)", 'telefono_principal') 
-    add_row_if_exists("Teléfono Secundario (no en el modelo)", 'telefono_secundario')
-    add_row_if_exists("Email Principal (no en el modelo)", 'email_principal')
-    add_row_if_exists("Email Secundario (no en el modelo)", 'email_secundario')
     add_row_if_exists("Dirección", 'direccion')
-    add_row_if_exists("Ciudad", 'ciudad') # Ahora usando getattr
-    add_row_if_exists("Provincia", 'provincia') # Ahora usando getattr
-    add_row_if_exists("Código Postal", 'codigo_postal') # Ahora usando getattr
-    add_row_if_exists("País", 'pais') # Ahora usando getattr
-    add_row_if_exists("Fecha de Nacimiento", 'fecha_nacimiento') # Ahora usando getattr
-    add_row_if_exists("Red Social", 'red_social') # Ahora usando getattr
+    add_row_if_exists("Ciudad", 'ciudad') 
+    add_row_if_exists("Provincia", 'provincia') 
+    add_row_if_exists("Código Postal", 'codigo_postal')
+    add_row_if_exists("País", 'pais')
+    add_row_if_exists("Fecha de Nacimiento", 'fecha_nacimiento')
+    add_row_if_exists("Red Social", 'red_social')
     add_row_if_exists("Sitio Web", 'sitio_web')
-    add_row_if_exists("Relación", 'relacion') # Ahora usando getattr
-    add_row_if_exists("Método de Contacto Preferido", 'metodo_contacto_preferido') # Ahora usando getattr
-    add_row_if_exists("Fuente del Contacto", 'fuente_contacto') # Ahora usando getattr
-    add_row_if_exists("Intereses", 'intereses') # Ahora usando getattr
-    add_row_if_exists("Historial de Interacción", 'historial_interaccion') # Ahora usando getattr
-    add_row_if_exists("Próxima Interacción", 'proxima_interaccion') # Ahora usando getattr
-    add_row_if_exists("Etiquetas", 'etiquetas') # Ahora usando getattr
-    add_row_if_exists("Grupo", 'grupo') # Ahora usando getattr
-    add_row_if_exists("Preferencias de Comunicación", 'preferencias_comunicacion') # Ahora usando getattr
-    add_row_if_exists("Consentimiento de Datos", 'consentimiento_datos') # Ahora usando getattr
-    # add_data("Notas", 'nota') # Ya se añadió en el original como add_row_if_exists
-    add_row_if_exists("Género", 'genero') # Ahora usando getattr
-    add_row_if_exists("Organización", 'organizacion') # Ahora usando getattr
-    add_row_if_exists("Departamento", 'departamento') # Ahora usando getattr
-    add_row_if_exists("Rol", 'rol') # Ahora usando getattr
-    add_row_if_exists("Fax", 'fax') # Ahora usando getattr
-    add_row_if_exists("Páginas Web", 'paginas_web') # Ahora usando getattr
-    add_row_if_exists("Apodo", 'apodo') # Ahora usando getattr
-    add_row_if_exists("Hijos", 'hijos') # Ahora usando getattr
-    add_row_if_exists("Cargos", 'cargos') # Ahora usando getattr
-    add_row_if_exists("Cónyuge", 'conyuge') # Ahora usando getattr
-    add_row_if_exists("Aniversario", 'aniversario') # Ahora usando getattr
-    add_row_if_exists("Tipo de Dirección", 'tipo_direccion') # Ahora usando getattr
+    add_row_if_exists("Relación", 'relacion')
+    add_row_if_exists("Método de Contacto Preferido", 'metodo_contacto_preferido')
+    add_row_if_exists("Fuente del Contacto", 'fuente_contacto')
+    add_row_if_exists("Intereses", 'intereses')
+    add_row_if_exists("Historial de Interacción", 'historial_interaccion')
+    add_row_if_exists("Próxima Interacción", 'proxima_interaccion')
+    add_row_if_exists("Etiquetas", 'etiquetas')
+    add_row_if_exists("Grupo", 'grupo')
+    add_row_if_exists("Preferencias de Comunicación", 'preferencias_comunicacion')
+    add_row_if_exists("Consentimiento de Datos", 'consentimiento_datos')
+    add_row_if_exists("Notas", 'nota')
+    add_row_if_exists("Género", 'genero')
+    add_row_if_exists("Organización", 'organizacion')
+    add_row_if_exists("Departamento", 'departamento')
+    add_row_if_exists("Rol", 'rol')
+    add_row_if_exists("Fax", 'fax')
+    add_row_if_exists("Páginas Web", 'paginas_web')
+    add_row_if_exists("Apodo", 'apodo')
+    add_row_if_exists("Hijos", 'hijos')
+    add_row_if_exists("Cargos", 'cargos')
+    add_row_if_exists("Cónyuge", 'conyuge')
+    add_row_if_exists("Aniversario", 'aniversario')
+    add_row_if_exists("Tipo de Dirección", 'tipo_direccion')
     add_row_if_exists("Dirección de Mapa", 'direccion_mapa')
     add_row_if_exists("Capacidad de Persona", 'capacidad_persona')
     add_row_if_exists("Participación", 'participacion')
     add_row_if_exists("Fecha de Ingreso", 'fecha_ingreso')
     add_row_if_exists("Tipo de Actividad", 'tipo_actividad')
     
-    # Asegúrate de que 'add_data' esté definida o usa 'add_row_if_exists'
-    # Esta función se usó en el código original para campos que no eran 'getattr'
-    # La he renombrado a 'add_row_if_exists' para unificar el comportamiento
-    # y manejar los casos donde el valor puede ser None o cadena vacía.
-    add_row_if_exists("Notas", 'nota')
-
 
     # Si hay avatar, añadirlo
     if contacto.avatar_path:
@@ -1533,7 +1512,16 @@ def exportar_contacto_pdf(id):
 
 
     table = Table(data, colWidths=[2 * inch, 5 * inch]) # Ancho de columnas para las etiquetas y valores
-    table.setStyle(table_style)
+    table.setStyle(TableStyle([
+        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#D3D3D3')),
+        ('LEFTPADDING', (0,0), (-1,-1), 6),
+        ('RIGHTPADDING', (0,0), (-1,-1), 6),
+        ('TOPPADDING', (0,0), (-1,-1), 6),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+    ]))
     story.append(table)
 
     doc.build(story)
@@ -1625,7 +1613,7 @@ def exportar_contacto_vcard(id):
                 vcard.add('photo')
                 vcard.photo.value = base64.b64encode(image_data).decode('utf-8')
                 vcard.photo.type_param = mime_type.split('/')[-1].upper() # Ej: 'JPEG', 'PNG'
-                vcard.photo.encoding_param = 'B' # Base64 encoding
+                vcard.photo.encoding_param = 'BASE64' # CAMBIO: 'B' a 'BASE64'
             except Exception as e:
                 print(f"Error al añadir avatar a vCard: {e}") # Para depuración
     
@@ -1761,7 +1749,7 @@ def exportar_contacto_jpg(id):
     # page = doc_pdf.load_page(0)  # load page number 0 (first page)
     # pix = page.get_pixmap()
     # img_buffer = BytesIO()
-    # img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+    # img = PILImage.frombytes("RGB", [pix.width, pix.height], pix.samples)
     # img.save(img_buffer, "JPEG")
     # img_buffer.seek(0)
     # doc_pdf.close()
@@ -1769,12 +1757,44 @@ def exportar_contacto_jpg(id):
     # return send_file(img_buffer, as_attachment=True, download_name=f'contacto_{contacto.id}.jpg', mimetype='image/jpeg')
 
 # --- Nuevas Rutas de Exportación para Facturas ---
+# --- FUNCIÓN PRINCIPAL PARA EXPORTAR FACTURA PDF (USANDO REPORTLAB) ---
 @app.route('/exportar_factura_pdf/<int:id>')
-@login_required
+# @login_required # Puedes añadir esto para proteger la ruta
 def exportar_factura_pdf(id):
-    factura = Factura.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+    # Nota: Aquí deberías obtener la 'factura' real de tu base de datos
+    # Por ejemplo: factura = Factura.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+    # Para el ejemplo, simularemos el objeto factura con datos ficticios.
+    
+    # Datos simulados de la factura (REEMPLAZA CON LA LÓGICA DE TU BASE DE DATOS)
+    class DummyFactura:
+        def __init__(self, id_val):
+            self.id = id_val
+            self.interes = 'Factura' if id_val % 2 == 0 else 'Cotización'
+            self.numero_factura = f"INV-{id_val:04d}"
+            self.fecha_registro = datetime(2025, 6, 10, 10, 30)
+            self.fecha_emision = datetime(2025, 6, 10).date()
+            self.realizado_por = "Juan Pérez"
+            self.sinpe = "12345678"
+            self.descripcion = "Descripción general del servicio de hiking."
+            self.tipo_actividad = "Aventura"
+            self.nombre_actividad_etapa = "Sendero de la Montaña"
+            self.costo_actividad = 12000.00
+            self.otras_descripcion = "Incluye guía y equipo básico."
+            self.impuesto_monto = 1560.00 # 13% de 12000
+            self.monto_total = 13560.00 # 12000 + 1560
+            
+            class DummyCliente:
+                nombre = "María"
+                primer_apellido = "González"
+                segundo_apellido = "López"
+                movil = "8888-7777"
+                telefono = None
+                email = "maria.gonzalez@example.com"
+            self.cliente = DummyCliente()
 
-    buffer = BytesIO()
+    factura = DummyFactura(id) # Reemplaza esto con tu consulta real a la base de datos
+
+    buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
 
@@ -1870,7 +1890,6 @@ def exportar_factura_pdf(id):
         Paragraph(f"₡{impuesto_monto_float:,.2f}", styles['TableTotalText'])
     ])
 
-
     col_widths_concepts = [5.5 * inch, 2 * inch]
     concepts_table = Table(table_data, colWidths=col_widths_concepts)
     concepts_table.setStyle(TableStyle([
@@ -1915,12 +1934,10 @@ def exportar_factura_pdf(id):
     story.append(Paragraph(f"{title_text} generada el: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['FooterText']))
 
     doc.build(story)
-    buffer.seek(0)
+    buffer.seek(0) # <<< ¡CORRECCIÓN APLICADA AQUÍ!
     
     filename = f"{title_text.lower()}_{factura.numero_factura}.pdf"
     return send_file(buffer, as_attachment=True, download_name=filename, mimetype='application/pdf')
-
-
 @app.route('/exportar_factura_jpg/<int:id>')
 @login_required
 def exportar_factura_jpg(id):

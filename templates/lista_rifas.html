@@ -191,7 +191,7 @@
                         const csrfInput = document.createElement('input');
                         csrfInput.type = 'hidden';
                         csrfInput.name = 'csrf_token'; // Nombre del campo CSRF
-                        csrfInput.value = "{{ csrf_token }}"; // <-- CORRECCIÓN CLAVE AQUÍ
+                        csrfInput.value = "{{ csrf_token }}"; // <--- Corregido: ya no se llama como función
                         form.appendChild(csrfInput);
 
                         document.body.appendChild(form);

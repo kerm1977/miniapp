@@ -179,8 +179,8 @@
         </div>
 
         <form method="POST">
-            {# CORRECCIÓN: Aquí también se usa csrf_token sin paréntesis #}
-            <input type="hidden" name="csrf_token" value="{{ csrf_token }}"> 
+            {# Flask-WTF ya inserta el campo CSRF automáticamente con {{ form.csrf_token }} #}
+            {{ form.csrf_token }} 
             <div class="form-group">
                 <label for="titulo">Título</label>
                 {{ form.titulo(class_="w-full p-2 border border-gray-300 rounded-md", id="titulo") }}

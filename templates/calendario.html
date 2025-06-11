@@ -2,18 +2,18 @@
 {% block title %}Calendario{% endblock %}
 {% block content %}
 
-    <div class="container">
-        <h1>Calendario</h1>
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold text-center mb-6">Calendario</h1>
 
-        <div class="controls">
-            <select id="view-select">
+        <div class="controls flex justify-center items-center space-x-4 mb-6">
+            <select id="view-select" class="p-2 border rounded-md">
                 <option value="month" selected>Mes</option>
                 <option value="week">Semana</option>
                 <option value="day">Día</option>
                 <option value="year">Año</option>
             </select>
-            <select id="year-select"></select>
-            <select id="month-select">
+            <select id="year-select" class="p-2 border rounded-md"></select>
+            <select id="month-select" class="p-2 border rounded-md">
                 <option value="1">Enero</option>
                 <option value="2">Febrero</option>
                 <option value="3">Marzo</option>
@@ -29,58 +29,713 @@
             </select>
         </div>
 
-        <div class="month-navigation">
-            <button id="prev-month-btn">&lt;</button>
-            <span id="current-month-year"></span>
-            <button id="next-month-btn">&gt;</button>
+        <div class="month-navigation flex justify-between items-center mb-6">
+            <button id="prev-month-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full shadow-lg transition duration-300">&lt;</button>
+            <span id="current-month-year" class="text-2xl font-semibold"></span>
+            <button id="next-month-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full shadow-lg transition duration-300">&gt;</button>
         </div>
 
-        <div id="calendar">
-            <div class="weekday-name">Dom</div>
-            <div class="weekday-name">Lun</div>
-            <div class="weekday-name">Mar</div>
-            <div class="weekday-name">Mié</div>
-            <div class="weekday-name">Jue</div>
-            <div class="weekday-name">Vie</div>
-            <div class="weekday-name">Sáb</div>
+        <div id="calendar" class="grid grid-cols-7 gap-1 bg-white p-4 rounded-lg shadow-md">
+            <div class="weekday-name text-center font-bold text-gray-700 p-2">Dom</div>
+            <div class="weekday-name text-center font-bold text-gray-700 p-2">Lun</div>
+            <div class="weekday-name text-center font-bold text-gray-700 p-2">Mar</div>
+            <div class="weekday-name text-center font-bold text-gray-700 p-2">Mié</div>
+            <div class="weekday-name text-center font-bold text-gray-700 p-2">Jue</div>
+            <div class="weekday-name text-center font-bold text-gray-700 p-2">Vie</div>
+            <div class="weekday-name text-center font-bold text-gray-700 p-2">Sáb</div>
+            <!-- Los días del calendario se llenarán con JavaScript -->
         </div>
 
           
-        <button id="add-event-btn" class="floating-btn"><i class="fas fa-plus"></i>
-</button>
+        <button id="add-event-btn" class="floating-btn fixed bottom-8 right-8 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg transition duration-300 z-50">
+            <i class="fas fa-plus text-2xl"></i>
+        </button>
 
-<div id="event-modal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <h2>Nuevo Evento</h2>
-        <form id="new-event-form">
-            <div>
-                <label for="event-date">Fecha:</label>
-                <input type="date" id="event-date" name="event-date" required>
+        <div id="event-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50 hidden">
+            <div class="modal-content bg-white p-8 rounded-lg shadow-xl w-11/12 md:w-1/2 lg:w-1/3 relative animate-scale-in">
+                <span class="close-btn absolute top-3 right-3 text-gray-600 hover:text-gray-900 text-3xl font-bold cursor-pointer">&times;</span>
+                <h2 class="text-2xl font-bold mb-6 text-center">Nuevo Evento</h2>
+                <form id="new-event-form" class="space-y-4">
+                    <div>
+                        <label for="event-date" class="block text-gray-700 text-sm font-bold mb-2">Fecha:</label>
+                        <input type="date" id="event-date" name="event-date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    </div>
+                    <div>
+                        <label for="event-time" class="block text-gray-700 text-sm font-bold mb-2">Hora (opcional):</label>
+                        <input type="time" id="event-time" name="event-time" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div>
+                        <label for="event-title" class="block text-gray-700 text-sm font-bold mb-2">Título:</label>
+                        <input type="text" id="event-title" name="event-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    </div>
+                    <div>
+                        <label for="event-description" class="block text-gray-700 text-sm font-bold mb-2">Descripción (opcional):</label>
+                        <textarea id="event-description" name="event-description" rows="4" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+                    </div>
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full transition duration-300">Guardar Evento</button>
+                </form>
             </div>
-            <div>
-                <label for="event-time">Hora:</label>
-                <input type="time" id="event-time" name="event-time">
-            </div>
-            <div>
-                <label for="event-title">Título:</label>
-                <input type="text" id="event-title" name="event-title" required>
-            </div>
-            <div>
-                <label for="event-description">Descripción:</label>
-                <textarea id="event-description" name="event-description"></textarea>
-            </div>
-            <button type="submit">Guardar Evento</button>
-        </form>
-    </div>
-</div>
+        </div>
 
-    <div id="event-list-container"></div>
-    <div id="events-of-day-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h3>Eventos del día <span id="selected-date-display"></span></h3>
-            <ul id="events-list-of-day"></ul>
+        <div id="event-list-container"></div>
+        <div id="events-of-day-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50 hidden">
+            <div class="modal-content bg-white p-8 rounded-lg shadow-xl w-11/12 md:w-1/2 lg:w-1/3 relative animate-scale-in">
+                <span class="close-btn absolute top-3 right-3 text-gray-600 hover:text-gray-900 text-3xl font-bold cursor-pointer">&times;</span>
+                <h3 class="text-2xl font-bold mb-6 text-center">Eventos del día <span id="selected-date-display" class="text-blue-600"></span></h3>
+                <ul id="events-list-of-day" class="list-disc pl-5 space-y-2"></ul>
+            </div>
         </div>
     </div>
+
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            const currentMonthYearEl = document.getElementById('current-month-year');
+            const prevMonthBtn = document.getElementById('prev-month-btn');
+            const nextMonthBtn = document.getElementById('next-month-btn');
+            const yearSelect = document.getElementById('year-select');
+            const monthSelect = document.getElementById('month-select');
+            const viewSelect = document.getElementById('view-select'); // Added view selector
+
+            const addEventBtn = document.getElementById('add-event-btn');
+            const eventModal = document.getElementById('event-modal');
+            const newEventForm = document.getElementById('new-event-form');
+            const closeEventModalBtn = eventModal.querySelector('.close-btn');
+
+            const eventsOfDayModal = document.getElementById('events-of-day-modal');
+            const closeEventsOfDayModalBtn = eventsOfDayModal.querySelector('.close-btn');
+            const selectedDateDisplay = document.getElementById('selected-date-display');
+            const eventsListOfDay = document.getElementById('events-list-of-day');
+
+            let currentMonth = new Date().getMonth();
+            let currentYear = new Date().getFullYear();
+            let allEvents = []; // Almacena todos los eventos para evitar múltiples fetches
+
+            // Función para rellenar el selector de años
+            function populateYearSelect() {
+                const currentYear = new Date().getFullYear();
+                for (let i = currentYear - 10; i <= currentYear + 10; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = i;
+                    yearSelect.appendChild(option);
+                }
+                yearSelect.value = currentYear;
+            }
+
+            // Función para renderizar el calendario (vista mensual)
+            async function renderCalendar() {
+                calendarEl.innerHTML = `
+                    <div class="weekday-name text-center font-bold text-gray-700 p-2">Dom</div>
+                    <div class="weekday-name text-center font-bold text-gray-700 p-2">Lun</div>
+                    <div class="weekday-name text-center font-bold text-gray-700 p-2">Mar</div>
+                    <div class="weekday-name text-center font-bold text-gray-700 p-2">Mié</div>
+                    <div class="weekday-name text-center font-bold text-gray-700 p-2">Jue</div>
+                    <div class="weekday-name text-center font-bold text-gray-700 p-2">Vie</div>
+                    <div class="weekday-name text-center font-bold text-gray-700 p-2">Sáb</div>
+                `; // Reset calendar days
+                
+                const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                const startWeekday = firstDayOfMonth.getDay(); // 0 for Sunday, 1 for Monday, etc.
+
+                currentMonthYearEl.textContent = `${firstDayOfMonth.toLocaleString('es-ES', { month: 'long' })} ${currentYear}`;
+                monthSelect.value = currentMonth + 1;
+                yearSelect.value = currentYear;
+
+                // Fetch events for the current month
+                await fetchEvents();
+                const monthEvents = allEvents.filter(event => {
+                    const eventDate = new Date(event.date);
+                    return eventDate.getMonth() === currentMonth && eventDate.getFullYear() === currentYear;
+                });
+
+                // Add empty leading days
+                for (let i = 0; i < startWeekday; i++) {
+                    const emptyDay = document.createElement('div');
+                    emptyDay.classList.add('calendar-day', 'p-2', 'bg-gray-100', 'text-gray-400', 'rounded-md');
+                    calendarEl.appendChild(emptyDay);
+                }
+
+                // Add days of the month
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayEl = document.createElement('div');
+                    dayEl.classList.add('calendar-day', 'p-2', 'bg-white', 'rounded-md', 'shadow-sm', 'relative', 'cursor-pointer', 'hover:bg-blue-50', 'transition', 'duration-150');
+                    dayEl.textContent = day;
+                    dayEl.dataset.date = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    dayEl.addEventListener('click', () => showEventsForDay(dayEl.dataset.date));
+
+                    // Highlight today's date
+                    const today = new Date();
+                    if (day === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
+                        dayEl.classList.add('bg-blue-200', 'border-2', 'border-blue-500', 'font-bold');
+                    }
+
+                    // Add event markers
+                    const eventsForThisDay = monthEvents.filter(event => {
+                        const eventDate = new Date(event.date);
+                        return eventDate.getDate() === day;
+                    });
+
+                    if (eventsForThisDay.length > 0) {
+                        const eventMarker = document.createElement('div');
+                        eventMarker.classList.add('event-marker', 'absolute', 'bottom-1', 'left-1/2', 'transform', '-translate-x-1/2', 'w-2', 'h-2', 'bg-red-500', 'rounded-full');
+                        dayEl.appendChild(eventMarker);
+
+                        // Optional: Add a count of events
+                        const eventCount = document.createElement('span');
+                        eventCount.classList.add('event-count', 'text-xs', 'font-semibold', 'text-red-600', 'ml-1');
+                        eventCount.textContent = `(${eventsForThisDay.length})`;
+                        // dayEl.appendChild(eventCount); // Add if you want to show count directly on day
+                    }
+
+                    calendarEl.appendChild(dayEl);
+                }
+            }
+
+            // Function to render calendar views (e.g., week, day, year - placeholder)
+            async function renderView() {
+                const selectedView = viewSelect.value;
+                if (selectedView === 'month') {
+                    renderCalendar();
+                } else {
+                    // For week, day, year views, you'd implement specific rendering logic.
+                    // For simplicity, we'll stick to month view for now or show a message.
+                    calendarEl.innerHTML = `<div class="col-span-7 text-center py-10 text-gray-500">Vista de ${selectedView} no implementada en detalle.</div>`;
+                }
+            }
+
+            // Fetch events from the API
+            async function fetchEvents() {
+                try {
+                    const response = await fetch('/api/events');
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    const data = await response.json();
+                    allEvents = data; // Store all fetched events
+                    console.log('Eventos cargados:', allEvents);
+                } catch (error) {
+                    console.error('Error al cargar eventos:', error);
+                    Swal.fire('Error', 'No se pudieron cargar los eventos.', 'error');
+                }
+            }
+
+            // Show events for a specific day
+            function showEventsForDay(date) {
+                selectedDateDisplay.textContent = new Date(date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                eventsListOfDay.innerHTML = ''; // Clear previous events
+
+                const eventsOnThisDay = allEvents.filter(event => event.date === date);
+
+                if (eventsOnThisDay.length > 0) {
+                    eventsOnThisDay.forEach(event => {
+                        const li = document.createElement('li');
+                        li.classList.add('bg-gray-100', 'p-3', 'rounded-md', 'shadow-sm', 'flex', 'justify-between', 'items-center');
+                        
+                        const eventInfo = document.createElement('div');
+                        eventInfo.innerHTML = `
+                            <p class="font-bold text-lg">${event.title}</p>
+                            <p class="text-gray-600 text-sm">${event.time ? event.time.substring(0, 5) + ' - ' : ''}${event.description || 'Sin descripción'}</p>
+                        `;
+                        li.appendChild(eventInfo);
+
+                        const actionsDiv = document.createElement('div');
+                        actionsDiv.classList.add('space-x-2');
+
+                        // Edit button
+                        const editBtn = document.createElement('button');
+                        editBtn.innerHTML = `<i class="fas fa-edit text-blue-500 hover:text-blue-700"></i>`;
+                        editBtn.title = 'Editar evento';
+                        editBtn.classList.add('p-2', 'rounded-full', 'hover:bg-blue-100', 'transition');
+                        editBtn.addEventListener('click', () => editEvent(event));
+                        actionsDiv.appendChild(editBtn);
+
+                        // Delete button
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.innerHTML = `<i class="fas fa-trash-alt text-red-500 hover:text-red-700"></i>`;
+                        deleteBtn.title = 'Eliminar evento';
+                        deleteBtn.classList.add('p-2', 'rounded-full', 'hover:bg-red-100', 'transition');
+                        deleteBtn.addEventListener('click', () => deleteEvent(event.id));
+                        actionsDiv.appendChild(deleteBtn);
+
+                        li.appendChild(actionsDiv);
+                        eventsListOfDay.appendChild(li);
+                    });
+                } else {
+                    const li = document.createElement('li');
+                    li.textContent = 'No hay eventos para este día.';
+                    li.classList.add('text-gray-500', 'italic');
+                    eventsListOfDay.appendChild(li);
+                }
+
+                eventsOfDayModal.classList.remove('hidden');
+            }
+            
+            // Function to handle editing an event (pre-fill modal and then PUT)
+            function editEvent(event) {
+                eventModal.classList.remove('hidden');
+                document.getElementById('event-date').value = event.date;
+                document.getElementById('event-time').value = event.time ? event.time.substring(0, 5) : '';
+                document.getElementById('event-title').value = event.title;
+                document.getElementById('event-description').value = event.description || '';
+
+                // Change form title
+                eventModal.querySelector('h2').textContent = 'Editar Evento';
+                // Add a hidden input for event ID if it's an existing event
+                let eventIdInput = document.getElementById('event-id');
+                if (!eventIdInput) {
+                    eventIdInput = document.createElement('input');
+                    eventIdInput.type = 'hidden';
+                    eventIdInput.id = 'event-id';
+                    eventIdInput.name = 'event_id';
+                    newEventForm.appendChild(eventIdInput);
+                }
+                eventIdInput.value = event.id;
+
+                // Change button text
+                newEventForm.querySelector('button[type="submit"]').textContent = 'Guardar Cambios';
+
+                eventsOfDayModal.classList.add('hidden'); // Hide day events modal
+            }
+
+            // Function to handle deleting an event
+            async function deleteEvent(eventId) {
+                const result = await Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: '¡No podrás revertir esto!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, borrarlo!',
+                    cancelButtonText: 'Cancelar'
+                });
+
+                if (result.isConfirmed) {
+                    try {
+                        const response = await fetch(`/api/events/${eventId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || 'Error al eliminar el evento.');
+                        }
+
+                        await response.json(); // Consume the response
+                        Swal.fire('¡Borrado!', 'El evento ha sido eliminado.', 'success');
+                        eventsOfDayModal.classList.add('hidden'); // Hide the modal after deletion
+                        renderView(); // Re-render calendar to update events
+                    } catch (error) {
+                        console.error('Error deleting event:', error);
+                        Swal.fire('Error', error.message, 'error');
+                    }
+                }
+            }
+
+
+            // --- Event Listeners ---
+            prevMonthBtn.addEventListener('click', () => {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                renderView();
+            });
+
+            nextMonthBtn.addEventListener('click', () => {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                renderView();
+            });
+
+            yearSelect.addEventListener('change', (e) => {
+                currentYear = parseInt(e.target.value);
+                renderView();
+            });
+
+            monthSelect.addEventListener('change', (e) => {
+                currentMonth = parseInt(e.target.value) - 1; // Month is 0-indexed
+                renderView();
+            });
+
+            viewSelect.addEventListener('change', renderView); // Listen for view changes
+
+            addEventBtn.addEventListener('click', () => {
+                // Reset form for new event
+                newEventForm.reset();
+                eventModal.querySelector('h2').textContent = 'Nuevo Evento';
+                newEventForm.querySelector('button[type="submit"]').textContent = 'Guardar Evento';
+                const eventIdInput = document.getElementById('event-id');
+                if (eventIdInput) eventIdInput.remove(); // Remove hidden ID input for new events
+
+                // Pre-fill date if a day was clicked (though not strictly necessary for general add button)
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                document.getElementById('event-date').value = `${year}-${month}-${day}`;
+
+
+                eventModal.classList.remove('hidden');
+            });
+
+            closeEventModalBtn.addEventListener('click', () => {
+                eventModal.classList.add('hidden');
+            });
+
+            // Close modal when clicking outside
+            eventModal.addEventListener('click', (e) => {
+                if (e.target === eventModal) {
+                    eventModal.classList.add('hidden');
+                }
+            });
+
+            closeEventsOfDayModalBtn.addEventListener('click', () => {
+                eventsOfDayModal.classList.add('hidden');
+            });
+
+            eventsOfDayModal.addEventListener('click', (e) => {
+                if (e.target === eventsOfDayModal) {
+                    eventsOfDayModal.classList.add('hidden');
+                }
+            });
+
+
+            // Handle new event form submission
+            newEventForm.addEventListener('submit', async function(event) {
+                event.preventDefault(); // Prevent default form submission
+
+                const date = document.getElementById('event-date').value;
+                const time = document.getElementById('event-time').value;
+                const title = document.getElementById('event-title').value;
+                const description = document.getElementById('event-description').value;
+                const eventId = document.getElementById('event-id') ? document.getElementById('event-id').value : null;
+
+                // Basic client-side validation
+                if (!date || !title) {
+                    Swal.fire('Error', 'La fecha y el título son obligatorios.', 'error');
+                    return;
+                }
+
+                const eventData = {
+                    date: date,
+                    time: time || null, // Send null if time is empty
+                    title: title,
+                    description: description || null // Send null if description is empty
+                };
+
+                const method = eventId ? 'PUT' : 'POST';
+                const url = eventId ? `/api/events/${eventId}` : '/api/events';
+
+                try {
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(eventData)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `Error al ${eventId ? 'actualizar' : 'guardar'} el evento.`);
+                    }
+
+                    const result = await response.json();
+                    Swal.fire('¡Éxito!', result.message, 'success');
+                    eventModal.classList.add('hidden'); // Hide the form modal
+                    newEventForm.reset(); // Clear the form
+                    renderView(); // Re-render the calendar to show the new/updated event
+                } catch (error) {
+                    console.error('Error submitting event:', error);
+                    Swal.fire('Error', error.message, 'error');
+                }
+            });
+
+            // Initial rendering
+            populateYearSelect();
+            renderView(); // Render calendar based on selected view (initially month)
+        });
+    </script>
+
+    <style>
+        /* Estilos generales para el cuerpo y el contenedor */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+        }
+
+        h1 {
+            color: #1a202c;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        /* Controles de vista y navegación */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+
+        .controls select {
+            padding: 0.6rem 1rem;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #edf2f7;
+            color: #2d3748;
+            appearance: none; /* Elimina la flecha predeterminada del select */
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cpath%20fill%3D%22%234A5568%22%20d%3D%22M208%2096H48c-8.837%200-16%207.163-16%2016v32c0%208.837%207.163%2016%2016%2016h160c8.837%200%2016-7.163%2016-16v-32c0-8.837-7.163-16-16-16z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 0.7em top 50%, 0 0;
+            background-size: 0.65em auto, 100%;
+        }
+
+        .month-navigation button {
+            padding: 0.75rem 1.25rem;
+            background-color: #4299e1; /* Tailwind blue-500 */
+            color: white;
+            border: none;
+            border-radius: 9999px; /* rounded-full */
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .month-navigation button:hover {
+            background-color: #3182ce; /* Tailwind blue-600 */
+            transform: translateY(-2px);
+        }
+
+        .month-navigation span {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #2d3748;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        /* Cuadrícula del calendario */
+        #calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .weekday-name {
+            text-align: center;
+            font-weight: bold;
+            color: #4a5568;
+            padding: 0.5rem;
+            background-color: #e2e8f0;
+            border-radius: 6px;
+        }
+
+        .calendar-day {
+            min-height: 100px; /* Suficiente espacio para el contenido */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+            padding: 0.75rem;
+            font-weight: 500;
+            color: #2d3748;
+            background-color: #fdfdfd;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.2s ease-in-out;
+            position: relative; /* Para posicionar el marcador de evento */
+            cursor: pointer; /* Para indicar que son clicables */
+        }
+        
+        .calendar-day:hover {
+            background-color: #ebf8ff; /* blue-50 */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .calendar-day.bg-blue-200 { /* Estilo para el día actual */
+            background-color: #bfdbfe; /* blue-200 */
+            border-color: #2563eb; /* blue-600 */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .text-gray-400 {
+            color: #a0aec0;
+        }
+
+        .event-marker {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 8px;
+            background-color: #ef4444; /* red-500 */
+            border-radius: 50%;
+        }
+
+        /* Estilos del botón flotante */
+        .floating-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background-color: #10b981; /* green-500 */
+            color: white;
+            padding: 1rem;
+            border-radius: 9999px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .floating-btn:hover {
+            background-color: #059669; /* green-600 */
+            transform: translateY(-3px);
+        }
+
+        .floating-btn i {
+            font-size: 1.5rem;
+        }
+
+        /* Estilos del modal (base de Tailwind hidden) */
+        .modal {
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .modal:not(.hidden) {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            position: relative;
+            animation: fadeInScale 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Animación para el modal */
+        .animate-scale-in {
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-content h2, .modal-content h3 {
+            color: #1a202c;
+        }
+
+        .modal-content label {
+            color: #4a5568;
+        }
+
+        .modal-content input[type="date"],
+        .modal-content input[type="time"],
+        .modal-content input[type="text"],
+        .modal-content textarea {
+            border: 1px solid #cbd5e0;
+            padding: 0.75rem;
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .modal-content input:focus,
+        .modal-content textarea:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5); /* blue-500 with 50% opacity */
+        }
+
+        .modal-content button[type="submit"] {
+            background-color: #4299e1;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .modal-content button[type="submit"]:hover {
+            background-color: #3182ce;
+        }
+
+        /* Estilos para la lista de eventos del día */
+        #events-list-of-day li {
+            background-color: #f7fafc; /* gray-50 */
+            border: 1px solid #e2e8f0; /* gray-200 */
+            margin-bottom: 0.75rem;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        #events-list-of-day li:last-child {
+            margin-bottom: 0;
+        }
+
+        .events-list-of-day .event-time {
+            font-size: 0.9em;
+            color: #718096; /* gray-600 */
+        }
+    </style>
 {% endblock %}

@@ -16,8 +16,9 @@ import re # Importar el módulo de expresiones regulares
 from bs4 import BeautifulSoup # Importar BeautifulSoup para parsear HTML
 
 # Importar db y los modelos Nota y User desde models.py
-from models import db, Nota, User # ¡CORRECCIÓN AQUÍ: Agregado 'User'!
-from flask_wtf.csrf import generate_csrf
+from models import db, Nota, User 
+# generate_csrf ya no es necesario aquí si CSRFProtect está configurado en app.py
+# from flask_wtf.csrf import generate_csrf 
 from reportlab.lib.units import inch
 from flask import send_file
 
@@ -45,9 +46,8 @@ def ver_notas():
     pastel_color = generate_pastel_color()
     # Asegúrate de que solo se muestran las notas del usuario actual
     user_notes = Nota.query.filter_by(usuario_id=current_user.id).order_by(Nota.fecha_creacion.desc()).all()
-    # Generar un token CSRF para el botón de eliminar, si es necesario, o manejarlo con un formulario separado
-    csrf_token = generate_csrf()
-    return render_template('ver_notas.html', user_notes=user_notes, pastel_color=pastel_color, csrf_token=csrf_token)
+    # No es necesario pasar csrf_token aquí, Flask-WTF lo hace disponible automáticamente
+    return render_template('ver_notas.html', user_notes=user_notes, pastel_color=pastel_color)
 
 @notas_bp.route('/crear_nota', methods=['GET', 'POST'])
 @login_required
@@ -65,7 +65,8 @@ def crear_nota():
         db.session.commit()
         flash('¡Nota creada exitosamente!', 'success')
         return redirect(url_for('notas.ver_notas'))
-    return render_template('crear_notas.html', form=form, pastel_color=pastel_color, csrf_token=generate_csrf())
+    # No es necesario pasar csrf_token aquí
+    return render_template('crear_notas.html', form=form, pastel_color=pastel_color)
 
 @notas_bp.route('/editar_nota/<int:nota_id>', methods=['GET', 'POST'])
 @login_required
@@ -87,10 +88,8 @@ def editar_nota(nota_id):
         flash('¡Nota actualizada exitosamente!', 'success')
         return redirect(url_for('notas.ver_notas'))
     
-    # Cuando se carga la página por primera vez (GET request),
-    # el 'descripcion' del formulario se llena con el contenido de la DB,
-    # y luego en el HTML se renderiza con |safe
-    return render_template('editar_notas.html', form=form, nota=note_to_edit, pastel_color=pastel_color, csrf_token=generate_csrf())
+    # No es necesario pasar csrf_token aquí
+    return render_template('editar_notas.html', form=form, nota=note_to_edit, pastel_color=pastel_color)
 
 
 @notas_bp.route('/eliminar_nota/<int:nota_id>', methods=['POST'])
@@ -117,8 +116,8 @@ def notas_detail(nota_id):
         flash('No tienes permiso para ver esta nota.', 'danger')
         return redirect(url_for('notas.ver_notas'))
     
-    csrf_token = generate_csrf()
-    return render_template('notas_detail.html', nota=nota, pastel_color=pastel_color, csrf_token=csrf_token)
+    # No es necesario pasar csrf_token aquí
+    return render_template('notas_detail.html', nota=nota, pastel_color=pastel_color)
 
 
 @notas_bp.route('/exportar_pdf/<int:nota_id>')

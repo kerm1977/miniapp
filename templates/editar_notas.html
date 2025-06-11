@@ -181,8 +181,9 @@
         </div>
 
         <form method="POST" action="{{ url_for('notas.editar_nota', nota_id=nota.id) }}">
-            {# CORRECCIÓN: Aquí también se usa csrf_token sin paréntesis #}
-            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            {# Flask-WTF ya inserta el campo CSRF automáticamente con {{ form.csrf_token }} #}
+            {{ form.csrf_token }}
+            {# ELIMINADO: <input type="hidden" name="csrf_token" value="{{ csrf_token }}"> #}
             <div class="form-group">
                 <label for="titulo">Título</label>
                 {{ form.titulo(class_="w-full p-2 border border-gray-300 rounded-md", id="titulo") }}
@@ -371,11 +372,11 @@
                         const input = document.createElement('input');
                         input.type = 'checkbox';
                         const span = document.createElement('span');
-                        span.textContent = 'Nueva tarea';
+                        span.textContent = 'Nueva tarea'; 
 
                         newLi.appendChild(input);
                         newLi.appendChild(span);
-
+                        
                         currentLi.parentNode.insertBefore(newLi, currentLi.nextSibling);
 
                         const newRange = document.createRange();
@@ -385,22 +386,22 @@
                         selection.addRange(newRange);
 
                     } else {
-                        document.execCommand('insertUnorderedList');
-                        const newlyInsertedUl = editor.querySelector('ul:not(.checkbox-list)');
+                        document.execCommand('insertUnorderedList'); 
+                        const newlyInsertedUl = editor.querySelector('ul:not(.checkbox-list)'); 
                         if(newlyInsertedUl){
                             newlyInsertedUl.classList.add('checkbox-list');
                             const firstLi = newlyInsertedUl.querySelector('li');
                             if(firstLi){
                                 const originalContent = firstLi.innerHTML;
-                                firstLi.innerHTML = '';
+                                firstLi.innerHTML = ''; 
                                 const input = document.createElement('input');
                                 input.type = 'checkbox';
                                 const span = document.createElement('span');
-                                span.innerHTML = originalContent;
+                                span.innerHTML = originalContent; 
 
                                 firstLi.appendChild(input);
                                 firstLi.appendChild(span);
-
+                                
                                 const newRange = document.createRange();
                                 newRange.setStart(span.firstChild, span.firstChild.length);
                                 newRange.collapse(true);
@@ -419,23 +420,27 @@
             document.getElementById('hiddenDescription').value = document.getElementById('descriptionEditor').innerHTML;
         }
 
-        // Función para exportar a JPG
-        function exportToJpg(noteId) {
+        // Función para exportar a JPG (en editar_notas.html, esta función no se usa directamente para el guardado)
+        function exportToJpg(noteId) { // noteId se pasa como argumento, pero no es la nota.id
             const editorElement = document.getElementById('descriptionEditor');
             html2canvas(editorElement, {
-                scale: 2, // Aumenta la escala para una mejor calidad
-                useCORS: true // Importante si hay imágenes de diferentes dominios
+                scale: 2, 
+                useCORS: true 
             }).then(canvas => {
-                const imgData = canvas.toDataURL('image/jpeg', 0.9); // 0.9 es la calidad JPG
+                const imgData = canvas.toDataURL('image/jpeg', 0.9); 
                 const link = document.createElement('a');
-                link.download = `nota_${noteId}.jpg`;
+                link.download = `nota_${noteId}.jpg`; // Usaría el noteId que se pasa, no el de la nota actual
                 link.href = imgData;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡JPG Exportado!',
+                    text: 'La nota se ha exportado como JPG correctamente.'
+                });
             }).catch(error => {
                 console.error("Error al generar JPG:", error);
-                // Usar SweetAlert2 en lugar de alert()
                 Swal.fire({
                     icon: 'error',
                     title: 'Error al exportar JPG',
@@ -443,6 +448,7 @@
                 });
             });
         }
+
 
         // Para mantener el color pastel aleatorio en cada carga de página
         document.addEventListener('DOMContentLoaded', () => {

@@ -321,7 +321,7 @@
                             <i class="fas fa-eye"></i> Ver Detalle
                         </a>
                         <form action="{{ url_for('notas.eliminar_nota', nota_id=nota.id) }}" method="POST" class="delete-form" style="display:inline;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> {# CORRECCIÓN AQUÍ #}
                             <button type="submit" class="btn btn-delete">
                                 <i class="fas fa-trash-alt"></i> Eliminar
                             </button>
