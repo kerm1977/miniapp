@@ -201,7 +201,7 @@ def detalle_lista(lista_id):
                 flash('Por favor, selecciona un contacto existente o introduce los datos de un contacto manual.', 'danger')
             return redirect(url_for('abonos.detalle_lista', lista_id=lista_id))
         
-        # Lógica para agregar abono
+        # Lógica para agregar abono (se agregó la validación del form_abono.submit.data)
         if form_abono.submit.data and form_abono.validate_on_submit():
             contacto_actividad_id = request.form.get('contacto_actividad_id_for_abono') # Obtener el ID del contacto al que se le agrega el abono
             monto_abono = form_abono.monto.data
@@ -210,7 +210,7 @@ def detalle_lista(lista_id):
             if contacto_actividad and contacto_actividad.lista_actividad.usuario_id == current_user.id:
                 nuevo_abono = Abono(
                     contacto_actividad_id=contacto_actividad.id,
-                    monto_abono=monto_abono # CORRECCIÓN: Usar monto_abono en lugar de monto
+                    monto_abono=monto_abono 
                 )
                 db.session.add(nuevo_abono)
                 db.session.commit()
@@ -267,7 +267,7 @@ def editar_lista(lista_id):
             lista.distancia = form.distancia.data
             lista.descripcion = form.descripcion.data
             lista.incluye = form.incluye.data
-            instrucciones = form.instrucciones.data
+            lista.instrucciones = form.instrucciones.data # Corregido: antes faltaba asignar
             lista.recomendaciones = form.recomendaciones.data
             
             db.session.commit()
@@ -328,7 +328,7 @@ def actualizar_estado_contacto(contacto_actividad_id):
         return jsonify({'success': True, 'message': 'Estado actualizado.'})
     return jsonify({'success': False, 'message': 'Estado inválido.'}), 400
 
-@abonos_bp.route('/ver_detalle_contacto_abonos/<int:contacto_actividad_id>')
+@abonos_bp.route('/ver_detalle_contacto_abonos/<int:contacto_actividad_id>', methods=['GET', 'POST']) # AÑADIDO 'POST' AQUÍ
 @login_required
 def ver_detalle_contacto_abonos(contacto_actividad_id):
     contacto_actividad = ContactoActividad.query.get_or_404(contacto_actividad_id)
@@ -338,8 +338,25 @@ def ver_detalle_contacto_abonos(contacto_actividad_id):
         flash('No tienes permiso para ver los detalles de este contacto.', 'danger')
         return redirect(url_for('abonos.ver_lista')) # O a la lista de actividades
 
-    # Obtener el total de abonos para este contacto
-    total_abonado = sum(abono.monto_abono for abono in contacto_actividad.abonos) # CORRECCIÓN: Usar monto_abono
+    form_abono = AbonoForm()
+
+    # Lógica para agregar abono cuando se envía el formulario desde esta misma página
+    if request.method == 'POST' and form_abono.validate_on_submit():
+        monto_abono = form_abono.monto.data
+        
+        nuevo_abono = Abono(
+            contacto_actividad_id=contacto_actividad.id,
+            monto_abono=monto_abono 
+        )
+        db.session.add(nuevo_abono)
+        db.session.commit()
+        flash('Abono registrado exitosamente!', 'success')
+        # Redirigir para evitar reenvío de formulario y actualizar la página
+        return redirect(url_for('abonos.ver_detalle_contacto_abonos', contacto_actividad_id=contacto_actividad.id))
+
+
+    # Obtener el total de abonos para este contacto (se recalcula después de posible POST)
+    total_abonado = sum(abono.monto_abono for abono in contacto_actividad.abonos) 
     
     # Obtener el precio total de la actividad asociada
     precio_total_actividad = contacto_actividad.lista_actividad.precio_actividad
@@ -347,7 +364,6 @@ def ver_detalle_contacto_abonos(contacto_actividad_id):
     # Calcular el saldo pendiente
     saldo_pendiente = precio_total_actividad - total_abonado
 
-    form_abono = AbonoForm()
     return render_template(
         'detalle_contacto_abonos.html',
         contacto_actividad=contacto_actividad,

@@ -27,6 +27,8 @@ from PIL import Image as PILImage # Importar Pillow para convertir a JPG
 import fitz # Importar PyMuPDF para manejar PDFs (necesario para convertir a JPG)
 from flask_login import UserMixin, LoginManager, login_user, logout_user, login_required, current_user # Importar LoginManager
 
+
+
 # Importar db y los modelos desde models.py
 from models import db, User, Contacto, Factura, Event, Evento, GestorProyecto, Info, ListaActividad, ContactoActividad, Abono # Asegúrate de que Factura y Evento estén importados y AHORA los nuevos modelos
 
@@ -63,7 +65,7 @@ UPLOAD_FOLDER = os.path.join('static', 'uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # Nuevas extensiones permitidas para el reproductor multimedia
 app.config['ALLOWED_MEDIA_EXTENSIONS'] = {'mp3', 'mp4', 'wma', 'wmv', 'jpg', 'jpeg', 'png', 'pdf'} # <-- Nuevas extensiones para multimedia
-
+csrf = CSRFProtect(app) # <--- Esta línea es esencial y debe estar presente
 
 # Asegurarse de que la carpeta de subidas exista
 if not os.path.exists(UPLOAD_FOLDER):
@@ -2111,3 +2113,9 @@ if __name__ == '__main__':
         # git clone https://github.com/kerm1977/MI_APP_FLASK.git
         # mysql> DROP DATABASE kenth1977$db; PYTHONANYWHATE
 # -----------------------
+
+# del db.db
+# rmdir /s /q migrations
+# flask db init
+# flask db migrate -m "Reinitial migration with all correct models"
+# flask db upgrade

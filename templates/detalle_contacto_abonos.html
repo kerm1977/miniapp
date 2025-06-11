@@ -1,0 +1,165 @@
+<!-- templates/detalle_contacto_abonos.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-8">
+            <div class="card shadow-lg p-4 rounded-3 border-0">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4 text-primary fw-bold">Detalle de Abonos para: <br>
+                        {{ contacto_actividad.get_nombre_completo() }}
+                    </h2>
+                    <h5 class="text-center text-muted mb-4">
+                        <i class="fas fa-calendar-alt me-2"></i> Actividad: <a href="{{ url_for('abonos.detalle_lista', lista_id=contacto_actividad.lista_actividad.id) }}" class="text-decoration-none">{{ contacto_actividad.lista_actividad.nombre_actividad }}</a>
+                    </h5>
+
+                    <div class="row mb-4 text-center">
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded-3 bg-light">
+                                <h6 class="text-muted">Precio de Actividad</h6>
+                                <p class="fs-4 fw-bold text-success">₡{{ "%.2f"|format(precio_total_actividad) }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded-3 bg-light">
+                                <h6 class="text-muted">Total Abonado</h6>
+                                <p class="fs-4 fw-bold text-info">₡{{ "%.2f"|format(total_abonado) }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded-3 {% if saldo_pendiente > 0 %}bg-warning{% else %}bg-success{% endif %}">
+                                <h6 class="text-white">Saldo Pendiente</h6>
+                                <p class="fs-4 fw-bold text-white">₡{{ "%.2f"|format(saldo_pendiente) }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Formulario para agregar abono -->
+                    <h4 class="mb-3">Registrar Nuevo Abono</h4>
+                    <form method="POST" class="mb-5">
+                        {{ form_abono.csrf_token }}
+                        <input type="hidden" name="contacto_actividad_id_for_abono" value="{{ contacto_actividad.id }}">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-6">
+                                {{ form_abono.monto.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">₡</span>
+                                    {{ form_abono.monto(class="form-control", placeholder="Ej: 5000.00") }}
+                                </div>
+                                {% if form_abono.monto.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form_abono.monto.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 d-grid">
+                                {{ form_abono.submit(class="btn btn-primary") }}
+                            </div>
+                        </div>
+                        {% if form_abono.errors and not form_abono.monto.errors %} {# Show general errors if any #}
+                            <div class="alert alert-danger mt-3">
+                                {% for field, errors in form_abono.errors.items() %}
+                                    {% for error in errors %}
+                                        <li>{{ form_abono[field].label.text }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </form>
+
+                    <hr class="my-4">
+
+                    <!-- Historial de Abonos -->
+                    <h4 class="mb-3">Historial de Abonos (Total: {{ contacto_actividad.abonos|length }})</h4>
+                    {% if contacto_actividad.abonos %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Monto</th>
+                                        <th scope="col">Fecha del Abono</th>
+                                        <th scope="col">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for abono in contacto_actividad.abonos | sort(attribute='fecha_abono', reverse=true) %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>₡{{ "%.2f"|format(abono.monto_abono) }}</td>
+                                        <td>{{ abono.fecha_abono.strftime('%d-%m-%Y %H:%M') }}</td>
+                                        <td>
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmDeleteAbono({{ abono.id }}, '₡{{ "%.2f"|format(abono.monto_abono) }}')">
+                                                <i class="fas fa-trash-alt me-1"></i> Borrar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info text-center" role="alert">
+                            No hay abonos registrados para este participante.
+                        </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <a href="{{ url_for('abonos.detalle_lista', lista_id=contacto_actividad.lista_actividad.id) }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i> Volver al Detalle de Actividad
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SweetAlert2 y scripts JS para funcionalidades dinámicas -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function confirmDeleteAbono(abonoId, montoAbono) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: `¡Estás a punto de borrar el abono de ${montoAbono}! Esta acción es irreversible.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, borrarlo',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Crear un formulario dinámico para enviar la solicitud POST
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/eliminar_abono/${abonoId}`;
+
+                // --- INICIO DE LA CORRECCIÓN ---
+                // Obtener el valor del token CSRF de la meta tag en base.html
+                const csrfTokenElement = document.querySelector('meta[name="csrf-token"]');
+                if (csrfTokenElement) {
+                    const csrfToken = csrfTokenElement.content; // Obtener el valor del contenido
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'csrf_token'; // El nombre del campo que Flask-WTF espera
+                    hiddenInput.value = csrfToken; // Asignar el valor del token
+                    form.appendChild(hiddenInput);
+                } else {
+                    console.error("Meta tag 'csrf-token' no encontrada. La protección CSRF podría fallar.");
+                }
+                // --- FIN DE LA CORRECCIÓN ---
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+</script>
+{% endblock %}
