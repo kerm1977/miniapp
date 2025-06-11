@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for, request, flash, jso
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, SelectField, FileField, TextAreaField, PasswordField, BooleanField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Regexp, Optional, NumberRange
-from flask_wtf.csrf import generate_csrf
+from flask_wtf.csrf import generate_csrf, CSRFProtect # Importar CSRFProtect
 from flask_wtf.file import FileField, FileAllowed
 from werkzeug.utils import secure_filename
 import os
@@ -28,7 +28,7 @@ import fitz # Importar PyMuPDF para manejar PDFs (necesario para convertir a JPG
 from flask_login import UserMixin, LoginManager, login_user, logout_user, login_required, current_user # Importar LoginManager
 
 # Importar db y los modelos desde models.py
-from models import db, User, Contacto, Factura, Event, Evento, GestorProyecto, Info # Asegúrate de que Factura y Evento estén importados
+from models import db, User, Contacto, Factura, Event, Evento, GestorProyecto, Info, ListaActividad, ContactoActividad, Abono # Asegúrate de que Factura y Evento estén importados y AHORA los nuevos modelos
 
 #Importar Funciones del Invetarios
 from inventario import inventario_bp
@@ -51,7 +51,8 @@ from gestor import gestor_bp, configure_gestor_uploads # <-- IMPORTAR EL GESTOR 
 # Importar el blueprint de info
 from info import info_bp # Importa el blueprint de info para el nuevo CRUD
 
-
+# Importar el blueprint de abonos y su función de configuración
+from lista_abonos import abonos_bp, configure_abonos_uploads # <-- NUEVA LÍNEA
 
 app = Flask(__name__)
 
@@ -81,6 +82,8 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = "Por favor, inicia sesión para acceder a esta página."
 
+# Inicializar CSRFProtect AQUI
+csrf = CSRFProtect(app) # <-- ESTA ES LA LÍNEA CRÍTICA A AÑADIR
 
 def is_authenticated(self):
     return True
@@ -94,12 +97,13 @@ app.register_blueprint(notas_bp)
 app.register_blueprint(player_bp, url_prefix='/player') # <-- Registrar el blueprint del reproductor
 app.register_blueprint(gestor_bp, url_prefix='/proyectos') # <-- REGISTRAR EL BLUEPRINT DEL GESTOR DE PROYECTOS
 app.register_blueprint(info_bp, url_prefix='/info') # REGISTRAR EL BLUEPRINT DE INFO
-
+app.register_blueprint(abonos_bp) # <-- NUEVA LÍNEA
 
 # CAMBIO CLAVE AQUÍ: Llama a la función de configuración de la carpeta de subida de rifas
 with app.app_context(): # Es buena práctica llamar a esto dentro de un contexto de aplicación
     configure_rifas_uploads(app)
     configure_gestor_uploads(app) # <-- LLAMAR LA FUNCIÓN DE CONFIGURACIÓN DEL GESTOR DE PROYECTOS
+    configure_abonos_uploads(app) # <-- NUEVA LÍNEA
 
 
 # FORMS
@@ -1437,6 +1441,7 @@ def exportar_contacto_pdf(id):
         # Usar getattr para acceder a atributos que pueden no existir
         # y proporcionar un valor predeterminado si no existen
         attr_value = getattr(contacto, value, None)
+        data['Campo'].append(label)
         if attr_value is not None and attr_value != '': # También considera cadenas vacías como no existentes
             # Formatear fechas si son objetos date o datetime
             if isinstance(attr_value, (date, datetime)):

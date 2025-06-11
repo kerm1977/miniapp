@@ -1,0 +1,241 @@
+<!-- templates/detalle_lista.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-9">
+            <div class="card shadow-lg p-4 rounded-3 border-0">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4 text-primary fw-bold">{{ lista.nombre_actividad }}</h2>
+
+                    <div class="row mb-4">
+                        <div class="col-md-4 text-center">
+                            {% if lista.avatar_actividad %}
+                                <img src="{{ url_for('static', filename='uploads/' + lista.avatar_actividad) }}" class="img-fluid rounded-circle shadow-sm" alt="Avatar de la Actividad" style="width: 150px; height: 150px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center rounded-circle" style="width: 150px; height: 150px;">
+                                    <i class="fas fa-mountain fa-5x text-muted"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <h4 class="mb-3">Detalles de la Actividad</h4>
+                            <p class="mb-1"><i class="fas fa-calendar-alt me-2 text-info"></i> <strong>Fecha:</strong> {{ lista.fecha_actividad.strftime('%d-%m-%Y') }}</p>
+                            <p class="mb-1"><i class="fas fa-money-bill-wave me-2 text-info"></i> <strong>Precio:</strong> ₡{{ "%.2f"|format(lista.precio_actividad) }}</p>
+                            <p class="mb-1"><i class="fas fa-users me-2 text-info"></i> <strong>Capacidad:</strong> {{ lista.capacidad }}</p>
+                            <p class="mb-1"><i class="fas fa-hiking me-2 text-info"></i> <strong>Dificultad:</strong> {{ lista.dificultad_actividad }}</p>
+                            <p class="mb-1"><i class="fas fa-clock me-2 text-info"></i> <strong>Hora de Salida:</strong> {{ lista.hora_salida.strftime('%H:%M') }}</p>
+                            <p class="mb-1"><i class="fas fa-map-marker-alt me-2 text-info"></i> <strong>Lugar de Salida:</strong> {{ lista.lugar_salida }}</p>
+                            <p class="mb-1"><i class="fas fa-route me-2 text-info"></i> <strong>Distancia:</strong> {{ lista.distancia or 'N/A' }}</p>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h4 class="mb-3">Descripción</h4>
+                    <p class="text-muted">{{ lista.descripcion or 'No hay descripción disponible.' }}</p>
+
+                    {% if lista.incluye %}
+                    <h4 class="mt-4 mb-3">Incluye</h4>
+                    <p class="text-muted">{{ lista.incluye }}</p>
+                    {% endif %}
+
+                    {% if lista.instrucciones %}
+                    <h4 class="mt-4 mb-3">Instrucciones</h4>
+                    <p class="text-muted">{{ lista.instrucciones }}</p>
+                    {% endif %}
+
+                    {% if lista.recomendaciones %}
+                    <h4 class="mt-4 mb-3">Recomendaciones</h4>
+                    <p class="text-muted">{{ lista.recomendaciones }}</p>
+                    {% endif %}
+
+                    <hr class="my-4">
+
+                    <!-- Sección para añadir contactos a la lista -->
+                    <h4 class="mb-3">Agregar Contactos a la Lista</h4>
+                    <form method="POST" class="mb-4">
+                        {{ form_add_contact.csrf_token }}
+                        <div class="row align-items-end mb-3">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                {{ form_add_contact.contacto_existente_id.label(class="form-label") }}
+                                {{ form_add_contact.contacto_existente_id(class="form-select") }}
+                                {% if form_add_contact.contacto_existente_id.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form_add_contact.contacto_existente_id.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 text-center d-flex align-items-center justify-content-center">
+                                <span class="text-muted fw-bold">O agregar manualmente:</span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                {{ form_add_contact.nombre_manual.label(class="form-label") }}
+                                {{ form_add_contact.nombre_manual(class="form-control", placeholder="Nombre") }}
+                            </div>
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                {{ form_add_contact.apellido_manual.label(class="form-label") }}
+                                {{ form_add_contact.apellido_manual(class="form-control", placeholder="Apellido") }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form_add_contact.telefono_manual.label(class="form-label") }}
+                                {{ form_add_contact.telefono_manual(class="form-control", placeholder="Teléfono") }}
+                            </div>
+                        </div>
+                        <div class="d-grid mt-3">
+                            {{ form_add_contact.submit(class="btn btn-primary") }}
+                        </div>
+                        {% if form_add_contact.errors %}
+                            <div class="alert alert-danger mt-3">
+                                {% for field, errors in form_add_contact.errors.items() %}
+                                    {% for error in errors %}
+                                        <li>{{ form_add_contact[field].label.text }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </form>
+
+                    <hr class="my-4">
+
+                    <!-- Lista de contactos ya añadidos a esta actividad -->
+                    <h4 class="mb-3">Participantes de la Actividad (Total: {{ contactos_en_lista|length }})</h4>
+                    {% if contactos_en_lista %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Nombre</th>
+                                        <th scope="col">Teléfono</th>
+                                        <th scope="col">Estado</th>
+                                        <th scope="col">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for contacto_act in contactos_en_lista %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>
+                                            {{ contacto_act.get_nombre_completo() }}
+                                            {% if contacto_act.contacto %}
+                                                <a href="{{ url_for('contacto_detalle', id=contacto_act.contacto.id) }}" class="btn btn-sm btn-outline-info ms-2" title="Ver detalles del Contacto"><i class="fas fa-eye"></i></a>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ contacto_act.get_telefono() }}</td>
+                                        <td>
+                                            <select class="form-select form-select-sm" onchange="updateContactoEstado({{ contacto_act.id }}, this.value)">
+                                                <option value="Pendiente" {% if contacto_act.estado == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+                                                <option value="Reservado" {% if contacto_act.estado == 'Reservado' %}selected{% endif %}>Reservado</option>
+                                                <option value="Cancelado" {% if contacto_act.estado == 'Cancelado' %}selected{% endif %}>Cancelado</option>
+                                            </select>
+                                        </td>
+                                        <td class="d-flex flex-wrap gap-2">
+                                            <a href="{{ url_for('abonos.ver_detalle_contacto_abonos', contacto_actividad_id=contacto_act.id) }}" class="btn btn-primary btn-sm rounded-pill"><i class="fas fa-hand-holding-usd me-1"></i> Ver Abonos</a>
+                                            <button type="button" class="btn btn-danger btn-sm rounded-pill" onclick="confirmDeleteContactoLista({{ contacto_act.id }}, '{{ contacto_act.get_nombre_completo() }}')"><i class="fas fa-trash-alt me-1"></i> Borrar</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning text-center" role="alert">
+                            No hay contactos añadidos a esta lista de actividad aún.
+                        </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ url_for('abonos.ver_lista') }}" class="btn btn-secondary"><i class="fas fa-arrow-left me-2"></i> Volver a Listas</a>
+                        <a href="{{ url_for('abonos.editar_lista', lista_id=lista.id) }}" class="btn btn-warning"><i class="fas fa-edit me-2"></i> Editar Actividad</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SweetAlert2 y scripts JS para funcionalidades dinámicas -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Función para actualizar el estado del contacto
+    function updateContactoEstado(contactoActividadId, nuevoEstado) {
+        Swal.fire({
+            title: '¿Confirmar cambio de estado?',
+            text: `¿Quieres cambiar el estado a "${nuevoEstado}"?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, cambiar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/actualizar_estado_contacto/${contactoActividadId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token() }}' // Asegúrate de que este token esté disponible
+                    },
+                    body: `estado=${nuevoEstado}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire('¡Actualizado!', data.message, 'success');
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'No se pudo actualizar el estado.', 'error');
+                });
+            } else {
+                // Si el usuario cancela, revertir el select al estado original (si fuera necesario)
+                // location.reload(); // Podría ser una opción si necesitas revertir el UI de inmediato
+            }
+        });
+    }
+
+    // Función para confirmar la eliminación de un contacto de la lista
+    function confirmDeleteContactoLista(contactoActividadId, nombreContacto) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: `¡Estás a punto de eliminar a "${nombreContacto}" de esta lista! Esta acción también eliminará todos los abonos asociados a este participante en esta actividad.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Crear un formulario dinámico para enviar la solicitud POST
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/borrar_contacto_lista/${contactoActividadId}`;
+
+                // Añadir token CSRF
+                const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                if (csrfToken) {
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'csrf_token';
+                    hiddenInput.value = csrfToken.content;
+                    form.appendChild(hiddenInput);
+                }
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+</script>
+{% endblock %}

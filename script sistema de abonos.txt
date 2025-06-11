@@ -1,0 +1,50 @@
+Explicación:
+hola tengo esta app en flask y necesito un crud que permita ir agregando listas de personas de la base contactos ya existentes o en caso de que no esté en la base de datos pueda agregarlo manualmente
+
+
+ a la par del nombre de la persona registrada debe haber un icono que me lleve ver más detalles del contacto y donde habrá un sistema de abonos cuando el contacto paga sin modifica pagos o abonos ya registrados
+
+
+Instrucción
+
+para esto necesito que toda la lógica quede en abonos.py y solo importar lo necesario en app.py si modificar absolutamente nada de lo existente...
+
+ahora para hacer esto necesito que el formulario de crear_lista.htm
+este va a contener un formulario con:
+Avatar de la Actividad
+Nombre de la actividad
+Fecha de la actividad 
+Precio de la actividad
+Capacidad: Select(12,14,17,28,31,42,45, Más de 45)
+Dificultad de la actividad (Iniciante, Paseo, Básico, Intermedio, Avanzado, Técnico)
+Hora de Salida:
+Lugar de Salida: Select(Parque de Tres Ríos-Escuela, Parque de Tres Ríos-Cruz Roja, Parque de Tres Ríos-Las Letras, Plaza de Deportes San Diego, Iglesia San Diego de Alcalá)
+Precio:
+Distancia: 
+Descripción:
+Incluye:
+Instrucciones:
+Recomendaciones:
+autofecha de creado
+
+ver_lista.html
+Mostar los card creados dentro del formulario crear_lista.htm con un botón Además un botón de borrar con sweetalert y otro que vaya a  detalle_lista.html 
+
+detalle_lista.html mostrará todos los campos agregados mediante crear_lista.html pero también existirá un botón abajo de toda esa información que permita un botón para ir agregar contactos, estos contactos son de la base de datos y otro input que permita agregar con nombre apellido y teléfono en caso de que no exista en la ( bd.db contactos), a la par de cada contacto un botón de borrar y un select que diga Pendiente, Reservado, Cancelado  otro que diga ver más 
+
+
+al presionar ver más en detalle_lista.html  me va a llevar a ver la información del contacto y un sistema de abonos. Este tiene un botón que dice agregar abono, de usuario
+
+
+edita_lista.html permitirá editar la información agregada  desde crear_lista.htm 
+
+
+en resumen necesito
+
+lista_abonos.py 	<-- La lógica
+crear_lista.htm 	<-- vista
+ver_lista.html 		<-- vista
+detalle_lista.html 	<-- vista
+edita_lista.html 	<-- vista
+
+darme cada archivo uno por uno cada vez que te diga ok

@@ -66,6 +66,12 @@
                 <i class="fa-solid fa-info-circle"></i> {# Icono de información #}
             </a>
         </div>
+        {# Nuevo botón para Listas de Actividades y Abonos #}
+        <div class="magic-nav-button">
+            <a href="{{ url_for('abonos.ver_lista') }}"> {# Enlace para la lista de actividades con abonos #}
+                <i class="fa-solid fa-clipboard-list"></i> {# Icono de lista con portapapeles, puedes cambiarlo #}
+            </a>
+        </div>
         <div class="magic-nav-button">
             {% if current_user.is_authenticated %}
                 <a href="#" style="pointer-events: none; opacity: 0.2;">

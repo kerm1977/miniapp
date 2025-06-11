@@ -6,7 +6,7 @@ import enum
 
 db = SQLAlchemy()
 
-# MODELOS
+# MODELOS EXISTENTES
 class User(UserMixin, db.Model):
     __tablename__ = 'users' # Nombre de la tabla es 'users'
 
@@ -231,3 +231,72 @@ class Info(db.Model):
 
     def __repr__(self):
         return f'<Info {self.titulo}>'
+
+# --- NUEVOS MODELOS PARA LISTAS DE ACTIVIDADES Y ABONOS ---
+# Asegúrate de que estas clases estén COMPLETAS y CORRECTAMENTE ESCRITAS en tu models.py
+# ------------------------------------------------------------------------------------
+
+class ListaActividad(db.Model):
+    __tablename__ = 'lista_actividad'
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    avatar_actividad = db.Column(db.String(255), nullable=True)
+    nombre_actividad = db.Column(db.String(255), nullable=False)
+    fecha_actividad = db.Column(db.Date, nullable=False)
+    precio_actividad = db.Column(db.Numeric(10, 2), nullable=False)
+    capacidad = db.Column(db.String(50), nullable=False) # Cambiado a String para "Más de 45"
+    dificultad_actividad = db.Column(db.String(50), nullable=False)
+    hora_salida = db.Column(db.Time, nullable=False)
+    lugar_salida = db.Column(db.String(255), nullable=False)
+    distancia = db.Column(db.String(100), nullable=True)
+    descripcion = db.Column(db.Text, nullable=True)
+    incluye = db.Column(db.Text, nullable=True)
+    instrucciones = db.Column(db.Text, nullable=True)
+    recomendaciones = db.Column(db.Text, nullable=True)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relación con ContactoActividad, con cascada para eliminar contactos_actividad y sus abonos
+    contactos_actividad = db.relationship('ContactoActividad', backref='lista_actividad', lazy=True, cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f'<ListaActividad {self.nombre_actividad}>'
+
+class ContactoActividad(db.Model):
+    __tablename__ = 'contacto_actividad'
+    id = db.Column(db.Integer, primary_key=True)
+    lista_actividad_id = db.Column(db.Integer, db.ForeignKey('lista_actividad.id'), nullable=False)
+    contacto_id = db.Column(db.Integer, db.ForeignKey('contacto.id'), nullable=True) # Puede ser nulo si es manual
+    nombre_manual = db.Column(db.String(100), nullable=True)
+    apellido_manual = db.Column(db.String(100), nullable=True)
+    telefono_manual = db.Column(db.String(20), nullable=True)
+    estado = db.Column(db.String(50), default='Pendiente') # Pendiente, Reservado, Cancelado
+    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relación con el contacto original (si existe)
+    contacto = db.relationship('Contacto', backref=db.backref('actividades_apuntado', lazy=True))
+    # Relación con Abonos, con cascada para eliminar abonos asociados
+    abonos = db.relationship('Abono', backref='contacto_actividad', lazy=True, cascade="all, delete-orphan")
+
+    def get_nombre_completo(self):
+        if self.contacto:
+            return f"{self.contacto.nombre.title()} {self.contacto.primer_apellido.title() if self.contacto.primer_apellido else ''} {self.contacto.segundo_apellido.title() if self.contacto.segundo_apellido else ''}".strip()
+        return f"{self.nombre_manual.title()} {self.apellido_manual.title() if self.apellido_manual else ''}".strip()
+
+    def get_telefono(self):
+        if self.contacto:
+            return self.contacto.movil or self.contacto.telefono
+        return self.telefono_manual
+
+    def __repr__(self):
+        return f'<ContactoActividad {self.get_nombre_completo()} en Lista {self.lista_actividad_id}>'
+
+class Abono(db.Model):
+    __tablename__ = 'abonos'
+    id = db.Column(db.Integer, primary_key=True)
+    contacto_actividad_id = db.Column(db.Integer, db.ForeignKey('contacto_actividad.id'), nullable=False)
+    monto_abono = db.Column(db.Numeric(10, 2), nullable=False)
+    fecha_abono = db.Column(db.DateTime, default=datetime.utcnow)
+    notas = db.Column(db.Text, nullable=True)
+
+    def __repr__(self):
+        return f'<Abono {self.monto_abono} para {self.contacto_actividad_id}>'

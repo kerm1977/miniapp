@@ -1,0 +1,190 @@
+<!-- templates/edita_lista.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow-lg p-4 rounded-3 border-0">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4">Editar Lista de Actividad: <br><span class="text-primary fw-bold">{{ lista.nombre_actividad }}</span></h2>
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.csrf_token }}
+
+                        <div class="mb-3">
+                            <label class="form-label">Avatar Actual:</label>
+                            {% if lista.avatar_actividad %}
+                                <img src="{{ url_for('static', filename='uploads/' + lista.avatar_actividad) }}" class="img-fluid rounded-circle mb-2" alt="Avatar Actual" style="width: 80px; height: 80px; object-fit: cover;">
+                                <p class="text-muted"><small>Archivo actual: {{ lista.avatar_actividad }}</small></p>
+                            {% else %}
+                                <p class="text-muted">No hay avatar actual.</p>
+                            {% endif %}
+                            {{ form.avatar_actividad.label(class="form-label") }}
+                            {{ form.avatar_actividad(class="form-control") }}
+                            {% if form.avatar_actividad.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.avatar_actividad.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.nombre_actividad.label(class="form-label") }}
+                            {{ form.nombre_actividad(class="form-control") }}
+                            {% if form.nombre_actividad.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.nombre_actividad.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.fecha_actividad.label(class="form-label") }}
+                            {{ form.fecha_actividad(class="form-control", type="date") }}
+                            {% if form.fecha_actividad.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.fecha_actividad.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.precio_actividad.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text">₡</span>
+                                {{ form.precio_actividad(class="form-control") }}
+                            </div>
+                            {% if form.precio_actividad.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.precio_actividad.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.capacidad.label(class="form-label") }}
+                            {{ form.capacidad(class="form-select") }}
+                            {% if form.capacidad.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.capacidad.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.dificultad_actividad.label(class="form-label") }}
+                            {{ form.dificultad_actividad(class="form-select") }}
+                            {% if form.dificultad_actividad.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.dificultad_actividad.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.hora_salida.label(class="form-label") }}
+                            {{ form.hora_salida(class="form-control", type="time") }}
+                            {% if form.hora_salida.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.hora_salida.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.lugar_salida.label(class="form-label") }}
+                            {{ form.lugar_salida(class="form-select") }}
+                            {% if form.lugar_salida.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.lugar_salida.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.distancia.label(class="form-label") }}
+                            {{ form.distancia(class="form-control") }}
+                            {% if form.distancia.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.distancia.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.descripcion.label(class="form-label") }}
+                            {{ form.descripcion(class="form-control", rows="3") }}
+                            {% if form.descripcion.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.descripcion.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.incluye.label(class="form-label") }}
+                            {{ form.incluye(class="form-control", rows="3") }}
+                            {% if form.incluye.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.incluye.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.instrucciones.label(class="form-label") }}
+                            {{ form.instrucciones(class="form-control", rows="3") }}
+                            {% if form.instrucciones.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.instrucciones.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.recomendaciones.label(class="form-label") }}
+                            {{ form.recomendaciones(class="form-control", rows="3") }}
+                            {% if form.recomendaciones.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.recomendaciones.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                            <a href="{{ url_for('abonos.detalle_lista', lista_id=lista.id) }}" class="btn btn-secondary btn-lg">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
