@@ -1804,27 +1804,24 @@ def exportar_factura_pdf(id):
     story = []
 
     # --- Encabezado de la Empresa ---
-    story.append(Paragraph("<b>La Tribu Hiking</b>", styles['CompanyHeader']))
+    story.append(Paragraph("<b>La Tribu De Los Libres</b>", styles['CompanyHeader']))
     story.append(Paragraph("Dirección: San Diego, La Unión, Cartago, Costa Rica", styles['CompanyHeader']))
-    story.append(Paragraph("Teléfono: +506-86227500 | Email: lthikingcr@gmail.com", styles['CompanyHeader']))
+    story.append(Paragraph("Teléfono:86227500 | Email: lthikingcr@gmail.com", styles['CompanyHeader']))
+    story.append(Paragraph(f"<b>Realizado por:</b> {factura.realizado_por}", styles['CompanyHeader']))
     story.append(Spacer(1, 0.4 * inch))
 
     # --- Título de la Factura/Cotización ---
-    title_text = "FACTURA" 
+    title_text = (f"Comprobante {factura.numero_factura}")  
     story.append(Paragraph(title_text, styles['InvoiceTitle']))
     story.append(Spacer(1, 0.3 * inch))
 
     # --- Detalles de la Factura y del Cliente ---
     # SE USAN LOS OBJETOS 'factura' y 'cliente' REALES AQUÍ
     invoice_details_data = [
-        [Paragraph(f"<b>Número de {title_text}:</b> {factura.numero_factura}", styles['DetailText']),
-         Paragraph(f"<b>Fecha de Creación:</b> {factura.fecha_registro.strftime('%d-%m-%Y %H:%M')}", styles['DetailText'])],
-        [Paragraph(f"<b>Fecha de Emisión:</b> {factura.fecha_emision.strftime('%d-%m-%Y')}", styles['DetailText']),
-         Paragraph(f"<b>Realizado por:</b> {factura.realizado_por}", styles['DetailText'])],
-        [Paragraph(f"<b>Cliente:</b> {cliente.nombre} {cliente.primer_apellido or ''} {cliente.segundo_apellido or ''}", styles['DetailText']),
-         Paragraph(f"<b>Teléfono Cliente:</b> {cliente.movil or cliente.telefono or 'N/A'}", styles['DetailText'])],
-        [Paragraph(f"<b>Email Cliente:</b> {cliente.email or 'N/A'}", styles['DetailText']),
-         Paragraph(f"<b>SINPE:</b> {factura.sinpe}", styles['DetailText'])],
+        [Paragraph(f"<b>Caminante: {cliente.nombre} {cliente.primer_apellido or ''} {cliente.segundo_apellido or ''}</b>", styles['DetailText']),
+         Paragraph(f"<b>Teléfono Caminante:</b> {cliente.movil or cliente.telefono or 'N/A'}", styles['DetailText'])],
+        [Paragraph(f"<b>Fecha de Creación:</b> {factura.fecha_registro.strftime('%d-%m-%Y %H:%M')}", styles['DetailText']),
+        Paragraph(f"<b>Email Caminante:</b> {cliente.email or 'N/A'}", styles['DetailText'])],
     ]
     invoice_details_table = Table(invoice_details_data, colWidths=[4 * inch, 3 * inch])
     invoice_details_table.setStyle(TableStyle([
@@ -1952,27 +1949,25 @@ def exportar_factura_jpg(id):
     story = []
 
     # --- Encabezado de la Empresa ---
-    story.append(Paragraph("<b>La Tribu Hiking</b>", styles['CompanyHeader']))
+    story.append(Paragraph("<b>La Tribu De Los Libres</b>", styles['CompanyHeader']))
     story.append(Paragraph("Dirección: San Diego, La Unión, Cartago, Costa Rica", styles['CompanyHeader']))
-    story.append(Paragraph("Teléfono: +506-86227500 | Email: lthikingcr@gmail.com", styles['CompanyHeader']))
+    story.append(Paragraph("Teléfono: 86227500 | Email: lthikingcr@gmail.com", styles['CompanyHeader']))
+    story.append(Paragraph(f"<b>Realizado por:</b> {factura.realizado_por}", styles['CompanyHeader']))
     story.append(Spacer(1, 0.4 * inch))
 
     # --- Título de la Factura/Cotización ---
-    title_text = "FACTURA" 
+    title_text = (f"Comprobante {factura.numero_factura}") 
     story.append(Paragraph(title_text, styles['InvoiceTitle']))
     story.append(Spacer(1, 0.3 * inch))
 
     # --- Detalles de la Factura y del Cliente ---
     # SE USAN LOS OBJETOS 'factura' y 'cliente' REALES AQUÍ
     invoice_details_data = [
-        [Paragraph(f"<b>Número de {title_text}:</b> {factura.numero_factura}", styles['DetailText']),
-         Paragraph(f"<b>Fecha de Creación:</b> {factura.fecha_registro.strftime('%d-%m-%Y %H:%M')}", styles['DetailText'])],
-        [Paragraph(f"<b>Fecha de Emisión:</b> {factura.fecha_emision.strftime('%d-%m-%Y')}", styles['DetailText']),
-         Paragraph(f"<b>Realizado por:</b> {factura.realizado_por}", styles['DetailText'])],
-        [Paragraph(f"<b>Caminante:</b> {cliente.nombre} {cliente.primer_apellido or ''} {cliente.segundo_apellido or ''}", styles['DetailText']),
+        [Paragraph(f"<b>Caminante: {cliente.nombre} {cliente.primer_apellido or ''} {cliente.segundo_apellido or ''}</b>", styles['DetailText']),
          Paragraph(f"<b>Teléfono Caminante:</b> {cliente.movil or cliente.telefono or 'N/A'}", styles['DetailText'])],
-        [Paragraph(f"<b>Email Caminante:</b> {cliente.email or 'N/A'}", styles['DetailText']),
-         Paragraph(f"<b>SINPE:</b> {factura.sinpe}", styles['DetailText'])],
+        [Paragraph(f"<b>Fecha de Creación:</b> {factura.fecha_registro.strftime('%d-%m-%Y %H:%M')}", styles['DetailText']),
+        Paragraph(f"<b>Email Caminante:</b> {cliente.email or 'N/A'}", styles['DetailText'])],
+        
     ]
     invoice_details_table = Table(invoice_details_data, colWidths=[4 * inch, 3 * inch])
     invoice_details_table.setStyle(TableStyle([
@@ -2020,11 +2015,11 @@ def exportar_factura_jpg(id):
 
     table_data.append([
         Paragraph("Subtotal del servicio/producto:", styles['TableTotalText']),
-        Paragraph(f"¢{subtotal_calculado:,.2f}", styles['TableTotalText'])
+        Paragraph(f"¢{subtotal_calculado:,.0f}", styles['TableTotalText'])
     ])
     table_data.append([
         Paragraph("Monto de Impuesto:", styles['TableTotalText']),
-        Paragraph(f"¢{impuesto_monto_float:,.2f}", styles['TableTotalText'])
+        Paragraph(f"¢{impuesto_monto_float:,.0f}", styles['TableTotalText'])
     ])
 
     col_widths_concepts = [5.5 * inch, 2 * inch]
