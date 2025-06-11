@@ -32,6 +32,9 @@ from flask_login import UserMixin, LoginManager, login_user, logout_user, login_
 # Importar db y los modelos desde models.py
 from models import db, User, Contacto, Factura, Event, Evento, GestorProyecto, Info, ListaActividad, ContactoActividad, Abono # Asegúrate de que Factura y Evento estén importados y AHORA los nuevos modelos
 
+
+
+
 #Importar Funciones del Invetarios
 from inventario import inventario_bp
 
@@ -55,6 +58,8 @@ from info import info_bp # Importa el blueprint de info para el nuevo CRUD
 
 # Importar el blueprint de abonos y su función de configuración
 from lista_abonos import abonos_bp, configure_abonos_uploads # <-- NUEVA LÍNEA
+
+
 
 app = Flask(__name__)
 
@@ -281,7 +286,7 @@ class CrearFacturaForm(FlaskForm):
     nombre_actividad_etapa = StringField('Nombre de la actividad o Etapa', validators=[Optional()], render_kw={"class": "form-control"})
     costo_actividad = StringField('Costo de la actividad', validators=[Optional()], render_kw={"class": "form-control"})
     otras_descripcion = TextAreaField('Otras descripción', validators=[Optional()], render_kw={"class": "form-control"})
-    impuesto_monto = StringField('Monto de Impuesto (₡)', validators=[Optional(), Regexp(r'^\d+(\.\d{1,2})?$', message="El impuesto debe ser un número válido con hasta 2 decimales.")], render_kw={"class": "form-control"})
+    impuesto_monto = StringField('Monto de Impuesto (¢)', validators=[Optional(), Regexp(r'^\d+(\.\d{1,2})?$', message="El impuesto debe ser un número válido con hasta 2 decimales.")], render_kw={"class": "form-control"})
 
 
     submit = SubmitField('Guardar Factura', render_kw={"class": "btn btn-success rounded-pill"})
@@ -313,7 +318,7 @@ class EditarFacturaForm(FlaskForm):
     nombre_actividad_etapa = StringField('Nombre de la actividad o Etapa', render_kw={"class": "rounded-pill"})
     costo_actividad = StringField('Costo de la actividad', render_kw={"class": "rounded-pill"})
     otras_descripcion = TextAreaField('Otras descripción', render_kw={"class": "rounded-pill"})
-    impuesto_monto = StringField('Monto de Impuesto (₡)', validators=[Optional(), Regexp(r'^\d+(\.\d{1,2})?$', message="El impuesto debe ser un número válido con hasta 2 decimales.")], render_kw={"class": "form-control"})
+    impuesto_monto = StringField('Monto de Impuesto (¢)', validators=[Optional(), Regexp(r'^\d+(\.\d{1,2})?$', message="El impuesto debe ser un número válido con hasta 2 decimales.")], render_kw={"class": "form-control"})
 
 
     submit = SubmitField('Guardar Cambios', render_kw={"class": "btn btn-primary"})
@@ -1756,43 +1761,32 @@ def exportar_contacto_jpg(id):
 
     # return send_file(img_buffer, as_attachment=True, download_name=f'contacto_{contacto.id}.jpg', mimetype='image/jpeg')
 
-# --- Nuevas Rutas de Exportación para Facturas ---
-# --- FUNCIÓN PRINCIPAL PARA EXPORTAR FACTURA PDF (USANDO REPORTLAB) ---
-@app.route('/exportar_factura_pdf/<int:id>')
-# @login_required # Puedes añadir esto para proteger la ruta
-def exportar_factura_pdf(id):
-    # Nota: Aquí deberías obtener la 'factura' real de tu base de datos
-    # Por ejemplo: factura = Factura.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
-    # Para el ejemplo, simularemos el objeto factura con datos ficticios.
-    
-    # Datos simulados de la factura (REEMPLAZA CON LA LÓGICA DE TU BASE DE DATOS)
-    class DummyFactura:
-        def __init__(self, id_val):
-            self.id = id_val
-            self.interes = 'Factura' if id_val % 2 == 0 else 'Cotización'
-            self.numero_factura = f"INV-{id_val:04d}"
-            self.fecha_registro = datetime(2025, 6, 10, 10, 30)
-            self.fecha_emision = datetime(2025, 6, 10).date()
-            self.realizado_por = "Juan Pérez"
-            self.sinpe = "12345678"
-            self.descripcion = "Descripción general del servicio de hiking."
-            self.tipo_actividad = "Aventura"
-            self.nombre_actividad_etapa = "Sendero de la Montaña"
-            self.costo_actividad = 12000.00
-            self.otras_descripcion = "Incluye guía y equipo básico."
-            self.impuesto_monto = 1560.00 # 13% de 12000
-            self.monto_total = 13560.00 # 12000 + 1560
-            
-            class DummyCliente:
-                nombre = "María"
-                primer_apellido = "González"
-                segundo_apellido = "López"
-                movil = "8888-7777"
-                telefono = None
-                email = "maria.gonzalez@example.com"
-            self.cliente = DummyCliente()
 
-    factura = DummyFactura(id) # Reemplaza esto con tu consulta real a la base de datos
+
+
+
+
+
+
+
+
+
+
+
+# ===========================================================================
+# MODIFICACIÓN CLAVE #2: Funciones de exportación corregidas.
+# Se eliminan los DUMMYs y se usan los objetos de DB reales.
+# ===========================================================================
+
+@app.route('/exportar_factura_pdf/<int:id>')
+@login_required 
+def exportar_factura_pdf(id):
+    # OBTENER LA FACTURA Y EL CLIENTE REALES DE LA BASE DE DATOS
+    factura = Factura.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+    # MODIFICACIÓN CLAVE: Usar Contacto.query en lugar de Cliente.query
+    cliente = Contacto.query.get_or_404(factura.cliente_id) 
+
+    # NO HAY CÓDIGO DUMMY AQUÍ. TODO USA 'factura' y 'cliente' REALES.
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
@@ -1809,26 +1803,27 @@ def exportar_factura_pdf(id):
 
     story = []
 
-    # --- Encabezado de la Empresa (Placeholder) ---
+    # --- Encabezado de la Empresa ---
     story.append(Paragraph("<b>La Tribu Hiking</b>", styles['CompanyHeader']))
     story.append(Paragraph("Dirección: San Diego, La Unión, Cartago, Costa Rica", styles['CompanyHeader']))
     story.append(Paragraph("Teléfono: +506-86227500 | Email: lthikingcr@gmail.com", styles['CompanyHeader']))
     story.append(Spacer(1, 0.4 * inch))
 
     # --- Título de la Factura/Cotización ---
-    title_text = "FACTURA" if factura.interes == 'Factura' else "COTIZACIÓN"
+    title_text = "FACTURA" 
     story.append(Paragraph(title_text, styles['InvoiceTitle']))
     story.append(Spacer(1, 0.3 * inch))
 
     # --- Detalles de la Factura y del Cliente ---
+    # SE USAN LOS OBJETOS 'factura' y 'cliente' REALES AQUÍ
     invoice_details_data = [
         [Paragraph(f"<b>Número de {title_text}:</b> {factura.numero_factura}", styles['DetailText']),
          Paragraph(f"<b>Fecha de Creación:</b> {factura.fecha_registro.strftime('%d-%m-%Y %H:%M')}", styles['DetailText'])],
         [Paragraph(f"<b>Fecha de Emisión:</b> {factura.fecha_emision.strftime('%d-%m-%Y')}", styles['DetailText']),
          Paragraph(f"<b>Realizado por:</b> {factura.realizado_por}", styles['DetailText'])],
-        [Paragraph(f"<b>Cliente:</b> {factura.cliente.nombre} {factura.cliente.primer_apellido or ''} {factura.cliente.segundo_apellido or ''}", styles['DetailText']),
-         Paragraph(f"<b>Teléfono Cliente:</b> {factura.cliente.movil or factura.cliente.telefono or 'N/A'}", styles['DetailText'])],
-        [Paragraph(f"<b>Email Cliente:</b> {factura.cliente.email or 'N/A'}", styles['DetailText']),
+        [Paragraph(f"<b>Cliente:</b> {cliente.nombre} {cliente.primer_apellido or ''} {cliente.segundo_apellido or ''}", styles['DetailText']),
+         Paragraph(f"<b>Teléfono Cliente:</b> {cliente.movil or cliente.telefono or 'N/A'}", styles['DetailText'])],
+        [Paragraph(f"<b>Email Cliente:</b> {cliente.email or 'N/A'}", styles['DetailText']),
          Paragraph(f"<b>SINPE:</b> {factura.sinpe}", styles['DetailText'])],
     ]
     invoice_details_table = Table(invoice_details_data, colWidths=[4 * inch, 3 * inch])
@@ -1840,54 +1835,48 @@ def exportar_factura_pdf(id):
     story.append(invoice_details_table)
     story.append(Spacer(1, 0.3 * inch))
 
-    # --- Descripción y Conceptos ---
-    story.append(Paragraph("Detalles de Conceptos", styles['SectionHeader']))
-    
+    # --- Detalles de Conceptos ---
     table_data = []
     table_data.append([
         Paragraph("<b>Concepto</b>", styles['SectionHeader']),
         Paragraph("<b>Monto</b>", styles['SectionHeader'])
     ])
 
-    # Descripción principal
     if factura.descripcion:
         table_data.append([
             Paragraph(f"Descripción General: {factura.descripcion}", styles['TableBodyText']),
-            Paragraph("N/A", styles['TableBodyText']) # No hay monto directo para la descripción general
+            Paragraph("N/A", styles['TableBodyText'])
         ])
 
-    # Detalles de actividad si existen
     if factura.tipo_actividad or factura.nombre_actividad_etapa or factura.costo_actividad:
         concept_detail = f"Tipo de Actividad: {factura.tipo_actividad}"
         if factura.nombre_actividad_etapa:
             concept_detail += f" - {factura.nombre_actividad_etapa}"
-        
+
         costo = float(factura.costo_actividad) if factura.costo_actividad is not None else 0.00
         table_data.append([
             Paragraph(concept_detail, styles['TableBodyText']),
-            Paragraph(f"₡{costo:,.2f}", styles['TableBodyText'])
+            Paragraph(f"¢{costo:,.2f}", styles['TableBodyText'])
         ])
 
-    # Otras descripciones si existen
     if factura.otras_descripcion:
         table_data.append([
             Paragraph(f"Otras Descripciones: {factura.otras_descripcion}", styles['TableBodyText']),
             Paragraph("N/A", styles['TableBodyText'])
         ])
 
-    # Monto total facturado como un ítem de la tabla
     monto_total_float = float(factura.monto_total) if factura.monto_total is not None else 0.00
     impuesto_monto_float = float(factura.impuesto_monto) if factura.impuesto_monto is not None else 0.00
-    
+
     subtotal_calculado = monto_total_float - impuesto_monto_float
 
     table_data.append([
         Paragraph("Subtotal del servicio/producto:", styles['TableTotalText']),
-        Paragraph(f"₡{subtotal_calculado:,.2f}", styles['TableTotalText'])
+        Paragraph(f"¢{subtotal_calculado:,.2f}", styles['TableTotalText'])
     ])
     table_data.append([
         Paragraph("Monto de Impuesto:", styles['TableTotalText']),
-        Paragraph(f"₡{impuesto_monto_float:,.2f}", styles['TableTotalText'])
+        Paragraph(f"¢{impuesto_monto_float:,.2f}", styles['TableTotalText'])
     ])
 
     col_widths_concepts = [5.5 * inch, 2 * inch]
@@ -1904,14 +1893,13 @@ def exportar_factura_pdf(id):
         ('RIGHTPADDING', (0,0), (-1,-1), 6),
         ('TOPPADDING', (0,0), (-1,-1), 6),
         ('BOTTOMPADDING', (0,0), (-1,-1), 6),
-        ('SPAN', (0, -2), (0, -1)), # Span "Subtotal" y "Monto de Impuesto"
+        ('SPAN', (0, -2), (0, -1)),
     ]))
     story.append(concepts_table)
     story.append(Spacer(1, 0.2 * inch))
 
-    # --- Total Final ---
     total_final_data = [
-        [Paragraph("TOTAL (con Impuestos):", styles['TableTotalText']), Paragraph(f"₡{monto_total_float:,.2f}", styles['TableTotalText'])]
+        [Paragraph("TOTAL (con Impuestos):", styles['TableTotalText']), Paragraph(f"¢{monto_total_float:,.2f}", styles['TableTotalText'])]
     ]
     total_final_table = Table(total_final_data, colWidths=[5.5 * inch, 2 * inch])
     total_final_table.setStyle(TableStyle([
@@ -1924,31 +1912,35 @@ def exportar_factura_pdf(id):
     story.append(total_final_table)
     story.append(Spacer(1, 0.5 * inch))
 
-    # --- Información de Pago ---
     story.append(Paragraph("<b>Información de Pago:</b>", styles['SectionHeader']))
     story.append(Paragraph(f"SINPE Móvil: {factura.sinpe}", styles['DetailText']))
     story.append(Spacer(1, 0.5 * inch))
 
-    # --- Pie de Página ---
     story.append(Paragraph("<i>¡Gracias por tu preferencia!</i>", styles['FooterText']))
     story.append(Paragraph(f"{title_text} generada el: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['FooterText']))
 
     doc.build(story)
-    buffer.seek(0) # <<< ¡CORRECCIÓN APLICADA AQUÍ!
-    
+    buffer.seek(0)
+
     filename = f"{title_text.lower()}_{factura.numero_factura}.pdf"
     return send_file(buffer, as_attachment=True, download_name=filename, mimetype='application/pdf')
+
+
 @app.route('/exportar_factura_jpg/<int:id>')
 @login_required
 def exportar_factura_jpg(id):
+    # OBTENER LA FACTURA Y EL CLIENTE REALES DE LA BASE DE DATOS
     factura = Factura.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+    # MODIFICACIÓN CLAVE: Usar Contacto.query en lugar de Cliente.query
+    cliente = Contacto.query.get_or_404(factura.cliente_id) 
 
-    # Primero, generar el PDF en memoria (lógica similar a exportar_factura_pdf)
+    # NO HAY CÓDIGO DUMMY AQUÍ. Todo usa 'factura' y 'cliente' REALES.
+
     pdf_buffer = BytesIO()
     doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
     styles = getSampleStyleSheet()
 
-    # Estilos personalizados para la factura (duplicados para independencia)
+    # Estilos personalizados para la factura (estos son los que me proporcionaste y están bien)
     styles.add(ParagraphStyle(name='CompanyHeader', fontSize=12, leading=14, alignment=TA_CENTER, spaceAfter=6))
     styles.add(ParagraphStyle(name='InvoiceTitle', fontSize=28, leading=32, alignment=TA_CENTER, spaceAfter=20, fontName='Helvetica-Bold'))
     styles.add(ParagraphStyle(name='SectionHeader', fontSize=14, leading=16, spaceBefore=12, spaceAfter=6, fontName='Helvetica-Bold', textColor=colors.HexColor('#007bff')))
@@ -1959,26 +1951,27 @@ def exportar_factura_jpg(id):
 
     story = []
 
-    # --- Encabezado de la Empresa (Placeholder) ---
+    # --- Encabezado de la Empresa ---
     story.append(Paragraph("<b>La Tribu Hiking</b>", styles['CompanyHeader']))
     story.append(Paragraph("Dirección: San Diego, La Unión, Cartago, Costa Rica", styles['CompanyHeader']))
     story.append(Paragraph("Teléfono: +506-86227500 | Email: lthikingcr@gmail.com", styles['CompanyHeader']))
     story.append(Spacer(1, 0.4 * inch))
 
     # --- Título de la Factura/Cotización ---
-    title_text = "FACTURA" if factura.interes == 'Factura' else "COTIZACIÓN"
+    title_text = "FACTURA" 
     story.append(Paragraph(title_text, styles['InvoiceTitle']))
     story.append(Spacer(1, 0.3 * inch))
 
     # --- Detalles de la Factura y del Cliente ---
+    # SE USAN LOS OBJETOS 'factura' y 'cliente' REALES AQUÍ
     invoice_details_data = [
         [Paragraph(f"<b>Número de {title_text}:</b> {factura.numero_factura}", styles['DetailText']),
          Paragraph(f"<b>Fecha de Creación:</b> {factura.fecha_registro.strftime('%d-%m-%Y %H:%M')}", styles['DetailText'])],
         [Paragraph(f"<b>Fecha de Emisión:</b> {factura.fecha_emision.strftime('%d-%m-%Y')}", styles['DetailText']),
          Paragraph(f"<b>Realizado por:</b> {factura.realizado_por}", styles['DetailText'])],
-        [Paragraph(f"<b>Cliente:</b> {factura.cliente.nombre} {factura.cliente.primer_apellido or ''} {factura.cliente.segundo_apellido or ''}", styles['DetailText']),
-         Paragraph(f"<b>Teléfono Cliente:</b> {factura.cliente.movil or factura.cliente.telefono or 'N/A'}", styles['DetailText'])],
-        [Paragraph(f"<b>Email Cliente:</b> {factura.cliente.email or 'N/A'}", styles['DetailText']),
+        [Paragraph(f"<b>Caminante:</b> {cliente.nombre} {cliente.primer_apellido or ''} {cliente.segundo_apellido or ''}", styles['DetailText']),
+         Paragraph(f"<b>Teléfono Caminante:</b> {cliente.movil or cliente.telefono or 'N/A'}", styles['DetailText'])],
+        [Paragraph(f"<b>Email Caminante:</b> {cliente.email or 'N/A'}", styles['DetailText']),
          Paragraph(f"<b>SINPE:</b> {factura.sinpe}", styles['DetailText'])],
     ]
     invoice_details_table = Table(invoice_details_data, colWidths=[4 * inch, 3 * inch])
@@ -1990,54 +1983,48 @@ def exportar_factura_jpg(id):
     story.append(invoice_details_table)
     story.append(Spacer(1, 0.3 * inch))
 
-    # --- Descripción y Conceptos ---
-    story.append(Paragraph("Detalles de Conceptos", styles['SectionHeader']))
-    
+    # --- Detalles de Conceptos ---
     table_data = []
     table_data.append([
         Paragraph("<b>Concepto</b>", styles['SectionHeader']),
         Paragraph("<b>Monto</b>", styles['SectionHeader'])
     ])
 
-    # Descripción principal
     if factura.descripcion:
         table_data.append([
             Paragraph(f"Descripción General: {factura.descripcion}", styles['TableBodyText']),
             Paragraph("N/A", styles['TableBodyText'])
         ])
 
-    # Detalles de actividad si existen
     if factura.tipo_actividad or factura.nombre_actividad_etapa or factura.costo_actividad:
         concept_detail = f"Tipo de Actividad: {factura.tipo_actividad}"
         if factura.nombre_actividad_etapa:
             concept_detail += f" - {factura.nombre_actividad_etapa}"
-        
+
         costo = float(factura.costo_actividad) if factura.costo_actividad is not None else 0.00
         table_data.append([
             Paragraph(concept_detail, styles['TableBodyText']),
-            Paragraph(f"₡{costo:,.2f}", styles['TableBodyText'])
+            Paragraph(f"¢{costo:,.2f}", styles['TableBodyText'])
         ])
 
-    # Otras descripciones si existen
     if factura.otras_descripcion:
         table_data.append([
             Paragraph(f"Otras Descripciones: {factura.otras_descripcion}", styles['TableBodyText']),
             Paragraph("N/A", styles['TableBodyText'])
         ])
 
-    # Monto total facturado como un ítem de la tabla
     monto_total_float = float(factura.monto_total) if factura.monto_total is not None else 0.00
     impuesto_monto_float = float(factura.impuesto_monto) if factura.impuesto_monto is not None else 0.00
-    
+
     subtotal_calculado = monto_total_float - impuesto_monto_float
 
     table_data.append([
         Paragraph("Subtotal del servicio/producto:", styles['TableTotalText']),
-        Paragraph(f"₡{subtotal_calculado:,.2f}", styles['TableTotalText'])
+        Paragraph(f"¢{subtotal_calculado:,.2f}", styles['TableTotalText'])
     ])
     table_data.append([
         Paragraph("Monto de Impuesto:", styles['TableTotalText']),
-        Paragraph(f"₡{impuesto_monto_float:,.2f}", styles['TableTotalText'])
+        Paragraph(f"¢{impuesto_monto_float:,.2f}", styles['TableTotalText'])
     ])
 
     col_widths_concepts = [5.5 * inch, 2 * inch]
@@ -2054,14 +2041,13 @@ def exportar_factura_jpg(id):
         ('RIGHTPADDING', (0,0), (-1,-1), 6),
         ('TOPPADDING', (0,0), (-1,-1), 6),
         ('BOTTOMPADDING', (0,0), (-1,-1), 6),
-        ('SPAN', (0, -2), (0, -1)), # Span "Subtotal" y "Monto de Impuesto"
+        ('SPAN', (0, -2), (0, -1)),
     ]))
     story.append(concepts_table)
     story.append(Spacer(1, 0.2 * inch))
 
-    # --- Total Final ---
     total_final_data = [
-        [Paragraph("TOTAL (con Impuestos):", styles['TableTotalText']), Paragraph(f"₡{monto_total_float:,.2f}", styles['TableTotalText'])]
+        [Paragraph("TOTAL (con Impuestos):", styles['TableTotalText']), Paragraph(f"¢{monto_total_float:,.2f}", styles['TableTotalText'])]
     ]
     total_final_table = Table(total_final_data, colWidths=[5.5 * inch, 2 * inch])
     total_final_table.setStyle(TableStyle([
@@ -2074,41 +2060,50 @@ def exportar_factura_jpg(id):
     story.append(total_final_table)
     story.append(Spacer(1, 0.5 * inch))
 
-    # --- Información de Pago ---
     story.append(Paragraph("<b>Información de Pago:</b>", styles['SectionHeader']))
     story.append(Paragraph(f"SINPE Móvil: {factura.sinpe}", styles['DetailText']))
     story.append(Spacer(1, 0.5 * inch))
 
-    # --- Pie de Página ---
     story.append(Paragraph("<i>¡Gracias por tu preferencia!</i>", styles['FooterText']))
     story.append(Paragraph(f"{title_text} generada el: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['FooterText']))
 
     doc.build(story)
     pdf_buffer.seek(0)
 
-    # Convertir el PDF a JPG usando PyMuPDF y Pillow
     try:
         doc_pdf = fitz.open(stream=pdf_buffer.read(), filetype="pdf")
-        page = doc_pdf.load_page(0)  # Cargar la primera página
-        
-        # Aumentar la resolución para mejor calidad JPG (ej. 2x)
+        page = doc_pdf.load_page(0) 
+
         zoom = 2
         mat = fitz.Matrix(zoom, zoom)
         pix = page.get_pixmap(matrix=mat)
-        
+
         img_buffer = BytesIO()
-        # 'RGB' para asegurar compatibilidad con JPG, ya que pixmap puede ser RGBA
         img = PILImage.frombytes("RGB", [pix.width, pix.height], pix.samples) 
         img.save(img_buffer, "JPEG", quality=90) # Ajustar calidad si es necesario
         img_buffer.seek(0)
         doc_pdf.close()
-        
+
         filename = f"{title_text.lower()}_{factura.numero_factura}.jpg"
         return send_file(img_buffer, as_attachment=True, download_name=filename, mimetype='image/jpeg')
     except Exception as e:
         flash(f"Error al convertir PDF a JPG: {e}. Asegúrese de tener PyMuPDF (fitz) y Pillow instalados.", "danger")
         print(f"Error al convertir PDF a JPG: {e}")
         return redirect(url_for('ver_detalle_factura', id=id))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == '__main__':
